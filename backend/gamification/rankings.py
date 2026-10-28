@@ -18,6 +18,8 @@ from django.db.models import Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
+from moderation.models import Sanction
+
 from .models import PointTransaction
 
 User = get_user_model()
@@ -86,14 +88,22 @@ class Entry:
     points: int
 
 
+def excluded_ids(now=None):
+    """Membres exclus des classements par une sanction en cours."""
+    return Sanction.objects.filter(
+        kind=Sanction.Kind.LEADERBOARD_BAN, lifted_at=None, ends_at__gt=now or timezone.now()
+    ).values("user_id")
+
+
 def ranked_users():
-    """Présents dans les classements : membres actifs qui n'ont pas masqué leur présence."""
+    """Présents dans les classements : membres actifs, sans exclusion en cours, qui
+    n'ont pas masqué leur présence."""
     return User.objects.filter(
         is_active=True,
         status=User.Status.ACTIVE,
         trust_level__gte=User.TrustLevel.MEMBER,
         leaderboard_visible=True,
-    )
+    ).exclude(pk__in=excluded_ids())
 
 
 def points_by_user(*, week=None, level=None):
@@ -145,8 +155,8 @@ def absence_reason(user, *, week=None, where=""):
     """Pourquoi `user` n'apparaît pas dans un classement. `where` : « en MP »…"""
     if not user.leaderboard_visible:
         return "Tu as masqué ta présence dans les classements."
-    if user.status != User.Status.ACTIVE:
-        return "Ton compte n'apparaît pas dans les classements pendant une restriction."
+    if user.status != User.Status.ACTIVE or excluded_ids().filter(user_id=user.pk).exists():
+        return "Ton compte n'apparaît pas dans les classements pendant une sanction en cours."
     if user.trust_level < User.TrustLevel.MEMBER:
         return "Les classements s'ouvrent au niveau Membre : 7 jours d'ancienneté et 30 points."
     if week is None:

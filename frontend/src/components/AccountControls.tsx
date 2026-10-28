@@ -35,6 +35,19 @@ export function MobileMenu({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Menu du compte, sur ordinateur. Il se referme lui aussi à chaque changement de page. */
+export function AccountMenu({ label, children }: { label: string; children: React.ReactNode }) {
+  const pathname = usePathname();
+  return (
+    <details key={pathname} className="plain relative">
+      <summary className="whitespace-nowrap text-mute hover:text-ink">{label} ▾</summary>
+      <div className="absolute right-0 top-full z-10 mt-4 flex w-56 flex-col border border-hairline bg-canvas py-2 font-normal [&>*]:px-4 [&>*]:py-2 [&>*]:text-left">
+        {children}
+      </div>
+    </details>
+  );
+}
+
 /** Masquer ou réafficher sa présence dans les classements. */
 export function LeaderboardVisibility({ visible }: { visible: boolean }) {
   const router = useRouter();

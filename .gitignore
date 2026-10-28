@@ -17,6 +17,7 @@ next-env.d.ts
 # Environnement
 .env
 .env.local
+.env.prod
 .claude/settings.local.json
 
 # Système

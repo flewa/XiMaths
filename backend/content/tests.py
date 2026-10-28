@@ -53,10 +53,12 @@ class ContentTestCase(TestCase):
         return publish_exercise(exercise)
 
     def publish(self, *, author=None, ai_usage=Solution.AiUsage.NONE, exercise=None):
+        author = author or self.student
+        # Un texte propre à chaque auteur : deux copies identiques seraient mises en vérification.
         solution = Solution.objects.create(
             exercise=exercise or self.exercise,
-            author=author or self.student,
-            body="Comparaison avec $1/(n(n-1))$.",
+            author=author,
+            body=f"Preuve de {author.username} : on compare avec $1/(n(n-1))$, selon {author.username}.",
             ai_usage=ai_usage,
         )
         return publish_solution(solution, rng=random.Random(0))
@@ -342,3 +344,14 @@ class VoteTests(ContentTestCase):
     def test_nobody_votes_for_themselves(self):
         with self.assertRaises(PermissionDenied):
             cast_vote(self.author, exercise=self.exercise)
+
+
+class SitemapTests(ContentTestCase):
+    def test_the_sitemap_lists_published_exercises_only(self):
+        draft = Exercise.objects.create(
+            author=self.author, title="Brouillon", statement="Énoncé.", difficulty_declared=1,
+            primary_level=self.exercise.primary_level,
+        )
+        ids = [entry["id"] for entry in self.client.get("/api/sitemap").json()]
+        self.assertIn(self.exercise.pk, ids)
+        self.assertNotIn(draft.pk, ids)

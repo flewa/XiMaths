@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { ApiUnavailable } from "@/components/ExerciseMeta";
+import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { Tag } from "@/components/Tag";
 import { fetchMyReports } from "@/lib/api";
 import { dateFormat } from "@/lib/labels";
@@ -14,7 +14,7 @@ export default async function MyReportsPage() {
   try {
     reports = await fetchMyReports();
   } catch (error) {
-    console.error(error);
+    logApiError(error);
     return <ApiUnavailable />;
   }
   if (!reports) redirect("/connexion?suivant=/signalements");

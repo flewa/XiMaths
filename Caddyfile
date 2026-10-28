@@ -1,0 +1,15 @@
+# Proxy HTTPS de production : certificat automatique pour {$SITE_DOMAIN}.
+# L'API, l'admin des modérateurs et ses fichiers statiques vont à Django ; le reste au front.
+# Une même origine pour tout : le cookie de session et le jeton CSRF marchent sans CORS.
+{$SITE_DOMAIN} {
+	encode zstd gzip
+
+	@django path /api/* /admin /admin/* /static/*
+	handle @django {
+		reverse_proxy backend:8000
+	}
+
+	handle {
+		reverse_proxy frontend:3000
+	}
+}

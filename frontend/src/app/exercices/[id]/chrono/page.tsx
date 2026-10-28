@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-import { ApiUnavailable } from "@/components/ExerciseMeta";
+import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { FormMessage } from "@/components/Form";
 import { TrainingStart } from "@/components/Training";
 import { fetchExercise, fetchMe, fetchTrainingOptions } from "@/lib/api";
@@ -25,7 +25,7 @@ export default async function TrainingRulesPage({ params }: Props) {
   try {
     data = await Promise.all([fetchMe(), fetchExercise(id), fetchTrainingOptions(id)]);
   } catch (error) {
-    console.error(error);
+    logApiError(error);
     return <ApiUnavailable />;
   }
   const [me, exercise, options] = data;

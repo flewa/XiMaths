@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core import mail
 from django.core.cache import cache
 from django.test import Client, TestCase
+from django.utils import timezone
 
 User = get_user_model()
 PASSWORD = "une-phrase-solide"
@@ -82,10 +83,14 @@ class AuthApiTests(TestCase):
         response = post(self.client, "/api/auth/login", {"login": "yanis", "password": "faux"})
         self.assertEqual(response.status_code, 401)
 
-    def test_a_suspended_account_cannot_log_in(self):
-        User.objects.create_user("yanis", "yanis@example.com", PASSWORD, status="suspended")
+    def test_a_suspended_account_logs_in_to_appeal_but_cannot_contribute(self):
+        User.objects.create_user(
+            "yanis", "yanis@example.com", PASSWORD, status="suspended", email_verified_at=timezone.now()
+        )
         response = post(self.client, "/api/auth/login", {"login": "yanis", "password": PASSWORD})
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200)
+        refused = post(self.client, "/api/exercises", {"title": "Titre", "statement": "Énoncé assez long.", "difficulty": 1, "primary_level": "L1"})
+        self.assertEqual(refused.status_code, 403)
 
     def test_logout_ends_the_session(self):
         self.signup()

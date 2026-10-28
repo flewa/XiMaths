@@ -2,36 +2,47 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { ReviewForm } from "@/components/ContributionForms";
-import { ApiUnavailable } from "@/components/ExerciseMeta";
+import { ReviewForm, VolunteerButton } from "@/components/ContributionForms";
+import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { MathMarkdown } from "@/components/MathMarkdown";
+import { ProseSection } from "@/components/Prose";
 import { Tag } from "@/components/Tag";
-import { fetchMe, fetchReviewTasks } from "@/lib/api";
-import { AI_USAGE_BADGES } from "@/lib/labels";
+import { fetchMe, fetchOpenSolutions, fetchReviewTasks } from "@/lib/api";
+import { AI_USAGE_BADGES, dateFormat } from "@/lib/labels";
 
-export const metadata: Metadata = { title: "Relectures" };
+export const metadata: Metadata = { title: "Relectures", robots: { index: false } };
 
 // Niveau de confiance à partir duquel on est tiré au sort pour relire.
 const REVIEWER_TRUST_LEVEL = 2;
+// Niveau Expert : il tranche les solutions contestées.
+const EXPERT_TRUST_LEVEL = 3;
 
 export default async function ReviewsPage() {
   let data;
   try {
-    data = await Promise.all([fetchMe(), fetchReviewTasks()]);
+    data = await Promise.all([fetchMe(), fetchReviewTasks(), fetchOpenSolutions()]);
   } catch (error) {
-    console.error(error);
+    logApiError(error);
     return <ApiUnavailable />;
   }
-  const [me, tasks] = data;
+  const [me, tasks, open] = data;
   if (!me) redirect("/connexion?suivant=/relectures");
 
   return (
     <>
       <h1>Relectures</h1>
       <p className="mt-2 text-body">
-        Tu as été tiré au sort pour relire ces solutions. L&apos;auteur reste anonyme et tu ne vois
-        pas les autres verdicts avant d&apos;avoir rendu le tien.
+        L&apos;auteur reste anonyme et tu ne vois pas les autres verdicts avant d&apos;avoir rendu le
+        tien. Une relecture tirée au sort est à rendre sous 72 heures ; au-delà, elle est confiée à
+        quelqu&apos;un d&apos;autre, sans pénalité.
       </p>
+      {me.trust_level >= EXPERT_TRUST_LEVEL && (
+        <p className="mt-2">
+          <Link href="/arbitrages" className="underline underline-offset-4">
+            [⚖] Solutions contestées à trancher
+          </Link>
+        </p>
+      )}
 
       {tasks.length === 0 ? (
         <p className="mt-8 text-mute">
@@ -64,6 +75,35 @@ export default async function ReviewsPage() {
             </article>
           );
         })
+      )}
+
+      {me.trust_level >= REVIEWER_TRUST_LEVEL && (
+        <ProseSection title="Relire spontanément">
+          <p>
+            D&apos;autres solutions attendent leurs relecteurs. Une relecture spontanée compte pour moitié
+            dans la décision.
+          </p>
+          {open.length === 0 ? (
+            <p className="text-mute">Aucune pour l&apos;instant.</p>
+          ) : (
+            <ul className="divide-y divide-hairline border-y border-hairline">
+              {open.map((item) => (
+                <li key={item.solution_id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                  <span>
+                    <span className="text-mute">[{item.primary_level}] </span>
+                    {item.exercise_title}
+                    {item.published_at && (
+                      <span className="block text-sm text-mute">
+                        envoyée le {dateFormat.format(new Date(item.published_at))}
+                      </span>
+                    )}
+                  </span>
+                  <VolunteerButton solutionId={item.solution_id} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </ProseSection>
       )}
     </>
   );

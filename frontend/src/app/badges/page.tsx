@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { ApiUnavailable } from "@/components/ExerciseMeta";
+import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { Tag } from "@/components/Tag";
 import { fetchBadges, fetchMe } from "@/lib/api";
 import { dateFormat } from "@/lib/labels";
@@ -12,7 +12,7 @@ export default async function BadgesPage() {
   try {
     data = await Promise.all([fetchBadges(), fetchMe()]);
   } catch (error) {
-    console.error(error);
+    logApiError(error);
     return <ApiUnavailable />;
   }
   const [badges, me] = data;

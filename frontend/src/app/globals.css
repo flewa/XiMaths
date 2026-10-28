@@ -28,6 +28,51 @@
   --danger-text: #d70015;
 }
 
+/*
+ * Mode sombre, même style terminal : encre claire sur fond presque noir. La surface
+ * « sombre » (bloc d'accueil, chrono) descend d'un cran pour rester distincte.
+ * Il suit le système, sauf choix explicite (data-theme, posé depuis les réglages).
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #f1eeee;
+    --ink-deep: #ffffff;
+    --charcoal: #d9d4d4;
+    --body: #c9c4c4;
+    --mute: #a09d9d;
+    --stone: #8e8b8b;
+    --ash: #6e6b6b;
+    --canvas: #161313;
+    --surface-soft: #1d1a1a;
+    --surface-card: #262222;
+    --surface-dark: #0b0909;
+    --surface-dark-elevated: #201d1d;
+    --hairline: rgba(255, 240, 240, 0.14);
+    --hairline-strong: #a09d9d;
+    --on-dark: #fdfcfc;
+    --danger-text: #ff6961;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ink: #f1eeee;
+  --ink-deep: #ffffff;
+  --charcoal: #d9d4d4;
+  --body: #c9c4c4;
+  --mute: #a09d9d;
+  --stone: #8e8b8b;
+  --ash: #6e6b6b;
+  --canvas: #161313;
+  --surface-soft: #1d1a1a;
+  --surface-card: #262222;
+  --surface-dark: #0b0909;
+  --surface-dark-elevated: #201d1d;
+  --hairline: rgba(255, 240, 240, 0.14);
+  --hairline-strong: #a09d9d;
+  --on-dark: #fdfcfc;
+  --danger-text: #ff6961;
+}
+
 @theme inline {
   --color-ink: var(--ink);
   --color-ink-deep: var(--ink-deep);
@@ -53,6 +98,18 @@
 }
 
 @layer base {
+  html {
+    color-scheme: light dark;
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+  }
+
   body {
     background: var(--canvas);
     color: var(--ink);

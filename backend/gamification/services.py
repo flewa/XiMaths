@@ -6,6 +6,9 @@ from django.db import IntegrityError, transaction
 from django.db.models import Q, Sum
 from django.utils import timezone
 
+from notifications.models import Notification
+from notifications.services import notify
+
 from .models import PointTransaction
 from .scoring import (
     DAILY_COUNT_CAPS,
@@ -95,6 +98,14 @@ def promote_new_member(user, *, now=None):
     ):
         user.trust_level = user.TrustLevel.MEMBER
         user.save(update_fields=["trust_level"])
+        notify(
+            user,
+            Notification.Kind.PROMOTION,
+            "Tu es maintenant Membre",
+            "Tes votes comptent, et tu apparais dans les classements.",
+            "/classements",
+            now=now,
+        )
         return True
     return False
 
@@ -174,3 +185,36 @@ def apply_plagiarism(solution, *, now=None):
         level=solution.exercise.primary_level,
         now=now,
     )
+
+
+@transaction.atomic
+def restore_points_from(target, *, now=None):
+    """Appel accepté : rétablit les points annulés d'un contenu retiré, et lève la
+    pénalité de plagiat. Le ledger reste en ajout seul : on ajoute des écritures."""
+    source_type, source_id = source_key(target)
+    vote_ids = list(target.votes.values_list("pk", flat=True))
+    originals = Q(reverses__source_type=source_type, reverses__source_id=source_id) | Q(
+        reverses__source_type="content.vote", reverses__source_id__in=vote_ids
+    )
+    if source_type == "content.exercise" and target.author_id:
+        originals |= Q(
+            reverses__user_id=target.author_id,
+            reverses__reason=Reason.EXERCISE_SOLVED,
+            reverses__source_type="content.solution",
+            reverses__source_id__in=list(target.solutions.values_list("pk", flat=True)),
+        )
+    reversals = (
+        PointTransaction.objects.filter(reason=Reason.REVERSAL)
+        .filter(originals)
+        .exclude(reverses__reason=Reason.PLAGIARISM_PENALTY)
+    )
+    restored = [
+        award(txn.user, Reason.APPEAL_RESTORED, txn, amount=-txn.amount, level=txn.level, now=now)
+        for txn in reversals
+    ]
+    penalty = PointTransaction.objects.filter(
+        reason=Reason.PLAGIARISM_PENALTY, source_type=source_type, source_id=source_id, reversed_by__isnull=True
+    ).first()
+    if penalty:
+        restored.append(reverse(penalty, now=now))
+    return restored

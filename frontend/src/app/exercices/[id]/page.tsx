@@ -2,8 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 
-import { SolutionForm, VoteButton } from "@/components/ContributionForms";
-import { ApiUnavailable, Difficulty, LevelTags } from "@/components/ExerciseMeta";
+import {
+  IntegrityAnswer,
+  RecommendButton,
+  ReviseSolution,
+  SolutionForm,
+  VoteButton,
+} from "@/components/ContributionForms";
+import { ApiUnavailable, Difficulty, LevelTags, logApiError } from "@/components/ExerciseMeta";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { ReportButton } from "@/components/ReportButton";
 import { Tag } from "@/components/Tag";
@@ -11,12 +17,14 @@ import {
   fetchExercise,
   fetchMe,
   fetchMySolutions,
+  nullOnError,
   type ExerciseDetail,
   type Me,
   type MySolution,
   type Solution,
 } from "@/lib/api";
 import { AI_USAGE_BADGES, SOLUTION_STATUS_LABELS, dateFormat } from "@/lib/labels";
+import { excerpt } from "@/lib/seo";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -46,8 +54,17 @@ function Report({ me, author, ...target }: { me: Me | null; author: string | nul
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const exercise = await fetchExercise(id).catch(() => null);
-  return { title: exercise?.title ?? "Exercice" };
+  const exercise = await fetchExercise(id).catch(nullOnError);
+  if (!exercise) return { title: "Exercice" };
+  const description = excerpt(exercise.statement);
+  // Un doublon fusionné reste lisible, mais l'adresse de référence est celle du canonique.
+  const canonical = `/exercices/${exercise.merged_into ?? exercise.id}`;
+  return {
+    title: exercise.title,
+    description,
+    alternates: { canonical },
+    openGraph: { title: exercise.title, description, type: "article", url: canonical },
+  };
 }
 
 export default async function ExercisePage({ params }: Props) {
@@ -59,7 +76,7 @@ export default async function ExercisePage({ params }: Props) {
     [exercise, me] = await Promise.all([fetchExercise(id), fetchMe()]);
     if (exercise && me) mySolutions = await fetchMySolutions(exercise.id);
   } catch (error) {
-    console.error(error);
+    logApiError(error);
     return <ApiUnavailable />;
   }
   if (!exercise) notFound();
@@ -67,7 +84,10 @@ export default async function ExercisePage({ params }: Props) {
   if (exercise.merged_into) permanentRedirect(`/exercices/${exercise.merged_into}`);
 
   const count = exercise.solutions.length;
-  const pending = mySolutions.some((s) => s.status === "under_review" || s.status === "contested");
+  const pending = mySolutions.some((s) => ["held", "under_review", "contested"].includes(s.status));
+  // L'auteur de l'exercice peut recommander une solution validée, une seule fois.
+  const canRecommend =
+    me !== null && me.username === exercise.author && !exercise.solutions.some((s) => s.recommended);
 
   return (
     <article>
@@ -164,7 +184,7 @@ export default async function ExercisePage({ params }: Props) {
               Afficher les solutions <span className="font-normal text-mute">· essaie d&apos;abord !</span>
             </summary>
             {exercise.solutions.map((solution) => (
-              <SolutionCard key={solution.id} solution={solution} me={me} />
+              <SolutionCard key={solution.id} solution={solution} me={me} canRecommend={canRecommend} />
             ))}
           </details>
         )}
@@ -199,7 +219,7 @@ export default async function ExercisePage({ params }: Props) {
   );
 }
 
-function SolutionCard({ solution, me }: { solution: Solution; me: Me | null }) {
+function SolutionCard({ solution, me, canRecommend }: { solution: Solution; me: Me | null; canRecommend: boolean }) {
   const aiBadge = AI_USAGE_BADGES[solution.ai_usage];
   return (
     <article className="mt-3 border border-hairline px-4 py-3">
@@ -208,6 +228,7 @@ function SolutionCard({ solution, me }: { solution: Solution; me: Me | null }) {
         {solution.validated_at && (
           <span>validée le {dateFormat.format(new Date(solution.validated_at))}</span>
         )}
+        {solution.recommended && <Tag strong>recommandée par l&apos;auteur</Tag>}
         {aiBadge && <Tag>{aiBadge}</Tag>}
         <VoteButton
           path={`/solutions/${solution.id}/vote`}
@@ -215,8 +236,15 @@ function SolutionCard({ solution, me }: { solution: Solution; me: Me | null }) {
           disabledReason={voteBlocker(me, solution.author)}
         />
       </p>
+      {solution.variant_statement && (
+        <div className="mt-3 border-l-2 border-hairline-strong bg-surface-soft px-4 text-sm">
+          <p className="pt-2 text-mute">Défi du jour · énoncé tiré pour cette solution</p>
+          <MathMarkdown>{solution.variant_statement}</MathMarkdown>
+        </div>
+      )}
       <MathMarkdown>{solution.body}</MathMarkdown>
-      <div className="mb-1 flex justify-end">
+      <div className="mb-1 flex flex-wrap justify-end gap-x-6">
+        {canRecommend && solution.author !== me?.username && <RecommendButton solutionId={solution.id} />}
         <Report me={me} author={solution.author} target="solution" targetId={solution.id} />
       </div>
     </article>
@@ -238,6 +266,12 @@ function MySolutionCard({ solution }: { solution: MySolution }) {
         <summary className="text-sm text-mute">Relire ma solution</summary>
         <MathMarkdown>{solution.body}</MathMarkdown>
       </details>
+      {solution.integrity_question && solution.integrity_signal_id && (
+        <div className="mt-3 border-l-2 border-hairline-strong pl-3">
+          <p className="text-body">[?] {solution.integrity_question}</p>
+          <IntegrityAnswer signalId={solution.integrity_signal_id} initial={solution.integrity_answer} />
+        </div>
+      )}
       {solution.feedback.length > 0 && (
         <div className="mt-3 text-sm">
           <p className="font-medium">Retours des relecteurs</p>
@@ -250,6 +284,9 @@ function MySolutionCard({ solution }: { solution: MySolution }) {
             ))}
           </ul>
         </div>
+      )}
+      {(solution.status === "needs_work" || solution.status === "validated") && (
+        <ReviseSolution solutionId={solution.id} body={solution.body} validated={solution.status === "validated"} />
       )}
     </article>
   );

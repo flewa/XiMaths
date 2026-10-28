@@ -1,3 +1,5 @@
+import { unstable_rethrow } from "next/navigation";
+
 export function Difficulty({ value }: { value: number }) {
   return (
     <span aria-label={`Difficulté ${value} sur 5`} title={`Difficulté ${value} sur 5`}>
@@ -11,6 +13,13 @@ export function Difficulty({ value }: { value: number }) {
 
 export function LevelTags({ levels }: { levels: string[] }) {
   return <span className="font-medium text-ink">[{levels.join(" ")}]</span>;
+}
+
+/** À appeler dans le catch d'une page : laisse remonter les signaux internes de Next
+ * (rendu dynamique, redirection), puis consigne la vraie erreur. */
+export function logApiError(error: unknown) {
+  unstable_rethrow(error);
+  console.error(error);
 }
 
 export function ApiUnavailable() {

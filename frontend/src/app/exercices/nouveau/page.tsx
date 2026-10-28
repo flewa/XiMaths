@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-import { ApiUnavailable } from "@/components/ExerciseMeta";
+import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { ExerciseForm } from "@/components/ExerciseForm";
 import { FormMessage } from "@/components/Form";
 import { fetchLevels, fetchMe, fetchTopics } from "@/lib/api";
@@ -13,7 +13,7 @@ export default async function NewExercisePage() {
   try {
     data = await Promise.all([fetchMe(), fetchLevels(), fetchTopics()]);
   } catch (error) {
-    console.error(error);
+    logApiError(error);
     return <ApiUnavailable />;
   }
   const [me, levels, topics] = data;

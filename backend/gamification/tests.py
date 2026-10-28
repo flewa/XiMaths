@@ -409,7 +409,7 @@ class BadgeTests(ContentTestCase):
         self.assertEqual(check_badges(self.student), [])
 
         catalog = self.client.get("/api/badges").json()
-        self.assertEqual(len(catalog), 8)
+        self.assertEqual(len(catalog), 12)  # les 12 badges du document, Sous pression et Régulier compris
         self.assertTrue(all(badge["available"] for badge in catalog))
         profile = self.client.get(f"/api/members/{self.student.username}").json()
         self.assertEqual({b["name"] for b in profile["badges"]}, {"Premier pas", "Validé !"})

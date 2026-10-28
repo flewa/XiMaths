@@ -28,6 +28,7 @@ export const AI_USAGE_BADGES: Record<AiUsage, string | null> = {
 };
 
 export const SOLUTION_STATUS_LABELS: Record<SolutionStatus, string> = {
+  held: "En vérification",
   under_review: "En relecture par des pairs",
   contested: "Avis partagés : un expert tranche",
   validated: "Validée",
@@ -52,4 +53,10 @@ export function weekRange(start: string, end: string) {
   return month(from) === month(to)
     ? `du ${day(from)} au ${day(to)} ${month(to)}`
     : `du ${day(from)} ${month(from)} au ${day(to)} ${month(to)}`;
+}
+
+/** Barre de progression façon terminal : « [######----] ». Pleine au-delà de la cible. */
+export function progressBar(done: number, target: number, width = 20) {
+  const filled = target > 0 ? Math.min(width, Math.round((done / target) * width)) : 0;
+  return `[${"#".repeat(filled)}${"-".repeat(width - filled)}]`;
 }

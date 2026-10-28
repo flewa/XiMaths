@@ -12,14 +12,19 @@ from django.utils import timezone
 
 from content.models import Exercise, Review, Solution
 from moderation.models import Report
+from notifications.models import Notification
+from notifications.services import notify
+from training.models import TimedSession
 
-from .models import PointTransaction, UserBadge
+from .models import PointTransaction, UserBadge, WeeklyStreak
 
 AUTHOR_SOLVERS = 5
 RELIABLE_REVIEWS = 25
 RELIABLE_AGREEMENT = 0.85
 ALL_ROUNDER_TOPICS = 5
 ELEGANCE_VOTES = 20
+UNDER_PRESSURE_CHALLENGES = 5
+REGULAR_WEEKS = {"bronze": 4, "argent": 12, "or": 30}
 
 
 @dataclass(frozen=True)
@@ -95,6 +100,22 @@ def _duplicate_hunter(user):
     ).exists()
 
 
+def _under_pressure(user):
+    return (
+        TimedSession.objects.filter(
+            user=user, challenge__isnull=False, solution__status=Solution.Status.VALIDATED
+        ).count()
+        >= UNDER_PRESSURE_CHALLENGES
+    )
+
+
+def _regular(weeks):
+    def earned(user):
+        return WeeklyStreak.objects.filter(user=user, status=WeeklyStreak.Status.ACHIEVED).count() >= weeks
+
+    return earned
+
+
 BADGES = [
     Badge("premier-pas", "Premier pas", "Proposer ta première solution.", _first_step),
     Badge("valide", "Validé !", "Obtenir ta première solution validée par les pairs.", _validated),
@@ -130,6 +151,21 @@ BADGES = [
         "Signaler un doublon confirmé par la modération.",
         _duplicate_hunter,
     ),
+    Badge(
+        "sous-pression",
+        "Sous pression",
+        f"Faire valider la justification de {UNDER_PRESSURE_CHALLENGES} défis du jour.",
+        _under_pressure,
+    ),
+    *(
+        Badge(
+            f"regulier-{tier}",
+            f"Régulier · {tier}",
+            f"Atteindre ton objectif hebdomadaire {weeks} semaines.",
+            _regular(weeks),
+        )
+        for tier, weeks in REGULAR_WEEKS.items()
+    ),
 ]
 BADGES_BY_SLUG = {badge.slug: badge for badge in BADGES}
 
@@ -145,4 +181,13 @@ def check_badges(user, *, now=None):
         [UserBadge(user=user, badge=badge.slug, awarded_at=now) for badge in new],
         ignore_conflicts=True,
     )
+    for badge in new:
+        notify(
+            user,
+            Notification.Kind.BADGE,
+            f"Nouveau badge : {badge.name}",
+            badge.criterion,
+            f"/membres/{user.username}",
+            now=now,
+        )
     return new

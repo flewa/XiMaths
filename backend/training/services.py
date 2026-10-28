@@ -9,6 +9,9 @@ Règles du document de conception :
 - à l'échéance, la dernière version est rendue, avec 60 s de grâce pour le réseau ;
 - au rendu : réponse finale vérifiée par SymPy, justification en relecture par les
   pairs, solutions débloquées, temps comparé à la médiane, auto-évaluation de 1 à 5.
+
+Le défi du jour (challenges.py) passe par les mêmes sessions, avec ses propres règles :
+le chrono compte depuis le départ, sans pause, et la session rapporte des points.
 """
 
 import statistics
@@ -20,16 +23,20 @@ from django.utils import timezone
 from config.errors import RuleError
 from content.models import Exercise, Solution
 from content.services import publish_solution
+from gamification.badges import check_badges
+from gamification.models import PointTransaction
+from gamification.services import award
+from moderation.comprehension import points_on_hold
 
+from . import challenges
 from .answers import check_answer
-from .models import TimedSession
+from .models import EXTRA_TIME_FACTOR, TimedSession
 
 Status = TimedSession.Status
 
 DURATIONS_MIN = (15, 30, 45, 60)
 # Temps conseillé selon la difficulté, de 1 à 5.
 RECOMMENDED_MIN = {1: 15, 2: 30, 3: 45, 4: 60, 5: 60}
-EXTRA_TIME_FACTOR = 1.33
 MAX_PAUSES = 2
 # Au-delà de 30 s sans signe de vie, l'onglet est considéré fermé : ce temps ne compte pas.
 HEARTBEAT_GAP = timedelta(seconds=30)
@@ -42,7 +49,11 @@ def recommended_minutes(exercise):
 
 
 def _tick(session, now):
-    """Ajoute au temps écoulé l'intervalle depuis le dernier signe de vie, s'il est court."""
+    """Ajoute au temps écoulé l'intervalle depuis le dernier signe de vie, s'il est court.
+    En défi, le chrono ne s'arrête jamais : le temps écoulé part du départ."""
+    if session.ranked:
+        session.elapsed_s = (now - session.started_at).total_seconds()
+        return
     if session.status == Status.RUNNING and session.last_tick_at is not None:
         gap = now - session.last_tick_at
         if gap <= HEARTBEAT_GAP:
@@ -52,6 +63,8 @@ def _tick(session, now):
 
 def remaining_s(session, now=None):
     """Secondes restantes, en comptant le temps depuis le dernier signe de vie."""
+    if session.ranked:
+        return session.limit_s - ((now or timezone.now()) - session.started_at).total_seconds()
     elapsed = session.elapsed_s
     if session.status == Status.RUNNING and session.last_tick_at is not None:
         gap = (now or timezone.now()) - session.last_tick_at
@@ -73,7 +86,7 @@ def start(user, exercise, *, minutes, now=None):
     if Solution.objects.filter(
         exercise=exercise,
         author=user,
-        status__in=[Solution.Status.UNDER_REVIEW, Solution.Status.CONTESTED],
+        status__in=[Solution.Status.HELD, Solution.Status.UNDER_REVIEW, Solution.Status.CONTESTED],
     ).exists():
         raise RuleError("Tu as déjà une solution en cours d'évaluation sur cet exercice.")
     now = now or timezone.now()
@@ -121,6 +134,8 @@ def pause(session, *, now=None):
     _require_open(session)
     if session.status == Status.PAUSED:
         return session
+    if session.ranked:
+        raise RuleError("Pas de pause pendant un défi : le chrono continue.")
     if session.pauses_used >= MAX_PAUSES:
         raise RuleError("Tu as utilisé tes deux pauses.")
     now = now or timezone.now()
@@ -153,21 +168,42 @@ def submit(session, *, draft, final_answer="", ai_usage=Solution.AiUsage.NONE, n
     session.draft = draft
     session.final_answer = final_answer.strip()
     session.answer_correct = (
-        check_answer(session.final_answer, session.exercise.final_answer) if session.final_answer else None
+        check_answer(session.final_answer, challenges.expected(session)) if session.final_answer else None
     )
     session.status = Status.SUBMITTED
     session.submitted_at = now
     session.last_tick_at = None
+    if session.ranked:
+        challenges.score(session)
+    # Enregistrée avant la publication : le score d'intégrité lit le temps et les collages.
+    session.save()
     if len(draft.strip()) >= MIN_SOLUTION_LENGTH:
         solution = Solution.objects.create(
             exercise=session.exercise,
             author=session.user,
             body=draft.strip(),
-            ai_usage=ai_usage,
-            origin=Solution.Origin.TRAINING,
+            # L'IA est interdite en défi.
+            ai_usage=Solution.AiUsage.NONE if session.ranked else ai_usage,
+            origin=Solution.Origin.DAILY if session.ranked else Solution.Origin.TRAINING,
+            variant_statement=challenges.statement(session) if session.ranked else "",
         )
-        session.solution = publish_solution(solution, now=now)
+        session.solution = solution
+        session.save(update_fields=["solution"])
+        publish_solution(solution, now=now)
+    if session.ranked:
+        # Une question de compréhension retient aussi les points de la réponse.
+        if session.answer_points and not (session.solution and points_on_hold(session.solution)):
+            award(
+                session.user,
+                PointTransaction.Reason.CHALLENGE_ANSWER,
+                session,
+                amount=session.answer_points,
+                level=session.exercise.primary_level,
+                now=now,
+            )
     session.save()
+    if session.ranked:
+        check_badges(session.user, now=now)
     return session
 
 
@@ -199,6 +235,21 @@ def rate(session, rating):
     exercise.difficulty_ratings = count + 1
     exercise.save(update_fields=["difficulty_estimated", "difficulty_ratings", "updated_at"])
     return session
+
+
+def close_expired(*, now=None):
+    """Défis dont l'échéance et la grâce sont passées sans rendu (onglet fermé) : la
+    dernière version sauvegardée est rendue. Renvoie leur nombre."""
+    now = now or timezone.now()
+    count = 0
+    running = TimedSession.objects.filter(status=Status.RUNNING, challenge__isnull=False).select_related(
+        "exercise", "challenge__template", "user"
+    )
+    for session in running:
+        if -remaining_s(session, now) > GRACE.total_seconds():
+            submit(session, draft=session.draft, final_answer=session.final_answer, now=now)
+            count += 1
+    return count
 
 
 def median_elapsed_s(exercise, *, exclude=None):

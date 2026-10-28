@@ -18,6 +18,8 @@ from accounts.permissions import is_moderator
 from config.errors import RuleError
 from content.models import Exercise, Solution
 from content.services import publish_exercise
+from notifications.models import Notification
+from notifications.services import notify
 
 from .embeddings import embed
 from .minhash import lsh_keys, signature, similarity
@@ -37,9 +39,12 @@ VERY_SIMILAR_SCORE = 0.88
 MAYBE_RELATED_SCORE = 0.80
 EMBEDDING_NEIGHBOURS = 20
 # s = 0,45 cos(E1) + 0,35 cos(E2) + 0,20 J(F). E2, l'embedding du résumé canonique
-# écrit par un LLM, n'existe pas au MVP : cos(E1) tient sa place. Renormaliser les
-# deux autres poids donnerait à E1 seul un maximum de 0,69, sous tous les seuils.
-WEIGHT_E1 = 0.45 + 0.35
+# écrit par un LLM, n'existe que si un LLM est configuré, et seulement pour les énoncés
+# publiés (le résumé est calculé par la tâche nocturne, pas pendant la rédaction).
+# Sans lui, cos(E1) tient sa place : renormaliser les deux autres poids donnerait à E1
+# seul un maximum de 0,69, sous tous les seuils.
+WEIGHT_E1 = 0.45
+WEIGHT_E2 = 0.35
 WEIGHT_F = 0.20
 # Bandes qui affichent l'écran « Cet exercice existe peut-être déjà » à la publication.
 CONFIRM_BANDS = (Band.QUASI_COPY, Band.VERY_SIMILAR, Band.VARIANT)
@@ -52,6 +57,7 @@ class Prints:
     signature: list[int]
     abstract_signature: list[int]
     embedding: list[float] | None
+    summary_embedding: list[float] | None = None
 
 
 @dataclass(frozen=True)
@@ -88,22 +94,24 @@ def _stored_prints(fingerprint):
         signature=fingerprint.signature,
         abstract_signature=fingerprint.abstract_signature,
         embedding=None if fingerprint.embedding is None else list(fingerprint.embedding),
+        summary_embedding=None if fingerprint.summary_embedding is None else list(fingerprint.summary_embedding),
     )
 
 
 @transaction.atomic
 def index_exercise(exercise, prints=None):
     prints = prints or compute_prints(exercise.statement)
-    fingerprint, _ = Fingerprint.objects.update_or_create(
-        exercise=exercise,
-        defaults={
-            "version": NORMALIZATION_VERSION,
-            "canonical": prints.canonical,
-            "signature": prints.signature,
-            "abstract_signature": prints.abstract_signature,
-            "embedding": prints.embedding,
-        },
-    )
+    defaults = {
+        "version": NORMALIZATION_VERSION,
+        "canonical": prints.canonical,
+        "signature": prints.signature,
+        "abstract_signature": prints.abstract_signature,
+        "embedding": prints.embedding,
+    }
+    # Énoncé modifié : son résumé canonique (E2) est à refaire.
+    if not Fingerprint.objects.filter(exercise=exercise, canonical=prints.canonical).exists():
+        defaults |= {"summary": "", "summary_embedding": None}
+    fingerprint, _ = Fingerprint.objects.update_or_create(exercise=exercise, defaults=defaults)
     fingerprint.lsh_keys.all().delete()
     LshKey.objects.bulk_create(
         [LshKey(fingerprint=fingerprint, kind=LshKey.Kind.ALPHA, key=key) for key in lsh_keys(prints.signature)]
@@ -134,16 +142,16 @@ def classify(jaccard, abstract_jaccard, score):
     return None
 
 
-def _nearest_by_embedding(vector, k=EMBEDDING_NEIGHBOURS):
+def _nearest_by_embedding(vector, k=EMBEDDING_NEIGHBOURS, field="embedding"):
     indexed = Fingerprint.objects.filter(
-        embedding__isnull=False, exercise__status=Exercise.Status.PUBLISHED
+        **{f"{field}__isnull": False}, exercise__status=Exercise.Status.PUBLISHED
     )
     if connection.vendor == "postgresql":
         return list(
-            indexed.order_by(CosineDistance("embedding", vector)).values_list("pk", flat=True)[:k]
+            indexed.order_by(CosineDistance(field, vector)).values_list("pk", flat=True)[:k]
         )
     # SQLite (développement et tests) : parcours complet, suffisant pour quelques milliers d'énoncés.
-    rows = list(indexed.values_list("pk", "embedding"))
+    rows = list(indexed.values_list("pk", field))
     rows.sort(key=lambda row: -float(np.dot(vector, row[1])))
     return [pk for pk, _ in rows[:k]]
 
@@ -158,8 +166,8 @@ def _declared_distinct(exercise):
 def find_similar(prints, *, exercise=None, limit=5):
     """Exercices publiés proches d'un énoncé, du plus proche au moins proche.
 
-    Candidats : collisions LSH sur F et F′, et les 20 plus proches voisins sur E1.
-    Une paire déclarée distincte n'est jamais reproposée."""
+    Candidats : collisions LSH sur F et F′, et les 20 plus proches voisins sur E1 et
+    sur E2. Une paire déclarée distincte n'est jamais reproposée."""
     candidates = set(
         LshKey.objects.filter(
             Q(kind=LshKey.Kind.ALPHA, key__in=lsh_keys(prints.signature))
@@ -168,6 +176,8 @@ def find_similar(prints, *, exercise=None, limit=5):
     )
     if prints.embedding is not None:
         candidates |= set(_nearest_by_embedding(prints.embedding))
+    if prints.summary_embedding is not None:
+        candidates |= set(_nearest_by_embedding(prints.summary_embedding, field="summary_embedding"))
     if exercise is not None:
         candidates -= {exercise.pk} | _declared_distinct(exercise)
 
@@ -180,7 +190,11 @@ def find_similar(prints, *, exercise=None, limit=5):
         cosine = score = None
         if prints.embedding is not None and fingerprint.embedding is not None:
             cosine = float(np.dot(prints.embedding, fingerprint.embedding))
-            score = WEIGHT_E1 * cosine + WEIGHT_F * jaccard
+            if prints.summary_embedding is not None and fingerprint.summary_embedding is not None:
+                summary_cosine = float(np.dot(prints.summary_embedding, fingerprint.summary_embedding))
+                score = WEIGHT_E1 * cosine + WEIGHT_E2 * summary_cosine + WEIGHT_F * jaccard
+            else:
+                score = (WEIGHT_E1 + WEIGHT_E2) * cosine + WEIGHT_F * jaccard
         band = classify(jaccard, abstract_jaccard, score)
         if band:
             matches.append(
@@ -338,6 +352,14 @@ def _merge(pair):
     merged.status = Exercise.Status.MERGED
     merged.merged_into = canonical
     merged.save(update_fields=["status", "merged_into", "updated_at"])
+    notify(
+        merged.author,
+        Notification.Kind.DUPLICATE_MERGED,
+        "Ton exercice a été regroupé avec un exercice existant",
+        f"« {merged.title} » rejoint « {canonical.title} ». Tu gardes tes points, et ses solutions "
+        "sont désormais sur l'exercice d'origine.",
+        f"/exercices/{canonical.pk}",
+    )
 
 
 @transaction.atomic

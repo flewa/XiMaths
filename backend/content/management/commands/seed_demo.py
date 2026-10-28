@@ -18,6 +18,7 @@ from catalog.models import Level, Topic
 from content.models import Exercise, Review, Solution
 from content.services import cast_vote, publish_exercise, publish_solution, submit_review
 from duplicates.services import index_exercise
+from training.models import ChallengeTemplate
 
 User = get_user_model()
 TL = User.TrustLevel
@@ -81,6 +82,15 @@ EXERCISES = [
         ),
         "hints": ["Appliquer la règle de d'Alembert à $|u_n(x)|$."],
         "final_answer": "2",
+        # Gabarit du défi du jour : chacun reçoit ses propres a et b.
+        "challenge": {
+            "statement": (
+                "Déterminer le rayon de convergence de la série entière\n\n"
+                "$$\\sum_{n \\geq 0} \\frac{n^{{a}}}{{{b}}^n}\\, x^n.$$"
+            ),
+            "parameters": {"a": [1, 2, 3, 4], "b": [2, 3, 5, 7]},
+            "answer": "b",
+        },
         "difficulty": 3,
         "level": "L2",
         "levels": ["L2", "MP", "PSI"],
@@ -119,6 +129,7 @@ class Command(BaseCommand):
         if not settings.DEBUG:
             raise CommandError("seed_demo est réservé au développement (DEBUG=1).")
         if Exercise.objects.filter(author__username="camille").exists():
+            self.challenge_templates()
             self.stdout.write("Données de démonstration déjà présentes.")
             return
 
@@ -165,9 +176,17 @@ class Command(BaseCommand):
                     submit_review(review, Review.Verdict.CORRECT)
             cast_vote(users["relecteur1"], exercise=exercise)
 
+        self.challenge_templates()
         self.stdout.write(
             self.style.SUCCESS(
                 f"{len(EXERCISES)} exercices de démonstration créés. "
                 f"Comptes : {', '.join(users)} (mot de passe dans seed_demo.py)."
             )
         )
+
+    def challenge_templates(self):
+        """Gabarits du défi du jour, ajoutés aussi à une base déjà remplie."""
+        for spec in EXERCISES:
+            exercise = Exercise.objects.filter(author__username="camille", title=spec["title"]).first()
+            if "challenge" in spec and exercise is not None:
+                ChallengeTemplate.objects.get_or_create(exercise=exercise, defaults=spec["challenge"])

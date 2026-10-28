@@ -1,0 +1,111 @@
+# Production : Caddy (HTTPS), PostgreSQL, Redis, l'API, le planificateur et le front.
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+# Caddy est la seule porte d'entrée (ports 80 et 443) : /api, /admin et /static vont
+# à l'API, le reste au front (voir Caddyfile). Le DNS de SITE_DOMAIN doit pointer ici.
+x-backend: &backend
+  build: ./backend
+  restart: unless-stopped
+  env_file: .env.prod
+  environment:
+    DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    REDIS_URL: redis://redis:6379/0
+    DJANGO_DEBUG: "0"
+    # « backend » : le nom sous lequel le front joint l'API.
+    DJANGO_ALLOWED_HOSTS: backend,${SITE_DOMAIN}
+    FRONTEND_URL: https://${SITE_DOMAIN}
+    CSRF_TRUSTED_ORIGINS: https://${SITE_DOMAIN}
+    DJANGO_BEHIND_HTTPS_PROXY: "1"
+    # Un seul proxy devant l'API : Caddy, qui transmet l'adresse du visiteur.
+    NINJA_NUM_PROXIES: "1"
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_started
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  # Migrations, une fois, avant l'API et le planificateur.
+  migrate:
+    <<: *backend
+    restart: "no"
+    command: python manage.py migrate --noinput
+
+  backend:
+    <<: *backend
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+
+  # Tâches horaires et nocturnes (relectures en retard, emails, doublons, progression...).
+  scheduler:
+    <<: *backend
+    command: python manage.py run_jobs --loop
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        API_URL: http://backend:8000
+        NEXT_PUBLIC_SITE_URL: https://${SITE_DOMAIN}
+    restart: unless-stopped
+    environment:
+      API_URL: http://backend:8000
+    depends_on:
+      - backend
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - frontend
+      - backend
+
+  # Embeddings bge-m3, facultatifs : --profile embeddings, et EMBEDDINGS_URL=http://embeddings
+  # dans .env.prod. Sans eux, la détection de doublons s'appuie sur MinHash seul.
+  embeddings:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.9.4
+    command: --model-id BAAI/bge-m3
+    profiles: ["embeddings"]
+    restart: unless-stopped
+    volumes:
+      - tei-data:/data
+
+volumes:
+  pgdata:
+  tei-data:
+  caddy-data:
+  caddy-config:

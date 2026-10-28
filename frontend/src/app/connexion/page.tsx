@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-import { LoginForm } from "@/components/AuthForms";
-import { fetchMe } from "@/lib/api";
+import { GoogleButton, LoginForm } from "@/components/AuthForms";
+import { FormMessage } from "@/components/Form";
+import { fetchMe, fetchProviders, nullOnError } from "@/lib/api";
 
-export const metadata: Metadata = { title: "Connexion" };
+export const metadata: Metadata = { title: "Connexion", robots: { index: false } };
 
 /** Seules les adresses internes sont acceptées comme destination après connexion. */
 function safeNext(next: string | undefined) {
@@ -14,13 +15,25 @@ function safeNext(next: string | undefined) {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ suivant?: string }>;
+  searchParams: Promise<{ suivant?: string; erreur?: string }>;
 }) {
-  const next = safeNext((await searchParams).suivant);
-  if (await fetchMe().catch(() => null)) redirect(next);
+  const { suivant, erreur } = await searchParams;
+  const next = safeNext(suivant);
+  if (await fetchMe().catch(nullOnError)) redirect(next);
+  const providers = await fetchProviders().catch(() => ({ google: false }));
   return (
     <div className="mx-auto max-w-sm">
       <h1>Connexion</h1>
+      {erreur === "google" && (
+        <div className="mt-4">
+          <FormMessage error="La connexion avec Google n'a pas abouti. Réessaie, ou connecte-toi avec ton mot de passe." />
+        </div>
+      )}
+      {providers.google && (
+        <div className="mt-6 border-b border-hairline pb-6">
+          <GoogleButton next={next} />
+        </div>
+      )}
       <div className="mt-6">
         <LoginForm next={next} />
       </div>

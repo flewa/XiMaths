@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { ApiUnavailable } from "@/components/ExerciseMeta";
+import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { ExerciseList } from "@/components/ExerciseList";
 import { FilterChip, Tabs } from "@/components/FilterChip";
 import { fetchExercises, fetchLevels, type ExerciseSort } from "@/lib/api";
@@ -33,7 +33,7 @@ export default async function BrowsePage({
   try {
     data = await Promise.all([fetchLevels(), fetchExercises(niveau, current.sort)]);
   } catch (error) {
-    console.error(error);
+    logApiError(error);
     return <ApiUnavailable />;
   }
   const [levels, exercises] = data;

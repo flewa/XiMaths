@@ -1,9 +1,17 @@
 // Client de l'API Django pour les composants serveur. Il transmet les cookies
 // du visiteur, pour que Django reconnaisse sa session.
 import { cookies } from "next/headers";
+import { unstable_rethrow } from "next/navigation";
 
 // 127.0.0.1 plutôt que localhost : Node résout localhost en ::1, où runserver n'écoute pas.
 const API_URL = process.env.API_URL ?? "http://127.0.0.1:8000";
+
+/** Pour un `.catch` : null en cas d'erreur, sauf les signaux internes de Next
+ * (rendu dynamique, redirection), qui doivent remonter. */
+export function nullOnError(error: unknown): null {
+  unstable_rethrow(error);
+  return null;
+}
 
 export type Level = {
   code: string;
@@ -46,6 +54,10 @@ export type Solution = {
   ai_usage: AiUsage;
   votes: number;
   validated_at: string | null;
+  /** Recommandée par l'auteur de l'exercice. */
+  recommended: boolean;
+  /** Solution d'un défi paramétré : l'énoncé tiré pour son auteur. */
+  variant_statement: string;
 };
 
 export type ExerciseLink = { id: number; title: string };
@@ -88,6 +100,23 @@ export type Me = {
   pending_reviews: number;
   leaderboard_visible: boolean;
   tiers_temps: boolean;
+  email_notifications: boolean;
+  weekly_digest: boolean;
+  daily_challenge_notifications: boolean;
+  /** Faux pour un compte créé avec Google, tant qu'il n'a pas choisi de mot de passe. */
+  has_password: boolean;
+  google_linked: boolean;
+  unread_notifications: number;
+};
+
+export type AppNotification = {
+  id: number;
+  kind: string;
+  title: string;
+  body: string;
+  url: string;
+  created_at: string;
+  read: boolean;
 };
 
 export type TrainingOptions = {
@@ -99,9 +128,10 @@ export type TrainingOptions = {
 
 export type TrainingStatus = "en_cours" | "en_pause" | "rendue" | "abandonnee";
 
-/** Session d'entraînement chronométré ; le temps est celui du serveur. */
+/** Session chronométrée, entraînement ou défi du jour ; le temps est celui du serveur. */
 export type TrainingSession = {
   id: number;
+  kind: "entrainement" | "defi";
   exercise_id: number;
   exercise_title: string;
   statement: string;
@@ -125,6 +155,66 @@ export type TrainingSession = {
   self_rating: number | null;
   started_at: string;
   submitted_at: string | null;
+  /** En défi, `hints` ne contient que les indications ouvertes. */
+  hint_count: number;
+  hints_opened: number;
+  challenge_closes_at: string | null;
+  points_max: number | null;
+  bonus: number | null;
+  answer_points: number;
+  justification_points: number;
+};
+
+export type DailyChallenge = {
+  id: number;
+  level: string;
+  level_name: string;
+  exercise_title: string;
+  difficulty: number;
+  minutes: number;
+  points_max: number;
+  closes_at: string;
+  hint_count: number;
+  attempt: {
+    session_id: number;
+    status: TrainingStatus;
+    answer_correct: boolean | null;
+    answer_points: number;
+    justification_points: number;
+  } | null;
+};
+
+export type WeekStatus = "atteint" | "joker" | "vacances" | "manque";
+
+export type PersonalGoal = {
+  id: number;
+  kind: "solutions" | "chrono_semaine";
+  title: string;
+  target: number;
+  done: number;
+  deadline: string;
+  topic: string | null;
+  per_week: boolean;
+};
+
+export type Progress = {
+  week: string;
+  goal_days: number;
+  days: { date: string; active: boolean; future: boolean }[];
+  active_days: number;
+  achieved: boolean;
+  streak: number;
+  jokers_left: number;
+  vacation: { start: string; end: string } | null;
+  history: {
+    week: string;
+    week_start: string;
+    goal: number;
+    active_days: number;
+    status: WeekStatus;
+    status_label: string;
+  }[];
+  goals: PersonalGoal[];
 };
 
 export type LeaderboardEntry = {
@@ -163,6 +253,22 @@ export type Leaderboard = {
 export type ReportTarget = "exercise" | "solution";
 
 /** Un de mes signalements, avec son issue. */
+export type DecisionType = "sanction" | "report" | "signal";
+
+export type Decision = {
+  type: DecisionType;
+  id: number;
+  title: string;
+  reason: string;
+  decided_at: string | null;
+  ends_at: string | null;
+  appeal_deadline: string | null;
+  can_appeal: boolean;
+  appeal_status: "en_attente" | "maintenue" | "annulee" | null;
+  appeal_status_label: string | null;
+  appeal_note: string | null;
+};
+
 export type MyReport = {
   id: number;
   target: ReportTarget;
@@ -199,6 +305,7 @@ export type Member = {
 };
 
 export type SolutionStatus =
+  | "held"
   | "under_review"
   | "contested"
   | "validated"
@@ -213,6 +320,10 @@ export type MySolution = {
   published_at: string | null;
   validated_at: string | null;
   feedback: string[];
+  /** Solution en vérification : la question neutre, et la réponse déjà donnée. */
+  integrity_signal_id: number | null;
+  integrity_question: string | null;
+  integrity_answer: string | null;
 };
 
 export type ReviewTask = {
@@ -236,6 +347,15 @@ async function get<T>(path: string): Promise<T | null> {
   if (response.status === 401 || response.status === 404) return null;
   if (!response.ok) throw new Error(`API ${path} : HTTP ${response.status}`);
   return (await response.json()) as T;
+}
+
+export type SitemapEntry = { id: number; updated_at: string };
+
+/** Exercices publiés, sans cookie : le plan du site est le même pour tous et se met en cache. */
+export async function fetchSitemap(): Promise<SitemapEntry[]> {
+  const response = await fetch(`${API_URL}/api/sitemap`, { next: { revalidate: 3600 } });
+  if (!response.ok) throw new Error(`API /sitemap : HTTP ${response.status}`);
+  return response.json();
 }
 
 export async function fetchLevels() {
@@ -290,13 +410,114 @@ export function fetchTrainingOptions(exerciseId: string) {
   return get<TrainingOptions>(`/training/options/${encodeURIComponent(exerciseId)}`);
 }
 
+export async function fetchDailyChallenges() {
+  return (await get<DailyChallenge[]>("/challenges/today")) ?? [];
+}
+
+export function fetchProgress() {
+  return get<Progress>("/progress");
+}
+
 export function fetchTrainingSession(id: string) {
   return get<TrainingSession>(`/training/sessions/${encodeURIComponent(id)}`);
+}
+
+export function fetchNotifications() {
+  return get<{ unread: number; items: AppNotification[] }>("/notifications");
+}
+
+export async function fetchProviders() {
+  return (await get<{ google: boolean }>("/auth/providers")) ?? { google: false };
+}
+
+export type Arbitration = {
+  solution_id: number;
+  exercise_id: number;
+  exercise_title: string;
+  exercise_statement: string;
+  solution_body: string;
+  ai_usage: AiUsage;
+  reviews: { verdict: string; feedback: string; weight: number }[];
+};
+
+export type OpenSolution = {
+  solution_id: number;
+  exercise_id: number;
+  exercise_title: string;
+  primary_level: string;
+  published_at: string | null;
+};
+
+/** null si le visiteur n'est ni expert ni modérateur. */
+export function fetchArbitrations() {
+  return get<Arbitration[]>("/arbitrations").catch((error: Error) => {
+    if (error.message.endsWith("HTTP 403")) return null;
+    throw error;
+  });
+}
+
+export type QuestionStatus =
+  | "envoyee"
+  | "ouverte"
+  | "repondue"
+  | "reussie"
+  | "insuffisante"
+  | "sans_reponse";
+
+/** Question de compréhension : énoncé, solution et question arrivent une fois ouverte. */
+export type ComprehensionQuestion = {
+  id: number;
+  exercise_id: number;
+  exercise_title: string;
+  status: QuestionStatus;
+  status_label: string;
+  open_until: string | null;
+  answer_until: string | null;
+  statement: string | null;
+  solution_body: string | null;
+  question: string | null;
+  answer: string;
+  evaluation_note: string;
+};
+
+export type QuestionToEvaluate = {
+  id: number;
+  exercise_title: string;
+  statement: string;
+  solution_body: string;
+  question: string;
+  expected_points: string[];
+  answer: string;
+  answered_at: string;
+  llm_assessment: string | null;
+  llm_assessment_label: string | null;
+  llm_rationale: string;
+};
+
+/** Mes questions de compréhension ; null si le visiteur n'est pas connecté. */
+export function fetchMyQuestions() {
+  return get<ComprehensionQuestion[]>("/questions/mine");
+}
+
+/** Réponses à évaluer ; null pour qui n'est ni expert ni modérateur. */
+export function fetchQuestionsToEvaluate() {
+  return get<QuestionToEvaluate[]>("/questions/to-evaluate").catch((error: Error) => {
+    if (error.message.endsWith("HTTP 403")) return null;
+    throw error;
+  });
+}
+
+export async function fetchOpenSolutions() {
+  return (await get<OpenSolution[]>("/reviews/open")) ?? [];
 }
 
 /** Mes signalements ; null si le visiteur n'est pas connecté. */
 export function fetchMyReports() {
   return get<MyReport[]>("/reports/mine");
+}
+
+export function fetchMyDecisions() {
+  return get<Decision[]>("/decisions/mine");
 }
 
 export async function fetchBadges() {

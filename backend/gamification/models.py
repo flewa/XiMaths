@@ -24,6 +24,9 @@ class PointTransaction(models.Model):
         REPORT_CONFIRMED = "report_confirmed", "Signalement confirmé"
         PLAGIARISM_PENALTY = "plagiarism_penalty", "Pénalité de plagiat"
         REVERSAL = "reversal", "Annulation"
+        APPEAL_RESTORED = "appeal_restored", "Points rétablis en appel"
+        CHALLENGE_ANSWER = "challenge_answer", "Défi du jour : réponse juste"
+        CHALLENGE_JUSTIFIED = "challenge_justified", "Défi du jour : justification validée"
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -91,3 +94,52 @@ class UserBadge(models.Model):
 
     def __str__(self):
         return f"{self.badge} → {self.user}"
+
+
+class WeeklyStreak(models.Model):
+    """Bilan d'une semaine close : jours actifs, objectif, et ce qu'il en reste pour la série."""
+
+    class Status(models.TextChoices):
+        ACHIEVED = "atteint", "Objectif atteint"
+        JOKER = "joker", "Joker utilisé"
+        VACATION = "vacances", "Examens ou vacances"
+        MISSED = "manque", "Objectif manqué"
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="weekly_streaks")
+    week = models.CharField("semaine", max_length=8, help_text="Semaine ISO, « 2026-W44 ».")
+    goal = models.PositiveSmallIntegerField("objectif")
+    active_days = models.PositiveSmallIntegerField("jours actifs")
+    status = models.CharField(max_length=16, choices=Status.choices)
+
+    class Meta:
+        verbose_name = "semaine de série"
+        ordering = ["-week"]
+        constraints = [models.UniqueConstraint(fields=["user", "week"], name="weekly_streak_unique_week")]
+
+    def __str__(self):
+        return f"{self.user} · {self.week} · {self.get_status_display()}"
+
+
+class Goal(models.Model):
+    """Objectif personnel, avec une barre de progression."""
+
+    class Kind(models.TextChoices):
+        SOLUTIONS = "solutions", "Exercices résolus d'ici une date"
+        TIMED_WEEKLY = "chrono_semaine", "Exercices chronométrés par semaine"
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="goals")
+    kind = models.CharField(max_length=16, choices=Kind.choices)
+    title = models.CharField("intitulé", max_length=120)
+    target = models.PositiveSmallIntegerField("cible")
+    deadline = models.DateField("échéance")
+    topic = models.ForeignKey(
+        "catalog.Topic", null=True, blank=True, on_delete=models.SET_NULL, related_name="+", verbose_name="chapitre"
+    )
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = "objectif"
+        ordering = ["deadline", "pk"]
+
+    def __str__(self):
+        return f"{self.user} · {self.title}"

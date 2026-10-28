@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { LeaderboardVisibility } from "@/components/AccountControls";
-import { ApiUnavailable } from "@/components/ExerciseMeta";
+import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { FilterChip, Tabs } from "@/components/FilterChip";
 import {
   fetchLeaderboard,
@@ -46,7 +46,7 @@ export default async function RankingsPage({ searchParams }: { searchParams: Pro
       fetchLeaderboard({ board: classement, week: semaine, peers }),
     ]);
   } catch (error) {
-    console.error(error);
+    logApiError(error);
     return <ApiUnavailable />;
   }
   const [levels, me, board] = data;

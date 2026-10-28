@@ -8,6 +8,7 @@ import { apiPost, apiPut } from "@/lib/client-api";
 
 import { DuplicateScreen, SimilarPanel, type PublishChoice } from "./Duplicates";
 import { Field, FormMessage, SubmitButton, inputClass } from "./Form";
+import { MathEditor } from "./MathEditor";
 import { MathMarkdown } from "./MathMarkdown";
 
 const DIFFICULTIES = [
@@ -75,11 +76,11 @@ export function ExerciseForm({
   const [similar, setSimilar] = useState<SimilarExercise[]>([]);
   const [candidates, setCandidates] = useState<SimilarExercise[] | null>(null);
 
+  // Énoncé trop court : le panneau se vide, sans attendre de réponse.
+  const longEnough = statement.trim().length >= SIMILAR_MIN_LENGTH;
+
   useEffect(() => {
-    if (statement.trim().length < SIMILAR_MIN_LENGTH) {
-      setSimilar([]);
-      return;
-    }
+    if (!longEnough) return;
     let cancelled = false;
     const timer = setTimeout(async () => {
       const result = await apiPost<SimilarExercise[]>("/exercises/similar", {
@@ -93,7 +94,7 @@ export function ExerciseForm({
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [statement, draftId]);
+  }, [statement, draftId, longEnough]);
 
   async function publish(id: number, choice?: PublishChoice) {
     setPending(true);
@@ -116,6 +117,7 @@ export function ExerciseForm({
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (statement.trim().length < 10) return setError("L'énoncé fait au moins 10 caractères.");
     const form = new FormData(event.currentTarget);
     setPending(true);
     setError(null);
@@ -165,22 +167,14 @@ export function ExerciseForm({
         </Field>
 
         <Field label="Énoncé" htmlFor="statement" hint={LATEX_HELP}>
-          <textarea
-            id="statement"
-            required
-            minLength={10}
-            rows={8}
-            value={statement}
-            onChange={(event) => setStatement(event.target.value)}
-            className={`${inputClass} font-mono`}
-          />
+          <MathEditor id="statement" label="Énoncé" value={statement} onChange={setStatement} />
         </Field>
         {preview.trim() && (
           <div aria-label="Aperçu de l'énoncé" className="border-l-2 border-hairline-strong bg-surface-soft px-4">
             <MathMarkdown>{preview}</MathMarkdown>
           </div>
         )}
-        <SimilarPanel exercises={similar} />
+        <SimilarPanel exercises={longEnough ? similar : []} />
 
         <div className="grid gap-6 sm:grid-cols-2">
           <Field label="Niveau principal" htmlFor="primary_level">

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
-import { ApiUnavailable } from "@/components/ExerciseMeta";
+import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { TrainingRoom } from "@/components/Training";
 import { fetchMe, fetchTrainingSession } from "@/lib/api";
 
-export const metadata: Metadata = { title: "Entraînement chronométré" };
+export const metadata: Metadata = { title: "Session chronométrée" };
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -15,7 +15,7 @@ export default async function TrainingPage({ params }: Props) {
   try {
     data = await Promise.all([fetchMe(), fetchTrainingSession(id)]);
   } catch (error) {
-    console.error(error);
+    logApiError(error);
     return <ApiUnavailable />;
   }
   const [me, session] = data;

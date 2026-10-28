@@ -1,10 +1,11 @@
-"""API de l'entraînement chronométré. Toutes les routes sont réservées au titulaire
-de la session, et le temps renvoyé est celui du serveur."""
+"""API de l'entraînement chronométré et du défi du jour. Les routes de session sont
+réservées à leur titulaire, et le temps renvoyé est celui du serveur."""
 
 from datetime import datetime
 from typing import Literal
 
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from ninja import Router, Schema
 from ninja.security import django_auth
 from pydantic import Field
@@ -12,8 +13,8 @@ from pydantic import Field
 from accounts.permissions import contributor
 from content.models import TEXT_MAX_LENGTH, Exercise
 
-from . import services
-from .models import TimedSession
+from . import challenges, services
+from .models import Challenge, TimedSession
 
 router = Router(tags=["entraînement"])
 
@@ -42,6 +43,7 @@ class RatingIn(Schema):
 
 class SessionOut(Schema):
     id: int
+    kind: Literal["entrainement", "defi"]
     exercise_id: int
     exercise_title: str
     statement: str
@@ -65,6 +67,18 @@ class SessionOut(Schema):
     self_rating: int | None
     started_at: datetime
     submitted_at: datetime | None
+    # Défi du jour.
+    hint_count: int
+    hints_opened: int
+    challenge_closes_at: datetime | None
+    points_max: int | None
+    bonus: float | None
+    answer_points: int
+    justification_points: int
+
+    @staticmethod
+    def resolve_kind(obj):
+        return "defi" if obj.ranked else "entrainement"
 
     @staticmethod
     def resolve_exercise_title(obj):
@@ -72,15 +86,29 @@ class SessionOut(Schema):
 
     @staticmethod
     def resolve_statement(obj):
-        return obj.exercise.statement
+        return challenges.statement(obj)
 
     @staticmethod
     def resolve_hints(obj):
-        return obj.exercise.hints
+        # En défi, une indication n'est envoyée qu'une fois ouverte : elle coûte du bonus.
+        return obj.exercise.hints[: obj.hints_opened] if obj.ranked else obj.exercise.hints
+
+    @staticmethod
+    def resolve_hint_count(obj):
+        return len(obj.exercise.hints)
+
+    @staticmethod
+    def resolve_challenge_closes_at(obj):
+        return obj.challenge.closes_at if obj.ranked else None
+
+    @staticmethod
+    def resolve_points_max(obj):
+        return round(challenges.points_total(obj.exercise) * (1 + challenges.SPEED_BONUS)) if obj.ranked else None
 
     @staticmethod
     def resolve_has_final_answer(obj):
-        return bool(obj.exercise.final_answer.strip())
+        # Un défi a toujours une réponse à vérifier, celle de ses paramètres.
+        return obj.ranked or bool(obj.exercise.final_answer.strip())
 
     @staticmethod
     def resolve_remaining_s(obj):
@@ -88,7 +116,7 @@ class SessionOut(Schema):
 
     @staticmethod
     def resolve_pauses_left(obj):
-        return services.MAX_PAUSES - obj.pauses_used
+        return 0 if obj.ranked else services.MAX_PAUSES - obj.pauses_used
 
     @staticmethod
     def resolve_solution_status(obj):
@@ -110,7 +138,9 @@ class OptionsOut(Schema):
 
 def _own(request, session_id):
     return get_object_or_404(
-        TimedSession.objects.select_related("exercise", "solution"), pk=session_id, user=request.auth
+        TimedSession.objects.select_related("exercise", "solution", "challenge__template"),
+        pk=session_id,
+        user=request.auth,
     )
 
 
@@ -170,3 +200,78 @@ def abandon(request, session_id: int):
 @router.post("/training/sessions/{int:session_id}/rating", response=SessionOut, auth=django_auth)
 def rating(request, session_id: int, payload: RatingIn):
     return services.rate(_own(request, session_id), payload.rating)
+
+
+@router.post("/training/sessions/{int:session_id}/hint", response=SessionOut, auth=django_auth)
+def hint(request, session_id: int):
+    """Défi : ouvre l'indication suivante, au prix de 10 % du bonus de rapidité."""
+    return challenges.open_hint(_own(request, session_id))
+
+
+# ---------------------------------------------------------------- défi du jour
+
+
+class MyAttemptOut(Schema):
+    session_id: int
+    status: str
+    answer_correct: bool | None
+    answer_points: int
+    justification_points: int
+
+
+class ChallengeOut(Schema):
+    id: int
+    level: str
+    level_name: str
+    exercise_title: str
+    difficulty: int
+    minutes: int
+    points_max: int
+    closes_at: datetime
+    hint_count: int
+    attempt: MyAttemptOut | None
+
+
+def _challenge_out(challenge, attempt):
+    exercise = challenge.template.exercise
+    return {
+        "id": challenge.pk,
+        "level": challenge.level.code,
+        "level_name": challenge.level.name,
+        "exercise_title": exercise.title,
+        "difficulty": exercise.difficulty,
+        "minutes": challenges.MINUTES,
+        "points_max": round(challenges.points_total(exercise) * (1 + challenges.SPEED_BONUS)),
+        "closes_at": challenge.closes_at,
+        "hint_count": len(exercise.hints),
+        "attempt": attempt
+        and {
+            "session_id": attempt.pk,
+            "status": attempt.status,
+            "answer_correct": attempt.answer_correct,
+            "answer_points": attempt.answer_points,
+            "justification_points": attempt.justification_points,
+        },
+    }
+
+
+@router.get("/challenges/today", response=list[ChallengeOut])
+def today(request):
+    """Défis ouverts aujourd'hui, un par niveau. L'énoncé n'est envoyé qu'au départ."""
+    now = timezone.now()
+    open_challenges = list(challenges.open_today(now))
+    attempts = {}
+    if request.user.is_authenticated:
+        attempts = {
+            session.challenge_id: session
+            for session in TimedSession.objects.filter(user=request.user, challenge__in=open_challenges)
+        }
+    return [_challenge_out(challenge, attempts.get(challenge.pk)) for challenge in open_challenges]
+
+
+@router.post("/challenges/{int:challenge_id}/start", response={201: SessionOut}, auth=django_auth)
+def start_challenge(request, challenge_id: int):
+    """Démarre le défi : une seule tentative, le chrono ne s'arrête plus."""
+    user = contributor(request)
+    challenge = get_object_or_404(Challenge.objects.select_related("template__exercise"), pk=challenge_id)
+    return 201, challenges.start(user, challenge)

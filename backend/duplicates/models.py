@@ -9,7 +9,8 @@ from .embeddings import DIMENSIONS
 
 
 class Fingerprint(models.Model):
-    """Empreintes d'un énoncé publié : signatures MinHash et embedding E1."""
+    """Empreintes d'un énoncé publié : signatures MinHash, embedding E1 de l'énoncé,
+    et embedding E2 de son résumé canonique quand un LLM est configuré."""
 
     exercise = models.OneToOneField(
         Exercise, on_delete=models.CASCADE, primary_key=True, related_name="fingerprint"
@@ -22,6 +23,12 @@ class Fingerprint(models.Model):
     abstract_signature = models.JSONField(help_text="MinHash de la version abstraite (F′).")
     # Index HNSW créé par la migration, sur PostgreSQL seulement.
     embedding = VectorField(dimensions=DIMENSIONS, null=True, blank=True)
+    summary = models.TextField(
+        "résumé canonique",
+        blank=True,
+        help_text="Deux ou trois phrases sans notation : objets, hypothèses, conclusion demandée.",
+    )
+    summary_embedding = VectorField(dimensions=DIMENSIONS, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -58,6 +65,16 @@ class DuplicatePair(models.Model):
         NONE = "", "Aucun (trouvée par le scan)"
         VARIANT = "variante", "C'est une variante"
         DIFFERENT = "different", "C'est différent"
+
+    class Relation(models.TextChoices):
+        """Avis du LLM sur la paire, du point de vue du nouvel exercice."""
+
+        IDENTICAL = "identique", "Identique"
+        PARAMETRIC = "variante_parametrique", "Variante paramétrique"
+        SPECIAL_CASE = "cas_particulier", "Cas particulier de l'existant"
+        GENERALIZATION = "generalisation", "Généralisation de l'existant"
+        SAME_TOPIC = "meme_theme_distinct", "Même thème, mais distinct"
+        DIFFERENT = "different", "Différent"
 
     class Status(models.TextChoices):
         PENDING = "en_attente", "À arbitrer"
@@ -109,6 +126,11 @@ class DuplicatePair(models.Model):
         help_text="Déplacées par la fusion, pour pouvoir l'annuler.",
     )
     created_at = models.DateTimeField("ouverte le", auto_now_add=True)
+    # Arbitrage préparé par le LLM, mis en cache : un avis, jamais une décision.
+    llm_relation = models.CharField("avis du LLM", max_length=24, choices=Relation.choices, blank=True)
+    llm_confidence = models.FloatField("confiance du LLM", null=True, blank=True)
+    llm_rationale = models.CharField("justification du LLM", max_length=400, blank=True)
+    llm_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = "paire de doublons"

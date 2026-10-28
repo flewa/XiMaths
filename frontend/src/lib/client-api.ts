@@ -32,7 +32,7 @@ async function csrfToken() {
   return readCookie("csrftoken") ?? "";
 }
 
-function errorMessage(status: number, body: unknown) {
+export function errorMessage(status: number, body: unknown) {
   if (status === 429) return "Trop de tentatives : réessaie dans quelques minutes.";
   const detail = (body as { detail?: unknown } | null)?.detail;
   if (typeof detail === "string") return detail;
@@ -78,4 +78,8 @@ export function apiPost<T = unknown>(path: string, body?: unknown) {
 
 export function apiPut<T = unknown>(path: string, body: unknown) {
   return apiRequest<T>("PUT", path, body);
+}
+
+export function apiDelete<T = unknown>(path: string) {
+  return apiRequest<T>("DELETE", path);
 }

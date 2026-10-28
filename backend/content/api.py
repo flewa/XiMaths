@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Literal
 
 from django.db import IntegrityError
-from django.db.models import Count, Q
+from django.db.models import Count, F, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from ninja import Router, Schema
@@ -15,7 +15,8 @@ from ninja.security import django_auth
 from ninja.throttling import AuthRateThrottle
 from pydantic import Field
 
-from accounts.permissions import contributor
+from accounts.links import linked_ids
+from accounts.permissions import contributor, is_moderator
 from catalog.models import Level, Topic
 from duplicates.models import DuplicatePair
 from duplicates.services import (
@@ -25,11 +26,21 @@ from duplicates.services import (
     publish_checked,
     variants_of,
 )
+from moderation.integrity import NEUTRAL_QUESTION
 
 from .feed import FEED_LABELS, build_feed, compute_scores, record_impressions
 from .latex import forbidden_commands
 from .models import TEXT_MAX_LENGTH, Exercise, Review, Solution, Vote
-from .services import cast_vote, publish_solution, submit_review
+from .services import (
+    cast_vote,
+    current_reviews,
+    publish_solution,
+    recommend_solution,
+    resolve_contested,
+    revise_solution,
+    submit_review,
+    volunteer_review,
+)
 
 router = Router(tags=["contenus"])
 
@@ -81,9 +92,12 @@ class SolutionOut(Schema):
     id: int
     author: str | None
     body: str
+    # Solution d'un défi paramétré : l'énoncé avec les paramètres de l'auteur.
+    variant_statement: str
     ai_usage: str
     votes: int
     validated_at: datetime | None
+    recommended: bool
 
     @staticmethod
     def resolve_author(obj):
@@ -92,6 +106,10 @@ class SolutionOut(Schema):
     @staticmethod
     def resolve_votes(obj):
         return obj.vote_count
+
+    @staticmethod
+    def resolve_recommended(obj):
+        return obj.recommended_at is not None
 
 
 class ExerciseLinkOut(Schema):
@@ -126,8 +144,12 @@ class ExerciseDetail(ExerciseSummary):
     def resolve_solutions(obj):
         return (
             obj.solutions.filter(status=Solution.Status.VALIDATED)
+            # Les solutions d'un défi restent cachées jusqu'à la fermeture de sa fenêtre.
+            .exclude(timed_session__challenge__closes_at__gt=timezone.now())
             .select_related("author")
             .annotate(vote_count=Count("votes"))
+            # La solution recommandée par l'auteur de l'exercice en premier.
+            .order_by(F("recommended_at").desc(nulls_last=True), "-validated_at")
         )
 
 
@@ -206,6 +228,17 @@ def feed(request, level: str | None = None):
     return [exercise for exercise, _ in items]
 
 
+class SitemapEntry(Schema):
+    id: int
+    updated_at: datetime
+
+
+@router.get("/sitemap", response=list[SitemapEntry])
+def sitemap(request):
+    """Exercices publiés, pour le plan du site : les fusionnés renvoient à leur canonique."""
+    return Exercise.objects.filter(status=Exercise.Status.PUBLISHED).only("pk", "updated_at").order_by("pk")
+
+
 @router.get("/exercises/{int:exercise_id}", response=ExerciseDetail)
 def get_exercise(request, exercise_id: int):
     """Un exercice fusionné reste lisible : `merged_into` donne l'adresse canonique."""
@@ -279,6 +312,28 @@ class MySolutionOut(Schema):
     published_at: datetime | None
     validated_at: datetime | None
     feedback: list[str]
+    # Solution en vérification : la question neutre, et la réponse déjà donnée.
+    integrity_signal_id: int | None
+    integrity_question: str | None
+    integrity_answer: str | None
+
+    @staticmethod
+    def _open_signal(obj):
+        return next((s for s in obj.integrity_signals.all() if s.status == "ouvert"), None)
+
+    @staticmethod
+    def resolve_integrity_signal_id(obj):
+        signal = MySolutionOut._open_signal(obj)
+        return signal.pk if signal else None
+
+    @staticmethod
+    def resolve_integrity_question(obj):
+        return NEUTRAL_QUESTION if MySolutionOut._open_signal(obj) else None
+
+    @staticmethod
+    def resolve_integrity_answer(obj):
+        signal = MySolutionOut._open_signal(obj)
+        return signal.author_answer if signal else None
 
     @staticmethod
     def resolve_feedback(obj):
@@ -287,7 +342,7 @@ class MySolutionOut(Schema):
             return []
         return [
             review.feedback
-            for review in obj.reviews.exclude(submitted_at=None)
+            for review in obj.reviews.filter(round=obj.review_round).exclude(submitted_at=None)
             if review.feedback
         ]
 
@@ -318,7 +373,8 @@ class ReviewTaskOut(Schema):
 
     @staticmethod
     def resolve_exercise_statement(obj):
-        return obj.solution.exercise.statement
+        # En défi, le relecteur juge sur l'énoncé tiré pour l'auteur.
+        return obj.solution.variant_statement or obj.solution.exercise.statement
 
     @staticmethod
     def resolve_primary_level(obj):
@@ -479,7 +535,7 @@ def propose_solution(request, exercise_id: int, payload: SolutionIn):
     if Solution.objects.filter(
         exercise=exercise,
         author=user,
-        status__in=[Solution.Status.UNDER_REVIEW, Solution.Status.CONTESTED],
+        status__in=[Solution.Status.HELD, Solution.Status.UNDER_REVIEW, Solution.Status.CONTESTED],
     ).exists():
         raise HttpError(409, "Tu as déjà une solution en cours d'évaluation sur cet exercice.")
     reject_forbidden_latex([("la solution", payload.body)])
@@ -499,7 +555,7 @@ def my_solutions(request, exercise_id: int):
     return (
         Solution.objects.filter(exercise_id=exercise_id, author=request.auth)
         .exclude(status=Solution.Status.DRAFT)
-        .prefetch_related("reviews")
+        .prefetch_related("reviews", "integrity_signals")
         .order_by("-published_at")
     )
 
@@ -537,6 +593,8 @@ def pending_reviews(request):
         Review.objects.filter(
             reviewer=request.auth,
             submitted_at=None,
+            expired_at=None,
+            round=F("solution__review_round"),
             solution__status=Solution.Status.UNDER_REVIEW,
         )
         .select_related("solution__exercise__primary_level")
@@ -563,3 +621,132 @@ def review_solution(request, review_id: int, payload: ReviewIn):
         )
     status = submit_review(review, payload.verdict, feedback=feedback)
     return {"solution_status": status}
+
+
+# ---------------------------------------------------------------- relecture : arbitrage, volontaires
+
+
+class ArbitrationReviewOut(Schema):
+    verdict: str
+    feedback: str
+    weight: float
+
+
+class ArbitrationOut(Schema):
+    """Solution contestée, présentée sans auteur ni relecteurs nommés."""
+
+    solution_id: int
+    exercise_id: int
+    exercise_title: str
+    exercise_statement: str
+    solution_body: str
+    ai_usage: str
+    reviews: list[ArbitrationReviewOut]
+
+
+class ArbitrationIn(Schema):
+    validate_solution: bool
+
+
+class OpenSolutionOut(Schema):
+    solution_id: int
+    exercise_id: int
+    exercise_title: str
+    primary_level: str
+    published_at: datetime | None
+
+
+class RevisionIn(Schema):
+    body: str = Field(min_length=20, max_length=TEXT_MAX_LENGTH)
+
+
+def _expert(user):
+    if user.trust_level < user.TrustLevel.EXPERT and not is_moderator(user):
+        raise HttpError(403, "Les arbitrages sont ouverts aux experts et aux modérateurs.")
+
+
+@router.get("/arbitrations", response=list[ArbitrationOut], auth=django_auth)
+def arbitrations(request):
+    """Solutions contestées : les relecteurs sont en désaccord, un expert tranche."""
+    _expert(request.auth)
+    contested = (
+        Solution.objects.filter(status=Solution.Status.CONTESTED)
+        .exclude(author=request.auth)
+        .select_related("exercise")
+        .order_by("published_at")
+    )
+    return [
+        {
+            "solution_id": solution.pk,
+            "exercise_id": solution.exercise_id,
+            "exercise_title": solution.exercise.title,
+            "exercise_statement": solution.variant_statement or solution.exercise.statement,
+            "solution_body": solution.body,
+            "ai_usage": solution.ai_usage,
+            "reviews": [
+                {"verdict": r.verdict, "feedback": r.feedback, "weight": float(r.weight)}
+                for r in current_reviews(solution).exclude(submitted_at=None)
+            ],
+        }
+        for solution in contested
+    ]
+
+
+@router.post("/arbitrations/{int:solution_id}", response=ReviewResult, auth=django_auth)
+def arbitrate(request, solution_id: int, payload: ArbitrationIn):
+    _expert(request.auth)
+    solution = get_object_or_404(Solution.objects.select_related("exercise"), pk=solution_id)
+    if solution.author_id == request.auth.pk:
+        raise HttpError(403, "On ne tranche pas sa propre solution.")
+    return {"solution_status": resolve_contested(solution, request.auth, validate=payload.validate_solution)}
+
+
+@router.get("/reviews/open", response=list[OpenSolutionOut], auth=django_auth)
+def open_for_review(request):
+    """Solutions en relecture qu'un relecteur peut relire spontanément (poids ½)."""
+    user = contributor(request)
+    if user.trust_level < user.TrustLevel.REVIEWER:
+        return []
+    solutions = (
+        Solution.objects.filter(status=Solution.Status.UNDER_REVIEW)
+        .exclude(author=user)
+        .exclude(author_id__in=linked_ids(user))
+        .exclude(reviews__reviewer=user)
+        .select_related("exercise__primary_level")
+        .order_by("published_at")[:20]
+    )
+    return [
+        {
+            "solution_id": s.pk,
+            "exercise_id": s.exercise_id,
+            "exercise_title": s.exercise.title,
+            "primary_level": s.exercise.primary_level.code,
+            "published_at": s.published_at,
+        }
+        for s in solutions
+    ]
+
+
+@router.post("/solutions/{int:solution_id}/volunteer", response={201: ReviewTaskOut}, auth=django_auth)
+def volunteer(request, solution_id: int):
+    user = contributor(request)
+    solution = get_object_or_404(Solution.objects.select_related("exercise__primary_level"), pk=solution_id)
+    return 201, volunteer_review(solution, user)
+
+
+@router.post("/solutions/{int:solution_id}/revise", response=MySolutionOut, auth=django_auth)
+def revise(request, solution_id: int, payload: RevisionIn):
+    """Révision par l'auteur : à compléter, ou validée et changée de plus de 20 %,
+    elle repart en relecture."""
+    user = contributor(request)
+    solution = get_object_or_404(Solution, pk=solution_id, author=user)
+    reject_forbidden_latex([("la solution", payload.body)])
+    revised, _ = revise_solution(solution, payload.body)
+    return revised
+
+
+@router.post("/solutions/{int:solution_id}/recommend", response={204: None}, auth=django_auth)
+def recommend(request, solution_id: int):
+    user = contributor(request)
+    recommend_solution(get_object_or_404(Solution.objects.select_related("exercise"), pk=solution_id), user)
+    return 204, None

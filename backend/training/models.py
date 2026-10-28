@@ -3,7 +3,59 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
 
+from catalog.models import Level
 from content.models import Exercise, Solution
+
+# Tiers-temps, appliqué à tous les modes chronométrés.
+EXTRA_TIME_FACTOR = 1.33
+
+
+class ChallengeTemplate(models.Model):
+    """Gabarit de défi : un exercice publié dont l'énoncé et la réponse dépendent de
+    paramètres tirés pour chaque membre. Partager sa réponse ne sert donc à rien."""
+
+    exercise = models.OneToOneField(
+        Exercise, on_delete=models.CASCADE, related_name="challenge_template", verbose_name="exercice"
+    )
+    statement = models.TextField(
+        "énoncé paramétré", help_text="Markdown et LaTeX ; {{a}} est remplacé par la valeur tirée pour a."
+    )
+    parameters = models.JSONField(
+        "paramètres",
+        help_text='Valeurs possibles de chaque paramètre, une lettre chacun : {"a": [2, 3, 4], "b": [2, 3, 5]}.',
+    )
+    answer = models.CharField(
+        "réponse",
+        max_length=200,
+        help_text="Réponse en fonction des paramètres, vérifiée par SymPy : « b », « sqrt(a)/b »…",
+    )
+    active = models.BooleanField("actif", default=True)
+
+    class Meta:
+        verbose_name = "gabarit de défi"
+        verbose_name_plural = "gabarits de défi"
+
+    def __str__(self):
+        return f"Gabarit : {self.exercise.title}"
+
+
+class Challenge(models.Model):
+    """Défi du jour d'un niveau : fenêtre de 24 h, 30 minutes, une seule tentative."""
+
+    level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name="challenges", verbose_name="niveau")
+    date = models.DateField()
+    template = models.ForeignKey(ChallengeTemplate, on_delete=models.PROTECT, related_name="challenges")
+    opens_at = models.DateTimeField()
+    closes_at = models.DateTimeField()
+
+    class Meta:
+        verbose_name = "défi du jour"
+        verbose_name_plural = "défis du jour"
+        ordering = ["-date", "level__display_order"]
+        constraints = [models.UniqueConstraint(fields=["level", "date"], name="challenge_one_per_level_and_day")]
+
+    def __str__(self):
+        return f"Défi {self.level} du {self.date:%d/%m/%Y}"
 
 
 class TimedSession(models.Model):
@@ -44,6 +96,17 @@ class TimedSession(models.Model):
         null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
     submitted_at = models.DateTimeField(null=True, blank=True)
+    # Défi du jour : paramètres tirés, indications ouvertes, points accordés.
+    challenge = models.ForeignKey(
+        Challenge, null=True, blank=True, on_delete=models.CASCADE, related_name="sessions"
+    )
+    parameters = models.JSONField(default=dict, blank=True)
+    hints_opened = models.PositiveSmallIntegerField(default=0)
+    bonus = models.FloatField(null=True, blank=True, help_text="Bonus de rapidité, indications déduites.")
+    answer_points = models.PositiveIntegerField(default=0)
+    justification_points = models.PositiveIntegerField(
+        default=0, help_text="Accordés quand la justification est validée par les pairs."
+    )
 
     class Meta:
         verbose_name = "session chronométrée"
@@ -56,6 +119,12 @@ class TimedSession(models.Model):
                 condition=Q(status__in=["en_cours", "en_pause"]),
                 name="timed_session_one_open_per_exercise",
             ),
+            # Une seule tentative par défi ; abandonner la consomme.
+            models.UniqueConstraint(
+                fields=["user", "challenge"],
+                condition=Q(challenge__isnull=False),
+                name="timed_session_one_attempt_per_challenge",
+            ),
         ]
 
     def __str__(self):
@@ -64,6 +133,11 @@ class TimedSession(models.Model):
     @property
     def limit_s(self):
         return self.duration_s * self.extra_time_factor
+
+    @property
+    def ranked(self):
+        """Défi classé : le chrono ne s'arrête pas, ni pause ni collage externe."""
+        return self.challenge_id is not None
 
     @property
     def open(self):

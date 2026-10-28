@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ApiUnavailable } from "@/components/ExerciseMeta";
+import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { fetchMember } from "@/lib/api";
 import { dateFormat } from "@/lib/labels";
 
@@ -19,7 +19,7 @@ export default async function MemberPage({ params }: Props) {
   try {
     member = await fetchMember(decodeURIComponent(pseudo));
   } catch (error) {
-    console.error(error);
+    logApiError(error);
     return <ApiUnavailable />;
   }
   if (!member) notFound();

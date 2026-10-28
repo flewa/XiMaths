@@ -10,7 +10,17 @@ dependencies = [
     "psycopg[binary]>=3.2,<4",
     "pgvector>=0.4,<0.5",
     "sympy>=1.13,<2",
+    "pyjwt[crypto]>=2.9,<3",
+    "whitenoise>=6.9,<7",
+    "redis>=5.2,<7",
+    "anthropic>=1.0",
 ]
 
 [tool.uv]
 package = false
+
+[dependency-groups]
+prod = [
+    "gunicorn>=26.2.0",
+    "sentry-sdk>=2.73.0",
+]

@@ -3,13 +3,18 @@
 import { useRouter } from "next/navigation";
 import { useDeferredValue, useState } from "react";
 
-import type { AiUsage } from "@/lib/api";
+import type { AiUsage, DecisionType } from "@/lib/api";
 import { apiPost } from "@/lib/client-api";
 import { AI_USAGE_OPTIONS, SOLUTION_STATUS_LABELS } from "@/lib/labels";
 
 import { LATEX_HELP } from "./ExerciseForm";
-import { Field, FormMessage, SubmitButton, inputClass } from "./Form";
+import { Field, FormMessage, SubmitButton, inputClass, primaryButtonClass, secondaryButtonClass } from "./Form";
+import { MathEditor } from "./MathEditor";
 import { MathMarkdown } from "./MathMarkdown";
+
+// L'éditeur n'est pas un champ natif : la longueur minimale se vérifie avant l'envoi.
+const SOLUTION_MIN_LENGTH = 20;
+const TOO_SHORT = `Une solution fait au moins ${SOLUTION_MIN_LENGTH} caractères.`;
 
 export function SolutionForm({ exerciseId }: { exerciseId: number }) {
   const router = useRouter();
@@ -21,6 +26,7 @@ export function SolutionForm({ exerciseId }: { exerciseId: number }) {
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (body.trim().length < SOLUTION_MIN_LENGTH) return setError(TOO_SHORT);
     setPending(true);
     setError(null);
     const result = await apiPost(`/exercises/${exerciseId}/solutions`, { body, ai_usage: aiUsage });
@@ -33,15 +39,7 @@ export function SolutionForm({ exerciseId }: { exerciseId: number }) {
   return (
     <form onSubmit={onSubmit} className="mt-3 space-y-4">
       <Field label="Ta solution" htmlFor="solution-body" hint={LATEX_HELP}>
-        <textarea
-          id="solution-body"
-          required
-          minLength={20}
-          rows={8}
-          value={body}
-          onChange={(event) => setBody(event.target.value)}
-          className={`${inputClass} font-mono`}
-        />
+        <MathEditor id="solution-body" label="Ta solution" value={body} onChange={setBody} />
       </Field>
       {preview.trim() && (
         <div aria-label="Aperçu de la solution" className="border-l-2 border-hairline-strong bg-surface-soft px-4">
@@ -190,5 +188,218 @@ export function VoteButton({
       </button>
       {message && <span role="alert" className="text-sm text-mute">{message}</span>}
     </span>
+  );
+}
+
+/** Réponse à la question neutre d'une solution en vérification. */
+export function IntegrityAnswer({ signalId, initial }: { signalId: number; initial: string | null }) {
+  const [answer, setAnswer] = useState(initial ?? "");
+  const [result, setResult] = useState<{ error?: string; success?: string }>({});
+  const [pending, setPending] = useState(false);
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    const saved = await apiPost(`/integrity/${signalId}/answer`, { answer });
+    setPending(false);
+    setResult(saved.ok ? { success: "Réponse transmise au modérateur." } : { error: saved.error });
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="mt-3 space-y-3">
+      <Field label="Ta réponse" htmlFor={`integrity-${signalId}`}>
+        <textarea
+          id={`integrity-${signalId}`}
+          required
+          minLength={3}
+          maxLength={2000}
+          rows={3}
+          value={answer}
+          onChange={(event) => setAnswer(event.target.value)}
+          className={inputClass}
+        />
+      </Field>
+      <FormMessage error={result.error} success={result.success} />
+      <SubmitButton pending={pending}>Répondre</SubmitButton>
+    </form>
+  );
+}
+
+/** Faire appel d'une décision : un autre modérateur l'examine sous 7 jours. */
+export function AppealForm({ type, id }: { type: DecisionType; id: number }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [statement, setStatement] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  if (!open) {
+    return (
+      <button type="button" onClick={() => setOpen(true)} className="mt-2 text-sm underline underline-offset-4">
+        [!] Faire appel
+      </button>
+    );
+  }
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setError(null);
+    const result = await apiPost("/appeals", { type, id, statement });
+    setPending(false);
+    if (!result.ok) return setError(result.error);
+    router.refresh();
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="mt-3 space-y-3">
+      <Field label="Pourquoi la décision te semble injuste" htmlFor={`appeal-${type}-${id}`}>
+        <textarea
+          id={`appeal-${type}-${id}`}
+          required
+          minLength={10}
+          maxLength={3000}
+          rows={4}
+          value={statement}
+          onChange={(event) => setStatement(event.target.value)}
+          className={inputClass}
+        />
+      </Field>
+      <FormMessage error={error} />
+      <div className="flex gap-3">
+        <SubmitButton pending={pending}>Envoyer l&apos;appel</SubmitButton>
+        <button type="button" onClick={() => setOpen(false)} className={secondaryButtonClass}>
+          Annuler
+        </button>
+      </div>
+    </form>
+  );
+}
+
+/** Reprendre sa solution : à compléter, ou validée (plus de 20 % de changement la renvoie en relecture). */
+export function ReviseSolution({ solutionId, body, validated }: { solutionId: number; body: string; validated: boolean }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState(body);
+  const preview = useDeferredValue(text);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  if (!open) {
+    return (
+      <button type="button" onClick={() => setOpen(true)} className="mt-2 text-sm underline underline-offset-4">
+        [~] {validated ? "Modifier ma solution" : "Compléter ma solution"}
+      </button>
+    );
+  }
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (text.trim().length < SOLUTION_MIN_LENGTH) return setError(TOO_SHORT);
+    setPending(true);
+    const saved = await apiPost(`/solutions/${solutionId}/revise`, { body: text });
+    setPending(false);
+    if (!saved.ok) return setError(saved.error);
+    setOpen(false);
+    router.refresh();
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="mt-3 space-y-3">
+      <Field
+        label="Solution révisée"
+        htmlFor={`revise-${solutionId}`}
+        hint={validated ? "Une modification de plus de 20 % renvoie la solution en relecture." : "Elle repartira en relecture, auprès de trois nouveaux relecteurs."}
+      >
+        <MathEditor id={`revise-${solutionId}`} label="Solution révisée" value={text} onChange={setText} />
+      </Field>
+      {preview.trim() && (
+        <div className="border-l-2 border-hairline-strong bg-surface-soft px-4">
+          <MathMarkdown>{preview}</MathMarkdown>
+        </div>
+      )}
+      <FormMessage error={error} />
+      <div className="flex items-center gap-4">
+        <SubmitButton pending={pending}>Envoyer</SubmitButton>
+        <button type="button" onClick={() => setOpen(false)} className="text-sm text-mute hover:text-ink">
+          Annuler
+        </button>
+      </div>
+    </form>
+  );
+}
+
+/** L'auteur de l'exercice recommande une solution validée : +5 pour son auteur, une fois. */
+export function RecommendButton({ solutionId }: { solutionId: number }) {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <span className="inline-flex items-center gap-2">
+      <button
+        type="button"
+        onClick={async () => {
+          if (!window.confirm("Recommander cette solution ? Tu ne pourras en recommander qu'une.")) return;
+          const result = await apiPost(`/solutions/${solutionId}/recommend`);
+          if (result.ok) router.refresh();
+          else setError(result.error);
+        }}
+        className="text-sm underline underline-offset-4"
+      >
+        [★] Recommander
+      </button>
+      {error && <span role="alert" className="text-sm text-danger-text">{error}</span>}
+    </span>
+  );
+}
+
+/** Relecture spontanée d'une solution en attente (poids ½). */
+export function VolunteerButton({ solutionId }: { solutionId: number }) {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <span className="inline-flex items-center gap-2">
+      <button
+        type="button"
+        onClick={async () => {
+          const result = await apiPost(`/solutions/${solutionId}/volunteer`);
+          if (result.ok) router.refresh();
+          else setError(result.error);
+        }}
+        className={secondaryButtonClass}
+      >
+        Je relis
+      </button>
+      {error && <span role="alert" className="text-sm text-danger-text">{error}</span>}
+    </span>
+  );
+}
+
+/** Décision d'un expert sur une solution contestée. */
+export function ArbitrationButtons({ solutionId }: { solutionId: number }) {
+  const [status, setStatus] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function decide(validate: boolean) {
+    const result = await apiPost<{ solution_status: keyof typeof SOLUTION_STATUS_LABELS }>(
+      `/arbitrations/${solutionId}`,
+      { validate_solution: validate },
+    );
+    if (result.ok) setStatus(SOLUTION_STATUS_LABELS[result.data.solution_status]);
+    else setError(result.error);
+  }
+
+  if (status) return <FormMessage success={`Décision enregistrée : ${status.toLowerCase()}.`} />;
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-3">
+        <button type="button" onClick={() => decide(true)} className={primaryButtonClass}>
+          Valider
+        </button>
+        <button type="button" onClick={() => decide(false)} className={secondaryButtonClass}>
+          À compléter
+        </button>
+      </div>
+      <FormMessage error={error} />
+    </div>
   );
 }

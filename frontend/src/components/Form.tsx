@@ -48,6 +48,38 @@ export function FormMessage({ error, success }: { error?: string | null; success
   return null;
 }
 
+/** Case à cocher façon terminal : [ ] puis [x]. */
+export function AsciiCheckbox({
+  checked,
+  onChange,
+  name,
+  children,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  name?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="group flex cursor-pointer gap-2 has-focus-visible:outline has-focus-visible:outline-1 has-focus-visible:outline-ink">
+      <input
+        type="checkbox"
+        name={name}
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="sr-only"
+      />
+      <span aria-hidden="true" className="shrink-0 text-ash group-has-checked:hidden">
+        [ ]
+      </span>
+      <span aria-hidden="true" className="hidden shrink-0 font-bold group-has-checked:inline">
+        [x]
+      </span>
+      <span>{children}</span>
+    </label>
+  );
+}
+
 export function SubmitButton({ pending, children }: { pending: boolean; children: React.ReactNode }) {
   return (
     <button type="submit" disabled={pending} className={primaryButtonClass}>

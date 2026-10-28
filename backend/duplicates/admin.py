@@ -46,12 +46,12 @@ def cancel_merge(modeladmin, request, queryset):
 class DuplicatePairAdmin(admin.ModelAdmin):
     """File « Doublons à arbitrer », triée par score décroissant."""
 
-    list_display = ("exercise", "existing", "band", "score_display", "author_choice", "author_note", "status", "created_at")
-    list_filter = ("status", "band", "author_choice")
+    list_display = ("exercise", "existing", "band", "score_display", "llm_relation", "author_choice", "status", "created_at")
+    list_filter = ("status", "band", "author_choice", "llm_relation")
     search_fields = ("exercise__title", "existing__title", "author_note")
     actions = [merge, link_as_variants, declare_distinct, cancel_merge]
     readonly_fields = (
-        "comparison", "exercise", "existing", "band", "score", "jaccard", "abstract_jaccard",
+        "comparison", "llm_opinion", "exercise", "existing", "band", "score", "jaccard", "abstract_jaccard",
         "cosine", "author_choice", "author_note", "status", "decided_by", "decided_at",
         "moved_solutions", "created_at",
     )
@@ -68,6 +68,12 @@ class DuplicatePairAdmin(admin.ModelAdmin):
     def score_display(self, pair):
         score = "—" if pair.score is None else f"{pair.score:.2f}"
         return f"{score} / {pair.jaccard:.2f}"
+
+    @admin.display(description="Avis du LLM")
+    def llm_opinion(self, pair):
+        if not pair.llm_relation:
+            return "— (pas d'avis : LLM non configuré, ou bande sans arbitrage automatique)"
+        return f"{pair.get_llm_relation_display()} (confiance {pair.llm_confidence:.0%}) : {pair.llm_rationale}"
 
     @admin.display(description="Énoncés côte à côte")
     def comparison(self, pair):

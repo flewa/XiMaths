@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Level } from "@/lib/api";
 import { apiPost } from "@/lib/client-api";
 
-import { Field, FormMessage, SubmitButton, inputClass } from "./Form";
+import { Field, FormMessage, SubmitButton, inputClass, secondaryButtonClass } from "./Form";
 
 export function LoginForm({ next }: { next: string }) {
   const router = useRouter();
@@ -45,12 +45,100 @@ export function LoginForm({ next }: { next: string }) {
       </Field>
       <FormMessage error={error} />
       <SubmitButton pending={pending}>Se connecter</SubmitButton>
-      <p className="text-sm text-mute">
-        Pas encore de compte ?{" "}
+      <p className="space-x-4 text-sm text-mute">
+        <Link href="/mot-de-passe-oublie" className="underline underline-offset-4">
+          Mot de passe oublié ?
+        </Link>
         <Link href="/inscription" className="underline underline-offset-4">
           Créer un compte
         </Link>
       </p>
+    </form>
+  );
+}
+
+/** Lien vers la connexion Google : une simple navigation, le serveur fait l'aller-retour. */
+export function GoogleButton({ next }: { next: string }) {
+  return (
+    <a href={`/api/auth/google/start?next=${encodeURIComponent(next)}`} className={`${secondaryButtonClass} text-center`}>
+      [G] Continuer avec Google
+    </a>
+  );
+}
+
+export function ForgotPasswordForm() {
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    const result = await apiPost("/auth/password-reset", { email: new FormData(event.currentTarget).get("email") });
+    setPending(false);
+    if (result.ok) setSent(true);
+    else setError(result.error);
+  }
+
+  if (sent) {
+    return (
+      <FormMessage success="Si un compte existe avec cette adresse, un lien vient d'y être envoyé. Il est valable 3 jours." />
+    );
+  }
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <Field label="Adresse email" htmlFor="email">
+        <input id="email" name="email" type="email" required autoComplete="email" className={inputClass} />
+      </Field>
+      <FormMessage error={error} />
+      <SubmitButton pending={pending}>Recevoir un lien</SubmitButton>
+    </form>
+  );
+}
+
+export function ResetPasswordForm({ uid, token }: { uid: string; token: string }) {
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    const result = await apiPost("/auth/password-reset/confirm", {
+      uid,
+      token,
+      password: new FormData(event.currentTarget).get("password"),
+    });
+    setPending(false);
+    if (result.ok) setDone(true);
+    else setError(result.error);
+  }
+
+  if (done) {
+    return (
+      <div className="space-y-4">
+        <FormMessage success="Mot de passe changé." />
+        <Link href="/connexion" className="underline underline-offset-4">
+          Se connecter
+        </Link>
+      </div>
+    );
+  }
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <Field label="Nouveau mot de passe" htmlFor="password" hint="8 caractères au moins ; une phrase est plus sûre qu'un mot.">
+        <input
+          id="password"
+          name="password"
+          type="password"
+          required
+          minLength={8}
+          autoComplete="new-password"
+          className={inputClass}
+        />
+      </Field>
+      <FormMessage error={error} />
+      <SubmitButton pending={pending}>Changer le mot de passe</SubmitButton>
     </form>
   );
 }

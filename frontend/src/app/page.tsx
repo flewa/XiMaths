@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ApiUnavailable } from "@/components/ExerciseMeta";
+import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { ExerciseList } from "@/components/ExerciseList";
 import { FilterChip, Tabs } from "@/components/FilterChip";
 import { fetchFeed, fetchLevels, fetchMe, type FeedItem } from "@/lib/api";
@@ -27,7 +27,7 @@ export default async function Home({
     const level = niveau === ALL_LEVELS ? undefined : (niveau ?? me?.declared_level ?? undefined);
     data = { levels, level, feed: await fetchFeed(level) };
   } catch (error) {
-    console.error(error);
+    logApiError(error);
     return <ApiUnavailable />;
   }
   const { levels, level, feed } = data;

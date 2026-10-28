@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
@@ -37,6 +38,23 @@ class User(AbstractUser):
     )
     leaderboard_visible = models.BooleanField(default=True)
     tiers_temps = models.BooleanField(default=False)
+    google_sub = models.CharField(
+        max_length=64, null=True, blank=True, unique=True, help_text="Identifiant du compte Google lié."
+    )
+    email_notifications = models.BooleanField(
+        default=True,
+        help_text="Emails pour ce qui te concerne directement : retrait, sanction, question d'intégrité.",
+    )
+    weekly_digest = models.BooleanField(default=False, help_text="Résumé hebdomadaire par email, sur opt-in.")
+    daily_challenge_notifications = models.BooleanField(
+        default=False, help_text="Notification à l'ouverture du défi du jour, sur opt-in."
+    )
+    # Série hebdomadaire : objectif de 2 à 7 jours actifs, et mode examens ou vacances.
+    weekly_goal_days = models.PositiveSmallIntegerField(
+        default=3, validators=[MinValueValidator(2), MaxValueValidator(7)]
+    )
+    vacation_from = models.DateField(null=True, blank=True)
+    vacation_until = models.DateField(null=True, blank=True)
 
 
 class AccountLink(models.Model):

@@ -117,6 +117,8 @@ class Solution(models.Model):
 
     class Status(models.TextChoices):
         DRAFT = "draft", "Brouillon"
+        # Trop proche d'une solution antérieure d'un autre auteur : un modérateur regarde.
+        HELD = "held", "En vérification"
         UNDER_REVIEW = "under_review", "En relecture"
         CONTESTED = "contested", "Contestée"
         VALIDATED = "validated", "Validée"
@@ -133,6 +135,11 @@ class Solution(models.Model):
         related_name="solutions",
     )
     body = models.TextField(max_length=TEXT_MAX_LENGTH, help_text="Markdown et LaTeX.")
+    variant_statement = models.TextField(
+        "énoncé tiré",
+        blank=True,
+        help_text="Défi paramétré : l'énoncé avec les paramètres de l'auteur, montré aux relecteurs.",
+    )
     ai_usage = models.CharField(
         max_length=16, choices=AiUsage.choices, default=AiUsage.NONE
     )
@@ -146,6 +153,12 @@ class Solution(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     published_at = models.DateTimeField(null=True, blank=True)
     validated_at = models.DateTimeField(null=True, blank=True)
+    review_round = models.PositiveSmallIntegerField(
+        default=1, help_text="Tour de relecture : une révision importante en ouvre un nouveau."
+    )
+    recommended_at = models.DateTimeField(
+        null=True, blank=True, help_text="Recommandée par l'auteur de l'exercice (une par exercice)."
+    )
 
     class Meta:
         ordering = ["-validated_at", "-published_at"]
@@ -177,6 +190,11 @@ class Review(models.Model):
     agrees_with_consensus = models.BooleanField(null=True, blank=True)
     assigned_at = models.DateTimeField(auto_now_add=True)
     submitted_at = models.DateTimeField(null=True, blank=True)
+    round = models.PositiveSmallIntegerField(default=1, help_text="Tour de relecture de la solution.")
+    reminded_at = models.DateTimeField(null=True, blank=True, help_text="Relance envoyée à 48 h.")
+    expired_at = models.DateTimeField(
+        null=True, blank=True, help_text="Non rendue à 72 h : réattribuée à un autre relecteur."
+    )
 
     class Meta:
         constraints = [

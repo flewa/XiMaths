@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import type { AiUsage, TrainingOptions, TrainingSession } from "@/lib/api";
 import { apiPost } from "@/lib/client-api";
@@ -30,6 +30,20 @@ export function clock(seconds: number) {
 
 function storageKey(id: number) {
   return `ximaths:entrainement:${id}`;
+}
+
+function readStoredDraft(id: number) {
+  try {
+    return window.localStorage.getItem(storageKey(id));
+  } catch {
+    // Stockage indisponible (navigation privée) : le serveur garde la copie.
+    return null;
+  }
+}
+
+// Le brouillon local ne change pas sous nos pieds : rien à écouter.
+function noSubscription() {
+  return () => {};
 }
 
 /** Écran des règles : durée, tiers-temps, puis « Commencer ». */
@@ -113,6 +127,33 @@ export function TrainingStart({
   );
 }
 
+/** « Commencer » un défi : le chrono part au clic, et la tentative est unique. */
+export function ChallengeStart({ challengeId, minutes }: { challengeId: number; minutes: number }) {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function start() {
+    setPending(true);
+    setError(null);
+    const started = await apiPost<TrainingSession>(`/challenges/${challengeId}/start`);
+    if (!started.ok) {
+      setPending(false);
+      return setError(started.error);
+    }
+    router.push(`/entrainement/${started.data.id}`);
+  }
+
+  return (
+    <div className="space-y-3">
+      <button type="button" disabled={pending} onClick={start} className={primaryButtonClass}>
+        {pending ? "Un instant…" : `Commencer · ${minutes} min`}
+      </button>
+      <FormMessage error={error} />
+    </div>
+  );
+}
+
 type Panel = "enonce" | "solution" | "apercu";
 const PANELS: { value: Panel; label: string }[] = [
   { value: "enonce", label: "Énoncé" },
@@ -137,22 +178,21 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
   const lastInternalCopy = useRef("");
   const latest = useRef({ draft, answer, aiUsage });
   const autoSubmitted = useRef(false);
+  const [pasteBlocked, setPasteBlocked] = useState(false);
   const running = session.status === "en_cours";
+  // Défi du jour : classé, sans pause, sans collage externe, sans IA.
+  const ranked = session.kind === "defi";
 
   useEffect(() => {
     latest.current = { draft, answer, aiUsage };
   }, [draft, answer, aiUsage]);
   const open = running || session.status === "en_pause";
-
-  // Brouillon gardé aussi dans le navigateur, si le réseau tombe.
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(storageKey(initial.id));
-      if (stored && !initial.draft) setDraft(stored);
-    } catch {
-      // Stockage indisponible (navigation privée) : le serveur garde la copie.
-    }
-  }, [initial.id, initial.draft]);
+  // Brouillon gardé aussi dans le navigateur, si le réseau tombe : proposé à la restauration.
+  const storedDraft = useSyncExternalStore(
+    noSubscription,
+    () => readStoredDraft(initial.id),
+    () => null,
+  );
 
   useEffect(() => {
     try {
@@ -252,7 +292,9 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
           <button type="button" onClick={() => setHidden(!hidden)} className="text-ash hover:text-on-dark">
             [{hidden ? "afficher" : "masquer"}]
           </button>
-          {running ? (
+          {ranked ? (
+            <span className="text-ash">défi · une seule tentative</span>
+          ) : running ? (
             <button
               type="button"
               disabled={session.pauses_left === 0}
@@ -274,8 +316,10 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
 
       <h1 className="mt-8">{session.exercise_title}</h1>
       <p className="mt-2 text-sm text-mute">
-        Entraînement non classé · documents autorisés · sauvegarde toutes les 10 s · sorties
-        d&apos;onglet : {session.focus_losses}
+        {ranked
+          ? "Défi du jour classé · cours personnel autorisé · IA interdite · le chrono continue même onglet fermé"
+          : "Entraînement non classé · documents autorisés"}{" "}
+        · sauvegarde toutes les 10 s · sorties d&apos;onglet : {session.focus_losses}
       </p>
 
       <div role="tablist" aria-label="Sections" className="mt-6 flex border-b border-hairline-strong md:hidden">
@@ -304,20 +348,41 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
           <section aria-label="Énoncé" className={`mt-6 ${panelClass("enonce")}`}>
             <h2 className="border-b border-hairline pb-2 font-bold">Énoncé</h2>
             <MathMarkdown>{session.statement}</MathMarkdown>
-            {session.hints.map((hint, index) => (
-              <details key={index} className="border-b border-hairline py-3">
-                <summary className="font-medium">Indication {index + 1}</summary>
-                <MathMarkdown>{hint}</MathMarkdown>
-              </details>
-            ))}
+            {ranked
+              ? session.hints.map((hint, index) => (
+                  <div key={index} className="border-b border-hairline py-3">
+                    <p className="font-medium">Indication {index + 1}</p>
+                    <MathMarkdown>{hint}</MathMarkdown>
+                  </div>
+                ))
+              : session.hints.map((hint, index) => (
+                  <details key={index} className="border-b border-hairline py-3">
+                    <summary className="font-medium">Indication {index + 1}</summary>
+                    <MathMarkdown>{hint}</MathMarkdown>
+                  </details>
+                ))}
+            {ranked && session.hints_opened < session.hint_count && (
+              <button type="button" onClick={() => call("/hint")} className="mt-3 underline underline-offset-4">
+                [+] Ouvrir l&apos;indication {session.hints_opened + 1} · −10 % de bonus de rapidité
+              </button>
+            )}
           </section>
 
           <section aria-label="Solution" className={`mt-10 space-y-4 ${panelClass("solution")}`}>
             <h2 className="border-b border-hairline pb-2 font-bold">Ta solution</h2>
+            {storedDraft && !draft.trim() && (
+              <button type="button" onClick={() => setDraft(storedDraft)} className="underline underline-offset-4">
+                [↺] Restaurer le brouillon gardé dans ce navigateur
+              </button>
+            )}
             <Field
               label="Justification"
               htmlFor="training-draft"
-              hint={`${LATEX_HELP} Les collages venus d'ailleurs sont comptés (leur taille, jamais leur contenu).`}
+              hint={
+                ranked
+                  ? `${LATEX_HELP} Pendant un défi, le collage depuis l'extérieur est désactivé ; le copier-coller dans ton brouillon reste possible.`
+                  : `${LATEX_HELP} Les collages venus d'ailleurs sont comptés (leur taille, jamais leur contenu).`
+              }
             >
               <textarea
                 id="training-draft"
@@ -335,11 +400,22 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
                 }}
                 onPaste={(event) => {
                   const text = event.clipboardData.getData("text");
-                  if (text && text !== lastInternalCopy.current) unsent.current.pasteChars += text.length;
+                  if (!text || text === lastInternalCopy.current) return;
+                  unsent.current.pasteChars += text.length;
+                  // En défi, un signal et non une barrière : contournable, donc seulement compté.
+                  if (ranked) {
+                    event.preventDefault();
+                    setPasteBlocked(true);
+                  }
                 }}
                 className={inputClass}
               />
             </Field>
+            {pasteBlocked && (
+              <p role="status" className="text-sm text-mute">
+                [i] Collage depuis l&apos;extérieur désactivé pendant le défi.
+              </p>
+            )}
             {session.has_final_answer && (
               <Field
                 label="Réponse finale"
@@ -355,24 +431,28 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
                 />
               </Field>
             )}
-            <fieldset className="space-y-2">
-              <legend className="font-medium">As-tu utilisé une IA ?</legend>
-              {AI_USAGE_OPTIONS.map((option) => (
-                <label key={option.value} className="flex gap-2">
-                  <input
-                    type="radio"
-                    name="training-ai"
-                    value={option.value}
-                    checked={aiUsage === option.value}
-                    onChange={() => setAiUsage(option.value)}
-                    className="shrink-0"
-                  />
-                  <span>
-                    {option.label} <span className="text-mute">· {option.help}</span>
-                  </span>
-                </label>
-              ))}
-            </fieldset>
+            {ranked ? (
+              <p className="text-sm text-mute">[i] IA interdite pendant le défi : ta justification est relue par trois membres.</p>
+            ) : (
+              <fieldset className="space-y-2">
+                <legend className="font-medium">As-tu utilisé une IA ?</legend>
+                {AI_USAGE_OPTIONS.map((option) => (
+                  <label key={option.value} className="flex gap-2">
+                    <input
+                      type="radio"
+                      name="training-ai"
+                      value={option.value}
+                      checked={aiUsage === option.value}
+                      onChange={() => setAiUsage(option.value)}
+                      className="shrink-0"
+                    />
+                    <span>
+                      {option.label} <span className="text-mute">· {option.help}</span>
+                    </span>
+                  </label>
+                ))}
+              </fieldset>
+            )}
           </section>
 
           <section aria-label="Aperçu" className={`mt-10 ${panelClass("apercu")}`}>
@@ -395,7 +475,10 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
         <button
           type="button"
           onClick={() => {
-            if (window.confirm("Abandonner cette session ? Ton brouillon ne sera pas envoyé.")) void call("/abandon");
+            const question = ranked
+              ? "Abandonner le défi ? Ta tentative sera consommée, sans autre pénalité."
+              : "Abandonner cette session ? Ton brouillon ne sera pas envoyé.";
+            if (window.confirm(question)) void call("/abandon");
           }}
           className={secondaryButtonClass}
         >
@@ -413,14 +496,20 @@ function TrainingResult({ session }: { session: TrainingSession }) {
   const [rated, setRated] = useState(session.self_rating);
   const [error, setError] = useState<string | null>(null);
 
+  const ranked = session.kind === "defi";
+
   if (session.status === "abandonnee") {
     return (
       <div>
         <h1>{session.exercise_title}</h1>
-        <p className="mt-4">[-] Session abandonnée. Rien n&apos;a été envoyé.</p>
+        <p className="mt-4">
+          {ranked
+            ? "[-] Défi abandonné. Ta tentative est consommée, sans autre pénalité."
+            : "[-] Session abandonnée. Rien n'a été envoyé."}
+        </p>
         <p className="mt-6">
-          <Link href={`/exercices/${session.exercise_id}`} className="underline underline-offset-4">
-            Revenir à l&apos;exercice
+          <Link href={ranked ? "/defi" : `/exercices/${session.exercise_id}`} className="underline underline-offset-4">
+            {ranked ? "Revenir aux défis" : "Revenir à l'exercice"}
           </Link>
         </p>
       </div>
@@ -439,7 +528,7 @@ function TrainingResult({ session }: { session: TrainingSession }) {
 
   return (
     <div>
-      <p className="text-sm text-mute">Entraînement rendu</p>
+      <p className="text-sm text-mute">{ranked ? "Défi du jour rendu" : "Entraînement rendu"}</p>
       <h1>{session.exercise_title}</h1>
 
       <dl className="mt-8 grid grid-cols-2 border-y border-hairline">
@@ -460,6 +549,7 @@ function TrainingResult({ session }: { session: TrainingSession }) {
             ? `[+] Ta justification est envoyée : ${SOLUTION_STATUS_LABELS[session.solution_status].toLowerCase()}. Trois membres la liront.`
             : "[-] Justification trop courte : elle n'a pas été envoyée en relecture."}
         </li>
+        {ranked && <ChallengePoints session={session} />}
         <li className="text-mute">
           [i] Sorties d&apos;onglet : {session.focus_losses}. Elles ne sont jamais pénalisées.
         </li>
@@ -500,10 +590,39 @@ function TrainingResult({ session }: { session: TrainingSession }) {
         <Link href={`/exercices/${session.exercise_id}#solutions`} className="underline underline-offset-4">
           Voir les solutions validées
         </Link>
-        <Link href="/" className="underline underline-offset-4">
-          Un autre exercice
+        <Link href={ranked ? "/defi" : "/"} className="underline underline-offset-4">
+          {ranked ? "Les autres défis" : "Un autre exercice"}
         </Link>
       </p>
     </div>
+  );
+}
+
+const bonusFormat = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 });
+const timeFormat = new Intl.DateTimeFormat("fr-FR", { weekday: "long", hour: "2-digit", minute: "2-digit" });
+
+/** Barème du défi : 60 % pour la réponse, tout de suite ; 40 % à la validation. */
+function ChallengePoints({ session }: { session: TrainingSession }) {
+  const bonus = session.bonus === null ? "" : ` · bonus de rapidité ×${bonusFormat.format(session.bonus)}`;
+  return (
+    <>
+      <li>
+        {session.answer_correct
+          ? `[+] +${session.answer_points} points pour la réponse juste${bonus}.`
+          : "[-] Pas de points pour la réponse : elle n'est pas reconnue comme juste."}
+      </li>
+      {session.solution_status && (
+        <li>
+          [~] +{session.justification_points} points de plus quand ta justification sera validée par les pairs.
+        </li>
+      )}
+      {session.challenge_closes_at && (
+        <li className="text-mute">
+          {/* Fermeture à minuit : « mercredi 23:59 » plutôt que « jeudi 00:00 ». */}
+          [i] Les solutions des autres seront visibles à la fermeture du défi,{" "}
+          {timeFormat.format(new Date(Date.parse(session.challenge_closes_at) - 60_000))}.
+        </li>
+      )}
+    </>
   );
 }
