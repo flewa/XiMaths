@@ -1,0 +1,66 @@
+{
+  "text": "Tu proposes ta solution, et trois étudiants tirés au sort la relisent.",
+  "words": [
+    {
+      "text": "Tu",
+      "start": 0.16,
+      "end": 0.24
+    },
+    {
+      "text": "proposes",
+      "start": 0.24,
+      "end": 0.72
+    },
+    {
+      "text": "ta",
+      "start": 0.72,
+      "end": 0.86
+    },
+    {
+      "text": "solution,",
+      "start": 0.86,
+      "end": 1.26
+    },
+    {
+      "text": "et",
+      "start": 1.56,
+      "end": 1.66
+    },
+    {
+      "text": "trois",
+      "start": 1.66,
+      "end": 1.9
+    },
+    {
+      "text": "étudiants",
+      "start": 1.9,
+      "end": 2.32
+    },
+    {
+      "text": "tirés",
+      "start": 2.32,
+      "end": 2.62
+    },
+    {
+      "text": "au",
+      "start": 2.62,
+      "end": 2.74
+    },
+    {
+      "text": "sort",
+      "start": 2.74,
+      "end": 2.9
+    },
+    {
+      "text": "la",
+      "start": 2.9,
+      "end": 3.06
+    },
+    {
+      "text": "relisent.",
+      "start": 3.06,
+      "end": 3.46
+    }
+  ],
+  "duration": 3.59
+}

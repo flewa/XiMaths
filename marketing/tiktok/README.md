@@ -32,9 +32,28 @@ Remotion télécharge son propre Chromium. Pour utiliser un Chromium déjà inst
 
 ## Voix off
 
-La voix vient d'[ElevenLabs](https://elevenlabs.io/) (modèle `eleven_multilingual_v2`). Le script envoie chaque phrase avec la précédente et la suivante, pour que le ton s'enchaîne, et récupère l'alignement mot à mot : les sous-titres suivent alors la voix, et chaque scène dure le temps de sa phrase.
+Les voix de `public/voice/` sont gratuites et sans limite : elles viennent de modèles libres qui tournent sur la machine, sans compte ni clé.
 
-La clé se donne par l'environnement, jamais dans un fichier du dépôt.
+- [Chatterbox Multilingual](https://github.com/resemble-ai/chatterbox) (Resemble AI, licence MIT) dit les phrases. Il marque son audio d'un filigrane inaudible.
+- Son timbre vient d'une référence française produite par [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) (Apache 2.0, voix `ff_siwis`), qui reprend aussi toute phrase que Chatterbox rate.
+- Chaque phrase est transcrite par Whisper et comparée au script ; en dessous de 92 % de concordance, elle est refaite. Ce qui a été entendu est noté dans `public/voice/<vidéo>/rapport.txt`.
+
+```bash
+uv venv .venv-voix
+VIRTUAL_ENV=.venv-voix uv pip install --torch-backend cpu chatterbox-tts kokoro faster-whisper "setuptools<81"
+```
+
+```bash
+.venv-voix/bin/python scripts/voice_local.py                  # toutes les vidéos, environ 4 min chacune sans carte graphique
+.venv-voix/bin/python scripts/voice_local.py 04-defi-chrono   # une seule
+npm run render
+```
+
+Les modèles se téléchargent depuis Hugging Face au premier lancement. La prononciation des mots difficiles (XiMaths, LaTeX, les sigles) se règle dans `SAY`, en tête de `scripts/voice_local.py` ; les sous-titres gardent l'écriture du script.
+
+### Avec ElevenLabs
+
+Pour une voix ElevenLabs, il faut un forfait payant : le forfait gratuit interdit l'usage commercial. Avec une clé, `scripts/voice.ts` envoie chaque phrase avec la précédente et la suivante, pour que le ton s'enchaîne, et récupère l'alignement mot à mot. La clé se donne par l'environnement, jamais dans un fichier du dépôt.
 
 ```bash
 export ELEVENLABS_API_KEY=…
@@ -47,7 +66,7 @@ npm run voice                             # écrit public/voice/<vidéo>/<scène
 npm run render
 ```
 
-Une scène dont le texte n'a pas changé n'est pas régénérée (`--force` pour tout refaire). La prononciation des mots difficiles (XiMaths, LaTeX, L1, M2) se règle dans `SAY`, en tête de `scripts/voice.ts`.
+Une voix générée d'un seul tenant ailleurs (site d'ElevenLabs, connecteur de Claude) s'importe avec sa transcription mot à mot : `npm run voice:import -- <vidéo> voix.mp3 mots.json`.
 
 Sans voix, les vidéos se rendent quand même : la durée des scènes est estimée au débit d'une voix off rapide, et les sous-titres suivent cette estimation.
 
@@ -68,7 +87,7 @@ Les animations hors du téléphone (copie notée, relecteurs, série, classement
 
 ## Publier sur TikTok
 
-- Cocher « contenu généré par IA » : la voix est synthétique.
+- Cocher « contenu généré par IA » : la voix est synthétique. Mentionner les modèles en description est une bonne pratique : « Voix : Chatterbox (Resemble AI) et Kokoro ».
 - Légende et hashtags : dans `SCRIPTS.md`.
 - Couverture : la première image, qui porte l'accroche.
 - Le texte reste dans la zone que l'interface de TikTok ne couvre pas (`SAFE` dans `src/theme.ts`).

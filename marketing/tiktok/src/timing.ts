@@ -12,6 +12,9 @@ import { estimateWords, TAIL, TRANSITION, type Word } from "./words";
 
 export { TRANSITION, type Word };
 
+/** Temps laissé à l'écran de fin après la dernière phrase, en secondes. */
+const END_HOLD = 1.2;
+
 export type SceneTiming = { words: Word[]; seconds: number; audio: string | null };
 export type VoiceFile = { words: Word[]; duration: number };
 
@@ -26,7 +29,10 @@ export async function sceneTimings(video: Video): Promise<SceneTiming[]> {
       const mp3 = voicePath(video.id, index, "mp3");
       if (files.has(json) && files.has(mp3)) {
         const voice: VoiceFile = await fetch(staticFile(json)).then((response) => response.json());
-        return { words: voice.words, seconds: voice.duration + TAIL, audio: mp3 };
+        // La voix porte déjà ses silences : la scène suivante enchaîne pendant la transition,
+        // et seule la dernière s'attarde, le temps de lire la fin.
+        const hold = index === video.scenes.length - 1 ? END_HOLD : TRANSITION / FPS;
+        return { words: voice.words, seconds: voice.duration + hold, audio: mp3 };
       }
       const words = estimateWords(scene.voice);
       return { words, seconds: words[words.length - 1].end + TAIL, audio: null };

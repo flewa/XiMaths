@@ -1,0 +1,6 @@
+01-prepa-relue · 1 · chatterbox · 1.00 · en prépa, tu rédiges des dizaines de démonstrations par semaine.
+01-prepa-relue · 2 · chatterbox · 0.97 · et à part en colle, presque personne ne les relie.
+01-prepa-relue · 3 · chatterbox · 0.97 · Sur SIMAT, tu choisis ta filière, MPSI, MPPSI, et tu tombes sur des exos de ton niveau.
+01-prepa-relue · 4 · chatterbox · 0.98 · tu proposes ta solution et trois étudiants tirés au sort la relise.
+01-prepa-relue · 5 · chatterbox · 0.99 · correcte ? Avec l'accune ou incorrecte, tu as trois verdicts et leurs commentaires.
+01-prepa-relue · 6 · chatterbox · 0.95 · Simat, lien en bio,  ta prochaine démo sera relue.
