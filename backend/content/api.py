@@ -637,7 +637,7 @@ def pending_reviews(request):
     )
 
 
-@router.post("/reviews/{review_id}", response=ReviewResult, auth=django_auth)
+@router.post("/reviews/{int:review_id}", response=ReviewResult, auth=django_auth)
 def review_solution(request, review_id: int, payload: ReviewIn):
     user = contributor(request)
     review = get_object_or_404(
