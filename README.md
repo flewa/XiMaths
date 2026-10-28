@@ -23,6 +23,7 @@ Dans l'application de bureau Claude Code, `.claude/launch.json` décrit les deux
 | `backend/` | API Django 5.2 + Django Ninja. Apps : `accounts` (comptes, connexion Google, niveau de confiance), `catalog` (niveaux, chapitres), `content` (exercices, solutions, relectures, votes, tâches planifiées), `duplicates` (détection des doublons), `gamification` (ledger, barème, classements, badges, niveaux de confiance, séries et objectifs), `moderation` (signalements, anti-plagiat, sanctions, appels, questions de compréhension), `notifications`, `training` (chronométré et défi du jour) |
 | `frontend/` | Next.js 16 (App Router), React 19, Tailwind 4, Markdown + KaTeX rendus côté serveur, éditeur CodeMirror 6. Design décrit dans `frontend/DESIGN-opencode.ai.md`, avec un mode sombre |
 | `dev.sh` | Lancement local en une commande : dépendances, base de démonstration, API et front |
+| `marketing/tiktok/` | Vidéos TikTok en Remotion : scripts, captures de l'application, voix off ElevenLabs ([mode d'emploi](marketing/tiktok/README.md)) |
 | `docker-compose.yml` | Développement : PostgreSQL 16 avec pgvector, Redis, et bge-m3 servi par Text Embeddings Inference |
 | `docker-compose.prod.yml`, `Caddyfile` | Production : Caddy (HTTPS), PostgreSQL, Redis, l'API, le planificateur et le front |
 | `.github/workflows/ci.yml` | Intégration continue : tests du backend, typage, lint, tests et construction du front |
