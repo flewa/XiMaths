@@ -471,13 +471,22 @@ export const VIDEOS: Video[] = [
         visual: {
           kind: "title",
           kicker: "attention",
-          text: "Fausse *et* bien rédigée :\nle pire piège.",
+          text: "Une preuve *fausse*\nbien rédigée :\nle pire piège.",
           accent: "red",
         },
       },
       {
         voice: "Sur XiMaths, chaque solution est relue par trois étudiants. Des humains.",
-        visual: { kind: "reviewers", title: "3 humains relisent", verdicts: true },
+        visual: {
+          kind: "reviewers",
+          title: "3 humains relisent",
+          verdicts: true,
+          lines: [
+            "\\tfrac{1}{n^2} \\le \\tfrac{1}{n(n-1)} \\text{ pour } n \\ge 2,",
+            "\\text{donc } \\textstyle\\sum \\tfrac{1}{n^2} \\text{ converge.}",
+          ],
+          note: "« et ∑ 1/(n(n−1)) ? »",
+        },
       },
       {
         voice: "Pendant le défi du jour, l'IA est interdite.",
