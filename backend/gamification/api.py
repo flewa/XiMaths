@@ -15,7 +15,7 @@ from pydantic import Field
 from catalog.models import Level, Topic
 from content.models import Exercise, Solution
 
-from . import streaks
+from . import skills, streaks
 from .badges import BADGES, BADGES_BY_SLUG
 from .models import Goal, UserBadge, WeeklyStreak
 from .rankings import TOP_SIZE, Week, absence_reason, neighbourhood, standings
@@ -82,6 +82,7 @@ class MemberOut(Schema):
     joined: date
     # Absents si le membre a masqué sa présence dans les classements.
     points: int | None
+    contributor_level: int | None
     exercises_published: int
     solutions_validated: int
     badges: list[EarnedBadgeOut]
@@ -175,12 +176,15 @@ def list_badges(request):
 @router.get("/members/{username}", response=MemberOut)
 def member(request, username: str):
     user = get_object_or_404(User.objects.select_related("declared_level"), username=username, is_active=True)
+    points = balance(user) if user.leaderboard_visible else None
     return {
         "username": user.username,
         "declared_level": user.declared_level.code if user.declared_level else None,
         "trust_level": User.TrustLevel(user.trust_level).label,
         "joined": user.date_joined.date(),
-        "points": balance(user) if user.leaderboard_visible else None,
+        "points": points,
+        # Le niveau trahirait les points : masqué avec eux.
+        "contributor_level": skills.contributor_level(points)["level"] if points is not None else None,
         "exercises_published": Exercise.objects.filter(
             author=user, status=Exercise.Status.PUBLISHED
         ).count(),
@@ -234,6 +238,40 @@ class VacationOut(Schema):
     end: date
 
 
+class ContributorOut(Schema):
+    level: int
+    points: int
+    floor: int
+    next: int | None
+
+
+class SuggestionOut(Schema):
+    id: int
+    title: str
+    difficulty: int
+
+
+class SkillOut(Schema):
+    topic: str
+    slug: str
+    mastery: float
+    solved: int
+    target: int
+    next: SuggestionOut | None
+
+    @staticmethod
+    def resolve_topic(obj):
+        return obj["topic"].name
+
+    @staticmethod
+    def resolve_slug(obj):
+        return obj["topic"].slug
+
+    @staticmethod
+    def resolve_mastery(obj):
+        return round(obj["mastery"], 1)
+
+
 class ProgressOut(Schema):
     week: str
     goal_days: int
@@ -245,6 +283,8 @@ class ProgressOut(Schema):
     vacation: VacationOut | None
     history: list[WeekRecordOut]
     goals: list[GoalOut]
+    contributor: ContributorOut
+    skills: list[SkillOut]
 
 
 def _goal_out(goal, now):
@@ -263,7 +303,8 @@ def _goal_out(goal, now):
 
 @router.get("/progress", response=ProgressOut, auth=django_auth)
 def progress(request):
-    """Semaine en cours, série, jokers, mode vacances et objectifs personnels."""
+    """Semaine en cours, série, jokers, mode vacances, objectifs personnels, niveau de
+    contributeur et carte de compétences."""
     user = request.auth
     now = timezone.now()
     today = timezone.localdate(now)
@@ -300,6 +341,8 @@ def progress(request):
             _goal_out(goal, now)
             for goal in Goal.objects.filter(user=user, deadline__gte=today).select_related("topic")
         ],
+        "contributor": skills.contributor_level(balance(user)),
+        "skills": skills.skills_map(user),
     }
 
 

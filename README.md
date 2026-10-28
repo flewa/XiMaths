@@ -135,6 +135,14 @@ Sur `/progression` :
 - **Objectifs personnels** : « 10 exercices d'ici le 10 janvier » (éventuellement dans un chapitre) ou « 3 exercices chronométrés par semaine », avec une barre de progression.
 - La régularité rapporte des badges, jamais de points. Le bilan de la semaine arrive le lundi, sur un ton neutre.
 
+## Niveau de contributeur et carte de compétences
+
+Sur `/progression` également :
+
+- **Niveau de contributeur**, de 1 à 30, sur une courbe quadratique : le niveau n demande 20 (n − 1)² points (20 pour le niveau 2, 1 620 pour le 10, 16 820 pour le 30). Il suit le solde du ledger. Sur le profil public, il est masqué avec les points.
+- **Carte de compétences**, visible de soi seul : dans chaque chapitre, la maîtrise (de 0 à 5) est la moyenne des difficultés de ses 5 exercices résolus les plus difficiles, une case vide comptant 0. Une solution avec l'aide de l'IA sur une idée compte pour moitié, une solution générée pas du tout ; un exercice et ses doublons fusionnés comptent une fois.
+- **Prochain exercice** : dans chaque chapitre, un exercice publié ni écrit ni tenté, au plus près d'un cran au-dessus de la maîtrise, de son année d'études ou d'avant de préférence.
+
 ## Entraînement chronométré
 
 Depuis la fiche d'un exercice : 15, 30, 45 ou 60 minutes, ou le temps conseillé. Non classé, documents autorisés, deux pauses. Le serveur fait foi : chaque sauvegarde (toutes les 10 s) fait avancer le chrono, et un onglet fermé l'arrête. Au rendu : réponse finale vérifiée par SymPy (grammaire restreinte, jamais de Python libre), justification envoyée en relecture, temps comparé à la médiane, auto-évaluation de la difficulté.
@@ -183,11 +191,11 @@ npx tsc --noEmit
 npm run lint
 ```
 
-Le backend couvre le ledger et le barème, la relecture par les pairs (tours, délais, volontaires, arbitrages, révisions), les votes, l'authentification (Google compris), les notifications, la détection des doublons (avec E2 et l'avis du LLM simulés), les classements, les badges et les niveaux de confiance, le fil d'accueil, les signalements, l'anti-plagiat, les sanctions et appels, les questions de compréhension, l'entraînement chronométré, le défi du jour, les séries et objectifs, et les tâches planifiées. Aucun test n'appelle un service externe : Claude, Google et les embeddings sont simulés.
+Le backend couvre le ledger et le barème, la relecture par les pairs (tours, délais, volontaires, arbitrages, révisions), les votes, l'authentification (Google compris), les notifications, la détection des doublons (avec E2 et l'avis du LLM simulés), les classements, les badges et les niveaux de confiance, le niveau de contributeur et la carte de compétences, le fil d'accueil, les signalements, l'anti-plagiat, les sanctions et appels, les questions de compréhension, l'entraînement chronométré, le défi du jour, les séries et objectifs, et les tâches planifiées. Aucun test n'appelle un service externe : Claude, Google et les embeddings sont simulés.
 
 ## Limites connues
 
 - Les images Docker et la composition de production n'ont pas été construites ici (pas de Docker sur la machine de développement) : à vérifier au premier déploiement.
 - Les appels à Claude sont testés avec un client simulé ; leur premier usage réel se fera avec la clé.
 - Score d'intégrité : les empreintes IA de référence, la rupture de style et le classifieur du document ne sont pas encore mesurés ; leurs poids sont retirés et les autres renormalisés.
-- Pas encore : épreuves classées (V2), photo de copie, badge « Étudiant vérifié » par email académique, carte de compétences et niveau de contributeur.
+- Pas encore : épreuves classées (V2), photo de copie, badge « Étudiant vérifié » par email académique, PWA et Web Push.

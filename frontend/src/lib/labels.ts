@@ -38,6 +38,9 @@ export const SOLUTION_STATUS_LABELS: Record<SolutionStatus, string> = {
 
 export const dateFormat = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" });
 
+/** Une décimale, à la française : « 2,4 ». */
+export const oneDecimal = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
 const monthFormat = new Intl.DateTimeFormat("fr-FR", { month: "long", timeZone: "UTC" });
 
 /** 1er, 2e, 3e… */

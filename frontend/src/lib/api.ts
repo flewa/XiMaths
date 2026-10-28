@@ -215,6 +215,26 @@ export type Progress = {
     status_label: string;
   }[];
   goals: PersonalGoal[];
+  contributor: ContributorLevel;
+  skills: Skill[];
+};
+
+/** Niveau de contributeur, de 1 à 30 ; `next` est null au niveau 30. */
+export type ContributorLevel = {
+  level: number;
+  points: number;
+  floor: number;
+  next: number | null;
+};
+
+/** Maîtrise d'un chapitre, de 0 à 5, et l'exercice proposé un cran au-dessus. */
+export type Skill = {
+  topic: string;
+  slug: string;
+  mastery: number;
+  solved: number;
+  target: number;
+  next: { id: number; title: string; difficulty: number } | null;
 };
 
 export type LeaderboardEntry = {
@@ -297,8 +317,9 @@ export type Member = {
   declared_level: string | null;
   trust_level: string;
   joined: string;
-  /** null si le membre a masqué sa présence dans les classements. */
+  /** null, comme le niveau, si le membre a masqué sa présence dans les classements. */
   points: number | null;
+  contributor_level: number | null;
   exercises_published: number;
   solutions_validated: number;
   badges: { slug: string; name: string; criterion: string; awarded_at: string }[];

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ordinal, progressBar, weekRange } from "./labels";
+import { oneDecimal, ordinal, progressBar, weekRange } from "./labels";
 
 describe("ordinal", () => {
   it("writes 1er then 2e, 3e…", () => {
@@ -23,5 +23,11 @@ describe("progressBar", () => {
     expect(progressBar(5, 10, 10)).toBe("[#####-----]");
     expect(progressBar(0, 10, 4)).toBe("[----]");
     expect(progressBar(12, 10, 4)).toBe("[####]");
+  });
+});
+
+describe("oneDecimal", () => {
+  it("writes one decimal with a comma", () => {
+    expect([2.4, 3, 0.62].map((value) => oneDecimal.format(value))).toEqual(["2,4", "3,0", "0,6"]);
   });
 });

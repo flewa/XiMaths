@@ -43,7 +43,8 @@ export default async function MemberPage({ params }: Props) {
       <h1>{member.username}</h1>
       <p className="mt-2 text-body">
         {member.trust_level}
-        {member.declared_level && ` · ${member.declared_level}`} · membre depuis le{" "}
+        {member.declared_level && ` · ${member.declared_level}`}
+        {member.contributor_level !== null && ` · niveau ${member.contributor_level}`} · membre depuis le{" "}
         {dateFormat.format(new Date(member.joined))}
       </p>
 
