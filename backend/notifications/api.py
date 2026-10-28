@@ -9,8 +9,9 @@ from django.utils import timezone
 from ninja import Router, Schema
 from ninja.errors import HttpError
 from ninja.security import django_auth
-from ninja.throttling import AuthRateThrottle
 from pydantic import Field
+
+from config.throttles import AuthRouteThrottle
 
 from . import push
 from .models import Notification, PushSubscription
@@ -101,7 +102,7 @@ def push_key(request):
     "/push/subscriptions",
     response={204: None},
     auth=django_auth,
-    throttle=[AuthRateThrottle("30/h")],
+    throttle=[AuthRouteThrottle("push", "30/h")],
 )
 def push_subscribe(request, payload: PushSubscriptionIn):
     """Active les notifications push sur ce navigateur : une par jour au plus, jamais

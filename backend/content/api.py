@@ -12,12 +12,12 @@ from django.utils import timezone
 from ninja import Router, Schema
 from ninja.errors import HttpError
 from ninja.security import django_auth
-from ninja.throttling import AuthRateThrottle
 from pydantic import Field
 
 from accounts.links import linked_ids
 from accounts.permissions import contributor, is_moderator
 from catalog.models import Level, Topic
+from config.throttles import AuthRouteThrottle
 from duplicates.models import DuplicatePair
 from duplicates.services import (
     DuplicateSuspected,
@@ -492,7 +492,7 @@ def _similar_out(matches):
     "/exercises/similar",
     response=list[SimilarExerciseOut],
     auth=django_auth,
-    throttle=[AuthRateThrottle("30/m")],
+    throttle=[AuthRouteThrottle("ecriture", "30/m")],
 )
 def similar_exercises(request, payload: StatementIn):
     """Exercices publiés proches d'un énoncé en cours de rédaction."""
