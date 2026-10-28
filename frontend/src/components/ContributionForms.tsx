@@ -52,7 +52,7 @@ function PhotoTranscription({ exerciseId, onText }: { exerciseId: number; onText
         disabled={pending}
         className={secondaryButtonClass}
       >
-        {pending ? "Transcription en cours… jusqu'à une minute" : "[▣] Transcrire une photo de ma copie"}
+        {pending ? "Transcription en cours… jusqu'à une minute" : "[▣] Photographier ma copie"}
       </button>
       <p className="text-sm text-mute">
         Écrite à la main ? Une page par photo, nette et bien éclairée. Claude la transcrit telle quelle, sans
@@ -93,7 +93,7 @@ export function SolutionForm({ exerciseId, transcription = false }: { exerciseId
   return (
     <form onSubmit={onSubmit} className="mt-3 space-y-4">
       {transcription && <PhotoTranscription exerciseId={exerciseId} onText={addTranscription} />}
-      <Field label="Ta solution" htmlFor="solution-body" hint={LATEX_HELP}>
+      <Field label="Rédaction" htmlFor="solution-body" hint={LATEX_HELP}>
         <MathEditor id="solution-body" label="Ta solution" value={body} onChange={setBody} />
       </Field>
       {preview.trim() && (

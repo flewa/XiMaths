@@ -99,7 +99,7 @@ export default async function ProgressPage() {
         </h2>
         <ol className="mt-4 grid grid-cols-7 gap-1 text-center">
           {progress.days.map((item) => (
-            <li key={item.date} className={item.future ? "text-ash" : ""}>
+            <li key={item.date} className={item.future ? "text-stone" : ""}>
               <span className="block text-sm text-mute">{weekday.format(new Date(`${item.date}T00:00:00Z`))}</span>
               <span aria-label={item.active ? "actif" : item.future ? "à venir" : "inactif"}>
                 {item.active ? "[x]" : item.future ? " · " : "[ ]"}

@@ -3,14 +3,16 @@ import Link from "next/link";
 import { fetchMe, nullOnError, type Me } from "@/lib/api";
 
 import { AccountMenu, LogoutButton, MobileMenu, VerifyBanner } from "./AccountControls";
+import { BottomNav } from "./BottomNav";
 import { primaryButtonClass } from "./Form";
 
-const link = "hover:underline underline-offset-4";
+const link = "whitespace-nowrap hover:underline underline-offset-4";
 
 /** Pages du compte : menu déroulant sur ordinateur, liste dans le menu mobile. */
 function AccountLinks({ me }: { me: Me }) {
   return (
     <>
+      <span className="text-sm text-mute">{me.points} points</span>
       <Link href={`/membres/${encodeURIComponent(me.username)}`} className={link}>
         Mon profil
       </Link>
@@ -52,7 +54,7 @@ function NavLinks({ me }: { me: Me | null }) {
             Relectures{me.pending_reviews > 0 && <span className="text-mute"> [{me.pending_reviews}]</span>}
           </Link>
           <Link href="/notifications" className={link} aria-label={`Notifications, ${me.unread_notifications} non lues`}>
-            Notifs{me.unread_notifications > 0 && <span className="font-bold"> [{me.unread_notifications}]</span>}
+            [•]{me.unread_notifications > 0 && <span className="font-bold"> {me.unread_notifications}</span>}
           </Link>
         </>
       ) : (
@@ -72,21 +74,36 @@ export async function SiteHeader() {
         <Link href="/" className="shrink-0 font-bold">
           [ξ] XiMaths
         </Link>
-        <nav aria-label="Navigation" className="hidden items-center gap-5 font-medium md:flex">
+        <nav aria-label="Navigation" className="hidden items-center gap-5 font-medium lg:flex">
           <NavLinks me={me} />
           {me && (
-            <AccountMenu label={`${me.username} · ${me.points} pts`}>
+            <AccountMenu label={me.username}>
               <AccountLinks me={me} />
             </AccountMenu>
           )}
         </nav>
         <div className="flex items-center gap-4">
-          <Link
-            href={me ? "/exercices/nouveau" : "/inscription"}
-            className={`${primaryButtonClass} whitespace-nowrap`}
-          >
-            {me ? "Publier" : "Créer un compte"}
-          </Link>
+          <div className="hidden lg:block">
+            <Link href={me ? "/exercices/nouveau" : "/inscription"} className={`${primaryButtonClass} whitespace-nowrap`}>
+              {me ? "Publier" : "Créer un compte"}
+            </Link>
+          </div>
+          {/* Sur mobile, Publier passe dans la barre du bas ; restent les notifications et le menu. */}
+          {me ? (
+            <Link
+              href="/notifications"
+              aria-label={`Notifications, ${me.unread_notifications} non lues`}
+              className="whitespace-nowrap py-2 font-medium lg:hidden"
+            >
+              [•]{me.unread_notifications > 0 && <span className="font-bold"> {me.unread_notifications}</span>}
+            </Link>
+          ) : (
+            <div className="lg:hidden">
+              <Link href="/inscription" className={`${primaryButtonClass} whitespace-nowrap`}>
+                S&apos;inscrire
+              </Link>
+            </div>
+          )}
           <MobileMenu>
             <NavLinks me={me} />
             {me && <AccountLinks me={me} />}
@@ -94,6 +111,7 @@ export async function SiteHeader() {
         </div>
       </div>
       {me && !me.email_verified && <VerifyBanner email={me.email} />}
+      <BottomNav signedIn={me !== null} />
     </header>
   );
 }

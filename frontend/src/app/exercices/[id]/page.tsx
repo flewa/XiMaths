@@ -9,7 +9,7 @@ import {
   SolutionForm,
   VoteButton,
 } from "@/components/ContributionForms";
-import { ApiUnavailable, Difficulty, LevelTags, logApiError } from "@/components/ExerciseMeta";
+import { ApiUnavailable, Difficulty, LevelTags, License, logApiError } from "@/components/ExerciseMeta";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { ReportButton } from "@/components/ReportButton";
 import { Tag } from "@/components/Tag";
@@ -104,7 +104,7 @@ export default async function ExercisePage({ params }: Props) {
       <h1 className="mt-3">{exercise.title}</h1>
       <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-body">
         <LevelTags levels={exercise.levels} />
-        <Difficulty value={exercise.difficulty} />
+        <Difficulty value={exercise.difficulty} withLabel />
         {exercise.topics.length > 0 && <span>{exercise.topics.join(", ")}</span>}
         {exercise.author && (
           <Link href={`/membres/${encodeURIComponent(exercise.author)}`} className="hover:underline">
@@ -218,7 +218,7 @@ export default async function ExercisePage({ params }: Props) {
       <div className="mt-12 flex flex-wrap items-start justify-between gap-x-4 gap-y-2 border-t border-hairline pt-4 sm:mt-20">
         <p className="text-sm text-mute">
           {exercise.source_reference ? `Source : ${exercise.source_reference}. ` : ""}
-          Licence {exercise.license}.
+          Licence <License code={exercise.license} />.
         </p>
         <Report me={me} author={exercise.author} target="exercise" targetId={exercise.id} />
       </div>

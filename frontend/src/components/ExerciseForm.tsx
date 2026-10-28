@@ -43,7 +43,7 @@ function Chip({ name, value, label }: { name: string; value: string; label: stri
   return (
     <label className="group cursor-pointer rounded-sm px-2 py-1 hover:bg-surface-soft has-focus-visible:outline has-focus-visible:outline-1 has-focus-visible:outline-ink">
       <input type="checkbox" name={name} value={value} className="sr-only" />
-      <span aria-hidden="true" className="text-ash group-has-checked:hidden">
+      <span aria-hidden="true" className="text-stone group-has-checked:hidden">
         [ ]
       </span>
       <span aria-hidden="true" className="hidden font-bold group-has-checked:inline">

@@ -21,6 +21,8 @@
   --hairline: rgba(15, 0, 0, 0.12);
   --hairline-strong: #646262;
   --on-dark: #fdfcfc;
+  /* Texte atténué sur une surface sombre : 5,8:1 sur surface-dark. */
+  --on-dark-mute: #9a9898;
   /* Couleurs d'état, réservées aux états du produit, jamais à la navigation. */
   --success: #30d158;
   --warning: #ff9f0a;
@@ -50,6 +52,7 @@
     --hairline: rgba(255, 240, 240, 0.14);
     --hairline-strong: #a09d9d;
     --on-dark: #fdfcfc;
+    --on-dark-mute: #a09d9d;
     --danger-text: #ff6961;
   }
 }
@@ -70,6 +73,7 @@
   --hairline: rgba(255, 240, 240, 0.14);
   --hairline-strong: #a09d9d;
   --on-dark: #fdfcfc;
+  --on-dark-mute: #a09d9d;
   --danger-text: #ff6961;
 }
 
@@ -89,6 +93,7 @@
   --color-hairline: var(--hairline);
   --color-hairline-strong: var(--hairline-strong);
   --color-on-dark: var(--on-dark);
+  --color-on-dark-mute: var(--on-dark-mute);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
@@ -156,9 +161,10 @@
     cursor: pointer;
   }
 
+  /* Les marqueurs d'état ( ), [ ] et □ sont en stone : 4,9:1 en clair, 5,5:1 en sombre. */
   input[type="radio"]::before {
     content: "( )";
-    color: var(--ash);
+    color: var(--stone);
   }
 
   input[type="radio"]:checked::before {
@@ -168,8 +174,25 @@
   }
 
   :focus-visible {
-    outline: 1px solid var(--ink);
+    outline: 2px solid var(--ink);
     outline-offset: 2px;
+  }
+
+  /* Sur la surface sombre (accueil, chrono), l'anneau d'encre se confondrait avec le fond. */
+  .bg-surface-dark :focus-visible {
+    outline-color: var(--on-dark);
+  }
+
+  /* Tailwind 4 rend aux boutons le curseur par défaut : on remet la main. */
+  button:not(:disabled),
+  select:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  label:has(> input:not(:disabled)) {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
   }
 }
 

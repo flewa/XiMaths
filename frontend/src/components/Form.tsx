@@ -1,12 +1,12 @@
 // Champs : fond doux, filet, et une bordure d'encre au focus, sans halo.
 export const inputClass =
-  "w-full rounded-sm border border-hairline bg-surface-soft px-3 py-2 text-ink outline-none transition-colors placeholder:text-ash focus:border-ink focus:bg-canvas";
+  "w-full rounded-sm border border-hairline bg-surface-soft px-3 py-2 text-ink outline-none transition-colors placeholder:text-stone focus:border-ink focus:bg-canvas";
 
 export const primaryButtonClass =
-  "inline-block h-9 rounded-sm bg-ink px-5 font-medium leading-9 text-canvas active:bg-ink-deep disabled:bg-surface-card disabled:text-ash";
+  "inline-block min-h-9 rounded-sm bg-ink px-5 py-1 text-center font-medium leading-7 text-canvas active:bg-ink-deep disabled:bg-surface-card disabled:text-ash";
 
 export const secondaryButtonClass =
-  "inline-block h-9 rounded-sm border border-hairline-strong bg-canvas px-5 font-medium leading-[34px] text-ink active:bg-surface-card";
+  "inline-block min-h-9 rounded-sm border border-hairline-strong bg-canvas px-5 py-1 text-center font-medium leading-[26px] text-ink active:bg-surface-card";
 
 export function Field({
   label,
@@ -61,7 +61,7 @@ export function AsciiCheckbox({
   children: React.ReactNode;
 }) {
   return (
-    <label className="group flex cursor-pointer gap-2 has-focus-visible:outline has-focus-visible:outline-1 has-focus-visible:outline-ink">
+    <label className="group flex cursor-pointer gap-2 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-ink has-focus-visible:outline">
       <input
         type="checkbox"
         name={name}
@@ -69,7 +69,7 @@ export function AsciiCheckbox({
         onChange={(event) => onChange(event.target.checked)}
         className="sr-only"
       />
-      <span aria-hidden="true" className="shrink-0 text-ash group-has-checked:hidden">
+      <span aria-hidden="true" className="shrink-0 text-stone group-has-checked:hidden">
         [ ]
       </span>
       <span aria-hidden="true" className="hidden shrink-0 font-bold group-has-checked:inline">

@@ -27,7 +27,7 @@ export default async function NotificationsPage() {
         </Link>
         .
       </p>
-      <NotificationList initial={data.items} />
+      <NotificationList initial={data.items} now={new Date().toISOString()} />
     </div>
   );
 }

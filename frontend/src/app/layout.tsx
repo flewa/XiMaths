@@ -27,6 +27,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  // Le contenu va jusqu'aux bords arrondis de l'écran ; la barre du bas réserve la zone du geste d'accueil.
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#fdfcfc" },
     { media: "(prefers-color-scheme: dark)", color: "#161313" },
@@ -50,19 +52,28 @@ export default async function RootLayout({
   const theme = (await cookies()).get(THEME_COOKIE)?.value as Theme | undefined;
   return (
     <html lang="fr" data-theme={theme === "light" || theme === "dark" ? theme : undefined}>
-      <body className={`${mono.variable} font-mono antialiased`}>
+      {/* Sous 1024 px, la barre d'onglets du bas recouvrirait la fin de la page : on lui fait de la place. */}
+      <body className={`${mono.variable} pb-[calc(3.5rem+env(safe-area-inset-bottom))] font-mono antialiased lg:pb-0`}>
+        <a
+          href="#contenu"
+          className="sr-only z-50 rounded-sm bg-ink px-4 py-2 font-medium text-canvas focus:not-sr-only focus:fixed focus:left-4 focus:top-3"
+        >
+          Aller au contenu
+        </a>
         <SiteHeader />
-        <main className="mx-auto max-w-[960px] px-4 py-8 sm:py-12">{children}</main>
+        <main id="contenu" tabIndex={-1} className="mx-auto max-w-[960px] px-4 py-8 outline-none sm:py-12">
+          {children}
+        </main>
         <footer className="mx-auto mt-12 max-w-[960px] px-4 text-sm leading-loose text-mute">
           <nav
             aria-label="Pied de page"
-            className="grid grid-cols-2 border-t border-hairline sm:grid-cols-5"
+            className="flex flex-wrap justify-center gap-x-5 border-t border-hairline py-2 sm:grid sm:grid-cols-5 sm:gap-0 sm:py-0"
           >
             {FOOTER_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="border-b border-hairline py-2 text-center hover:text-ink sm:border-b-0 sm:border-l sm:first:border-l-0"
+                className="py-1 text-center hover:text-ink sm:border-l sm:border-hairline sm:py-2 sm:first:border-l-0"
               >
                 {link.label}
               </Link>
