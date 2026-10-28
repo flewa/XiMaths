@@ -29,9 +29,8 @@ export function Reviewers({
   const t = continued ? frame + 60 : frame;
   const card = pop(t, 2, 16, 150);
   const verdictStart = continued ? 6 : 36;
-  const reviewed = verdicts
-    ? REVIEWERS.filter((_, index) => frame >= verdictStart + index * 7).length
-    : REVIEWERS.filter((reviewer) => t >= reviewer.settle + 10).length;
+  // Une relecture compte quand son verdict tombe, pas quand le relecteur est tiré.
+  const reviewed = verdicts ? REVIEWERS.filter((_, index) => frame >= verdictStart + index * 7).length : 0;
 
   return (
     <>
@@ -171,7 +170,9 @@ export function Reviewers({
       >
         <div style={{ display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 30 }}>
           <span style={{ fontWeight: 800 }}>Ta solution</span>
-          <span style={{ color: reviewed === 3 ? "#1f9d45" : COLORS.mute }}>{reviewed} / 3 relectures</span>
+          <span style={{ color: reviewed === 3 ? "#1f9d45" : COLORS.mute }}>
+            {verdicts ? `${reviewed} / 3 relectures` : "en relecture…"}
+          </span>
         </div>
         <div style={{ marginTop: 26, display: "flex", flexDirection: "column", gap: 14 }}>
           <Tex latex="u_{n+1} - u_n = \tfrac{1}{(n+1)^2} > 0" size={40} />

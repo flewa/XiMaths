@@ -101,18 +101,20 @@ function SceneVisual({
 }
 
 /** Poussée lente de la caméra pendant toute la scène : rien n'est jamais tout à fait figé. */
-function Drift({ duration, children }: { duration: number; children: ReactNode }) {
+const DRIFT = 0.035;
+
+/** Poussée lente de la caméra pendant toute la scène : rien n'est jamais tout à fait figé.
+ * Une scène qui en prolonge d'autres reprend la poussée là où elles l'ont laissée. */
+function Drift({ duration, chain, children }: { duration: number; chain: number; children: ReactNode }) {
   const frame = useCurrentFrame();
-  return (
-    <AbsoluteFill style={{ transform: `scale(${1 + (0.035 * frame) / duration})`, transformOrigin: "50% 42%" }}>
-      {children}
-    </AbsoluteFill>
-  );
+  const scale = 1 + DRIFT * chain + (DRIFT * frame) / duration;
+  return <AbsoluteFill style={{ transform: `scale(${scale})`, transformOrigin: "50% 42%" }}>{children}</AbsoluteFill>;
 }
 
 export function XiVideo({ videoId, timings, music }: VideoProps) {
   const video = VIDEOS.find((candidate) => candidate.id === videoId);
   if (!video || !timings) return null;
+  let chain = 0;
   return (
     <AbsoluteFill>
       <Backdrop />
@@ -124,6 +126,7 @@ export function XiVideo({ videoId, timings, music }: VideoProps) {
           const timingIn = linearTiming({ durationInFrames: TRANSITION });
           // Deux scènes de même nature se suivent : la seconde prolonge la première.
           const continued = index > 0 && video.scenes[index - 1].visual.kind === scene.visual.kind;
+          chain = continued ? chain + 1 : 0;
           return (
             <Fragment key={index}>
               {/* Une suite se fond dans la scène d'avant ; un écran de téléphone arrive par le bas ;
@@ -138,7 +141,7 @@ export function XiVideo({ videoId, timings, music }: VideoProps) {
                 ))}
               <TransitionSeries.Sequence durationInFrames={duration} name={`${index + 1}. ${scene.visual.kind}`}>
                 <AbsoluteFill>
-                  <Drift duration={duration}>
+                  <Drift duration={duration} chain={chain}>
                     <SceneVisual visual={scene.visual} duration={duration} first={index === 0} continued={continued} />
                   </Drift>
                   {captions && <Captions words={timing.words} />}
