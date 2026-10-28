@@ -42,7 +42,8 @@ TEMPO = 1.12
 GAP = 0.25
 ATTEMPTS = 3
 GOOD = 0.92
-ACCEPTABLE = 0.85
+# En dessous, la phrase est vraiment fausse : Kokoro la reprend, quitte à changer de timbre.
+ACCEPTABLE = 0.75
 
 # Ce que les voix locales lisent mal : la marque, LaTeX, les sigles. Le texte affiché
 # (sous-titres) reste celui du script.
