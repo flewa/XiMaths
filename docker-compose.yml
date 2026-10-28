@@ -1,0 +1,37 @@
+# Infrastructure locale : PostgreSQL avec pgvector, Redis et le service d'embeddings.
+# Le backend et le front tournent sur la machine (voir README).
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ximaths
+      POSTGRES_USER: ximaths
+      POSTGRES_PASSWORD: ximaths
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ximaths -d ximaths"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # Embeddings bge-m3 pour la détection de doublons (EMBEDDINGS_URL=http://localhost:8080).
+  # Le premier démarrage télécharge le modèle, environ 2 Go.
+  embeddings:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.9.4
+    command: --model-id BAAI/bge-m3
+    ports:
+      - "8080:80"
+    volumes:
+      - tei-data:/data
+
+volumes:
+  pgdata:
+  tei-data:

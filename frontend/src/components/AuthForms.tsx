@@ -1,0 +1,157 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+
+import type { Level } from "@/lib/api";
+import { apiPost } from "@/lib/client-api";
+
+import { Field, FormMessage, SubmitButton, inputClass } from "./Form";
+
+export function LoginForm({ next }: { next: string }) {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setPending(true);
+    const result = await apiPost("/auth/login", {
+      login: form.get("login"),
+      password: form.get("password"),
+    });
+    setPending(false);
+    if (!result.ok) return setError(result.error);
+    router.push(next);
+    router.refresh();
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <Field label="Pseudo ou email" htmlFor="login">
+        <input id="login" name="login" required autoComplete="username" className={inputClass} />
+      </Field>
+      <Field label="Mot de passe" htmlFor="password">
+        <input
+          id="password"
+          name="password"
+          type="password"
+          required
+          autoComplete="current-password"
+          className={inputClass}
+        />
+      </Field>
+      <FormMessage error={error} />
+      <SubmitButton pending={pending}>Se connecter</SubmitButton>
+      <p className="text-sm text-mute">
+        Pas encore de compte ?{" "}
+        <Link href="/inscription" className="underline underline-offset-4">
+          Créer un compte
+        </Link>
+      </p>
+    </form>
+  );
+}
+
+export function SignupForm({ levels }: { levels: Level[] }) {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setPending(true);
+    const result = await apiPost("/auth/signup", {
+      username: form.get("username"),
+      email: form.get("email"),
+      password: form.get("password"),
+      declared_level: form.get("declared_level") || null,
+    });
+    setPending(false);
+    if (!result.ok) return setError(result.error);
+    router.push("/");
+    router.refresh();
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <Field label="Pseudo" htmlFor="username" hint="Public. Lettres, chiffres, points et tirets.">
+        <input
+          id="username"
+          name="username"
+          required
+          minLength={3}
+          maxLength={30}
+          pattern="[\w.\-]+"
+          autoComplete="username"
+          className={inputClass}
+        />
+      </Field>
+      <Field label="Email" htmlFor="email" hint="Jamais affiché. Un lien de confirmation t'y sera envoyé.">
+        <input id="email" name="email" type="email" required autoComplete="email" className={inputClass} />
+      </Field>
+      <Field label="Mot de passe" htmlFor="password" hint="8 caractères au moins.">
+        <input
+          id="password"
+          name="password"
+          type="password"
+          required
+          minLength={8}
+          autoComplete="new-password"
+          className={inputClass}
+        />
+      </Field>
+      <Field label="Ton niveau" htmlFor="declared_level" hint="Sert à te proposer des exercices et des relectures.">
+        <select id="declared_level" name="declared_level" defaultValue="" className={inputClass}>
+          <option value="">Je préfère ne pas le dire</option>
+          {levels.map((level) => (
+            <option key={level.code} value={level.code}>
+              {level.name}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <FormMessage error={error} />
+      <SubmitButton pending={pending}>Créer mon compte</SubmitButton>
+      <p className="text-sm text-mute">
+        Déjà inscrit ?{" "}
+        <Link href="/connexion" className="underline underline-offset-4">
+          Se connecter
+        </Link>
+      </p>
+    </form>
+  );
+}
+
+export function VerifyEmail({ token }: { token: string }) {
+  const router = useRouter();
+  const [state, setState] = useState<{ ok: boolean; message: string } | null>(null);
+  const sent = useRef(false);
+
+  useEffect(() => {
+    // Un seul envoi, même quand React monte l'effet deux fois en développement.
+    if (sent.current) return;
+    sent.current = true;
+    apiPost("/auth/verify-email", { token }).then((result) => {
+      setState(
+        result.ok
+          ? { ok: true, message: "Adresse confirmée : tu peux publier, résoudre et voter." }
+          : { ok: false, message: result.error },
+      );
+      if (result.ok) router.refresh();
+    });
+  }, [token, router]);
+
+  if (!state) return <p className="text-mute">Vérification en cours…</p>;
+  return (
+    <div className="space-y-4">
+      <FormMessage error={state.ok ? null : state.message} success={state.ok ? state.message : null} />
+      <Link href="/" className="text-sm underline underline-offset-4">
+        Voir les exercices
+      </Link>
+    </div>
+  );
+}

@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+/*
+ * Design XiMaths, d'après DESIGN-opencode.ai.md : tout en monospace, encre presque
+ * noire sur crème, filets de 1 px, aucun dégradé ni ombre. Rayon de 4 px pour les
+ * éléments interactifs, 0 pour les conteneurs. Une seule surface sombre par page.
+ */
+:root {
+  --ink: #201d1d;
+  --ink-deep: #0f0000;
+  --charcoal: #302c2c;
+  --body: #424245;
+  --mute: #646262;
+  --stone: #6e6e73;
+  --ash: #9a9898;
+  --canvas: #fdfcfc;
+  --surface-soft: #f8f7f7;
+  --surface-card: #f1eeee;
+  --surface-dark: #201d1d;
+  --surface-dark-elevated: #302c2c;
+  --hairline: rgba(15, 0, 0, 0.12);
+  --hairline-strong: #646262;
+  --on-dark: #fdfcfc;
+  /* Couleurs d'état, réservées aux états du produit, jamais à la navigation. */
+  --success: #30d158;
+  --warning: #ff9f0a;
+  --danger: #ff3b30;
+  --danger-text: #d70015;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-deep: var(--ink-deep);
+  --color-charcoal: var(--charcoal);
+  --color-body: var(--body);
+  --color-mute: var(--mute);
+  --color-stone: var(--stone);
+  --color-ash: var(--ash);
+  --color-canvas: var(--canvas);
+  --color-surface-soft: var(--surface-soft);
+  --color-surface-card: var(--surface-card);
+  --color-surface-dark: var(--surface-dark);
+  --color-surface-dark-elevated: var(--surface-dark-elevated);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-on-dark: var(--on-dark);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-danger-text: var(--danger-text);
+  --font-sans: var(--font-mono-face);
+  --font-mono: var(--font-mono-face);
+}
+
+@layer base {
+  body {
+    background: var(--canvas);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  /* display-xl : le titre en tête de page. */
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+
+  @media (min-width: 640px) {
+    h1 {
+      font-size: 38px;
+    }
+  }
+
+  /* Repliables : marqueurs ASCII au lieu de chevrons. */
+  summary {
+    cursor: pointer;
+    list-style: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details:not(.plain) > summary::before {
+    content: "[+] ";
+  }
+
+  details[open]:not(.plain) > summary::before {
+    content: "[-] ";
+  }
+
+  /* Boutons radio en ASCII : ( ) puis (x). */
+  input[type="radio"] {
+    appearance: none;
+    margin: 0;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  input[type="radio"]::before {
+    content: "( )";
+    color: var(--ash);
+  }
+
+  input[type="radio"]:checked::before {
+    content: "(x)";
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  :focus-visible {
+    outline: 1px solid var(--ink);
+    outline-offset: 2px;
+  }
+}
+
+.math-markdown p {
+  margin: 0.75em 0;
+  line-height: 1.65;
+}
+
+/* Les formules longues défilent au lieu de déborder sur mobile. */
+.math-markdown .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0;
+}
