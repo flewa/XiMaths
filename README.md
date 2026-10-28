@@ -4,12 +4,25 @@ Plateforme communautaire d'exercices de mathématiques du supérieur (L1 à M2, 
 
 La conception complète (barème, détection de doublons, anti-triche, phasage) est dans le document [XiMaths — Proposition de développement](https://claude.ai/artifact/SFjJeg2DwwHuPvjJZ6MGcB). Les contenus publiés sont sous licence CC BY-SA 4.0.
 
+## Voir l'application
+
+Il faut [uv](https://docs.astral.sh/uv/) et Node 24. Depuis la racine du dépôt :
+
+```bash
+./dev.sh
+```
+
+Le script installe les dépendances, crée la base de démonstration (14 exercices de la L1 au M1 et en prépa, des solutions relues ou en relecture, les défis du jour ouverts), puis démarre l'API et le front. Ouvre ensuite http://localhost:3000 et connecte-toi avec `lea` (L1), `yanis` (PSI), `camille` (experte) ou `moderateur` (admin), mot de passe `demo-ximaths-2026`. Ctrl-C arrête tout.
+
+Dans l'application de bureau Claude Code, `.claude/launch.json` décrit les deux serveurs pour l'aperçu intégré ; la base doit avoir été préparée une fois, par `./dev.sh` ou par les commandes ci-dessous.
+
 ## Structure
 
 | Dossier ou fichier | Contenu |
 | --- | --- |
 | `backend/` | API Django 5.2 + Django Ninja. Apps : `accounts` (comptes, connexion Google, niveau de confiance), `catalog` (niveaux, chapitres), `content` (exercices, solutions, relectures, votes, tâches planifiées), `duplicates` (détection des doublons), `gamification` (ledger, barème, classements, badges, niveaux de confiance, séries et objectifs), `moderation` (signalements, anti-plagiat, sanctions, appels, questions de compréhension), `notifications`, `training` (chronométré et défi du jour) |
 | `frontend/` | Next.js 16 (App Router), React 19, Tailwind 4, Markdown + KaTeX rendus côté serveur, éditeur CodeMirror 6. Design décrit dans `frontend/DESIGN-opencode.ai.md`, avec un mode sombre |
+| `dev.sh` | Lancement local en une commande : dépendances, base de démonstration, API et front |
 | `docker-compose.yml` | Développement : PostgreSQL 16 avec pgvector, Redis, et bge-m3 servi par Text Embeddings Inference |
 | `docker-compose.prod.yml`, `Caddyfile` | Production : Caddy (HTTPS), PostgreSQL, Redis, l'API, le planificateur et le front |
 | `.github/workflows/ci.yml` | Intégration continue : tests du backend, typage, lint, tests et construction du front |
@@ -22,13 +35,15 @@ La conception complète (barème, détection de doublons, anti-triche, phasage) 
 
 ## Lancer en local
 
+`./dev.sh` fait tout ce qui suit. Pour lancer chaque partie à la main :
+
 Backend, sur http://127.0.0.1:8000 :
 
 ```bash
 cd backend
 uv sync
 uv run python manage.py migrate
-uv run python manage.py seed_demo          # comptes, exercices, solutions et un gabarit de défi
+uv run python manage.py seed_demo          # comptes, exercices, solutions, défis du jour ouverts
 uv run python manage.py runserver 8000
 ```
 
@@ -115,6 +130,12 @@ Pendant la rédaction, le panneau « Exercices proches » se met à jour. À la 
 uv run python manage.py scan_duplicates            # exercices publiés depuis 2 jours
 uv run python manage.py scan_duplicates --reindex --all   # après un changement de normalisation ou de modèle
 ```
+
+## Interface
+
+- **Accueil d'un membre** : un terminal qui dit quoi faire, du plus pressé au moins pressé (relectures à rendre, défi du jour de son niveau, prochain exercice tiré de la carte de compétences, notifications non lues), avec la semaine en cours. Un visiteur voit la promesse, un bouton d'inscription et les trois étapes du site.
+- **Mobile et tablette** (sous 1 024 px) : barre d'onglets en bas d'écran, à portée du pouce (Fil, Parcourir, Publier, Défi, Moi), masquée pendant une session chronométrée ; en-tête réduit au logo, aux notifications et au menu.
+- **Accessibilité** : contrastes d'au moins 4,5:1 (marqueurs d'état, textes sur la surface sombre, indications des champs), anneau de focus de 2 px sur toutes les surfaces, lien « Aller au contenu », cibles tactiles d'au moins 24 px, onglets qui ramènent l'onglet actif dans la vue.
 
 ## Fil d'accueil et catalogue
 
