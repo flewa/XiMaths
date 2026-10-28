@@ -9,14 +9,17 @@ from django.db import IntegrityError
 from django.db.models import Count, F, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from ninja import Router, Schema
+from ninja import File, Router, Schema
 from ninja.errors import HttpError
+from ninja.files import UploadedFile
 from ninja.security import django_auth
 from pydantic import Field
 
 from accounts.links import linked_ids
 from accounts.permissions import contributor, is_moderator
 from catalog.models import Level, Topic
+from config import llm
+from config.errors import RuleError
 from config.throttles import AuthRouteThrottle
 from duplicates.models import DuplicatePair
 from duplicates.services import (
@@ -28,6 +31,7 @@ from duplicates.services import (
 )
 from moderation.integrity import NEUTRAL_QUESTION
 
+from . import transcription
 from .feed import FEED_LABELS, build_feed, compute_scores, record_impressions
 from .latex import forbidden_commands
 from .models import TEXT_MAX_LENGTH, Exercise, Review, Solution, Vote
@@ -544,6 +548,37 @@ def propose_solution(request, exercise_id: int, payload: SolutionIn):
     )
     publish_solution(solution)
     return 201, solution
+
+
+class TranscriptionOut(Schema):
+    text: str
+
+
+@router.get("/transcription")
+def transcription_status(request):
+    """La transcription des photos de copie est-elle proposée ? Il y faut le LLM."""
+    return {"available": llm.enabled()}
+
+
+@router.post(
+    "/exercises/{int:exercise_id}/transcription",
+    response=TranscriptionOut,
+    auth=django_auth,
+    throttle=[AuthRouteThrottle("transcription", "10/h"), AuthRouteThrottle("transcription-jour", "30/d")],
+)
+def transcribe_photo(request, exercise_id: int, photo: File[UploadedFile]):
+    """Photo d'une copie manuscrite transcrite en Markdown et LaTeX, à relire avant
+    d'envoyer la solution. La photo n'est pas conservée."""
+    contributor(request)
+    exercise = get_object_or_404(Exercise, pk=exercise_id, status=Exercise.Status.PUBLISHED)
+    if photo.size > transcription.MAX_BYTES:
+        raise HttpError(413, "Photo trop lourde : 5 Mo au plus.")
+    try:
+        return {"text": transcription.transcribe(exercise, photo.read())}
+    except transcription.TranscriptionUnavailable as error:
+        raise HttpError(503, str(error))
+    except RuleError as error:
+        raise HttpError(422, str(error))
 
 
 @router.get(

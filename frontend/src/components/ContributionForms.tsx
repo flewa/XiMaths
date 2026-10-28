@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useDeferredValue, useState } from "react";
+import { useDeferredValue, useRef, useState } from "react";
 
 import type { AiUsage, DecisionType } from "@/lib/api";
-import { apiPost } from "@/lib/client-api";
+import { apiPost, apiUpload } from "@/lib/client-api";
+import { prepareImage } from "@/lib/image";
 import { AI_USAGE_OPTIONS, SOLUTION_STATUS_LABELS } from "@/lib/labels";
 
 import { LATEX_HELP } from "./ExerciseForm";
@@ -16,13 +17,66 @@ import { MathMarkdown } from "./MathMarkdown";
 const SOLUTION_MIN_LENGTH = 20;
 const TOO_SHORT = `Une solution fait au moins ${SOLUTION_MIN_LENGTH} caractères.`;
 
-export function SolutionForm({ exerciseId }: { exerciseId: number }) {
+/** Photo d'une copie manuscrite, transcrite en LaTeX par Claude ; la photo n'est pas gardée. */
+function PhotoTranscription({ exerciseId, onText }: { exerciseId: number; onText: (text: string) => void }) {
+  const input = useRef<HTMLInputElement>(null);
+  const [result, setResult] = useState<{ error?: string; success?: string }>({});
+  const [pending, setPending] = useState(false);
+
+  async function onFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = ""; // pour pouvoir reprendre la même photo
+    if (!file) return;
+    setPending(true);
+    setResult({});
+    const image = await prepareImage(file);
+    if (!image) {
+      setPending(false);
+      return setResult({ error: "Format non reconnu : prends la photo en JPEG ou en PNG." });
+    }
+    const form = new FormData();
+    form.append("photo", image, "copie.jpg");
+    const transcribed = await apiUpload<{ text: string }>(`/exercises/${exerciseId}/transcription`, form);
+    setPending(false);
+    if (!transcribed.ok) return setResult({ error: transcribed.error });
+    onText(transcribed.data.text);
+    setResult({ success: "Transcription ajoutée à ta solution : relis-la et corrige-la avant d'envoyer." });
+  }
+
+  return (
+    <div className="space-y-2">
+      <input ref={input} type="file" accept="image/*" hidden onChange={onFile} />
+      <button
+        type="button"
+        onClick={() => input.current?.click()}
+        disabled={pending}
+        className={secondaryButtonClass}
+      >
+        {pending ? "Transcription en cours… jusqu'à une minute" : "[▣] Transcrire une photo de ma copie"}
+      </button>
+      <p className="text-sm text-mute">
+        Écrite à la main ? Une page par photo, nette et bien éclairée. Claude la transcrit telle quelle, sans
+        rien corriger, et la photo n&apos;est pas conservée. Ça compte comme une mise en forme par IA : points
+        pleins.
+      </p>
+      <FormMessage error={result.error} success={result.success} />
+    </div>
+  );
+}
+
+export function SolutionForm({ exerciseId, transcription = false }: { exerciseId: number; transcription?: boolean }) {
   const router = useRouter();
   const [body, setBody] = useState("");
   const preview = useDeferredValue(body);
   const [aiUsage, setAiUsage] = useState<AiUsage>("aucune");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+
+  function addTranscription(text: string) {
+    setBody((current) => (current.trim() ? `${current.trimEnd()}\n\n${text}` : text));
+    // La transcription est une mise en forme par IA : on le déclare, sans perdre de points.
+    if (aiUsage === "aucune") setAiUsage("relecture");
+  }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -38,6 +92,7 @@ export function SolutionForm({ exerciseId }: { exerciseId: number }) {
 
   return (
     <form onSubmit={onSubmit} className="mt-3 space-y-4">
+      {transcription && <PhotoTranscription exerciseId={exerciseId} onText={addTranscription} />}
       <Field label="Ta solution" htmlFor="solution-body" hint={LATEX_HELP}>
         <MathEditor id="solution-body" label="Ta solution" value={body} onChange={setBody} />
       </Field>

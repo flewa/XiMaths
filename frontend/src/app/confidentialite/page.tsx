@@ -39,8 +39,9 @@ export default function PrivacyPage() {
         <p>
           Quand il est activé, le modèle Claude d&apos;Anthropic reçoit des énoncés publiés, pour la
           détection des doublons, et, si une question de compréhension t&apos;est posée, ta solution et
-          ta réponse, pour préparer la question et l&apos;évaluation. Ni ton pseudo ni ton adresse ne
-          lui sont transmis, et la décision reste toujours humaine.
+          ta réponse, pour préparer la question et l&apos;évaluation. Il reçoit aussi les photos de copie
+          que tu envoies pour les transcrire ; XiMaths ne les conserve pas. Ni ton pseudo ni ton adresse
+          ne lui sont transmis, et la décision reste toujours humaine.
         </p>
         <p>Pas de publicité, pas de revente de données, pas de traceur tiers.</p>
       </ProseSection>

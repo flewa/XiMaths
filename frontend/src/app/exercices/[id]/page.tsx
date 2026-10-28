@@ -17,6 +17,7 @@ import {
   fetchExercise,
   fetchMe,
   fetchMySolutions,
+  fetchTranscriptionAvailable,
   nullOnError,
   type ExerciseDetail,
   type Me,
@@ -72,9 +73,15 @@ export default async function ExercisePage({ params }: Props) {
   let exercise: ExerciseDetail | null;
   let me: Me | null;
   let mySolutions: MySolution[] = [];
+  let transcription = false;
   try {
     [exercise, me] = await Promise.all([fetchExercise(id), fetchMe()]);
-    if (exercise && me) mySolutions = await fetchMySolutions(exercise.id);
+    if (exercise && me) {
+      [mySolutions, transcription] = await Promise.all([
+        fetchMySolutions(exercise.id),
+        fetchTranscriptionAvailable(),
+      ]);
+    }
   } catch (error) {
     logApiError(error);
     return <ApiUnavailable />;
@@ -161,7 +168,7 @@ export default async function ExercisePage({ params }: Props) {
                   </Link>
                   <span className="text-mute"> · ou rédige librement ci-dessous</span>
                 </p>
-                <SolutionForm exerciseId={exercise.id} />
+                <SolutionForm exerciseId={exercise.id} transcription={transcription} />
               </>
             )}
           </>

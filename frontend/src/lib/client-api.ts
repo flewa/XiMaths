@@ -48,12 +48,17 @@ export function errorMessage(status: number, body: unknown) {
 }
 
 async function apiRequest<T>(method: string, path: string, body?: unknown): Promise<ApiResult<T>> {
+  // Un formulaire multipart garde le Content-Type que le navigateur lui donne.
+  const json = !(body instanceof FormData);
   try {
     const response = await fetch(`/api${path}`, {
       method,
       credentials: "same-origin",
-      headers: { "Content-Type": "application/json", "X-CSRFToken": await csrfToken() },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      headers: {
+        ...(json ? { "Content-Type": "application/json" } : {}),
+        "X-CSRFToken": await csrfToken(),
+      },
+      body: body === undefined ? undefined : json ? JSON.stringify(body) : (body as FormData),
     });
     if (!response.ok) {
       // Réponse sans JSON : message générique.
@@ -74,6 +79,11 @@ async function apiRequest<T>(method: string, path: string, body?: unknown): Prom
 
 export function apiPost<T = unknown>(path: string, body?: unknown) {
   return apiRequest<T>("POST", path, body);
+}
+
+/** Envoi de fichiers (multipart). */
+export function apiUpload<T = unknown>(path: string, form: FormData) {
+  return apiRequest<T>("POST", path, form);
 }
 
 export function apiPut<T = unknown>(path: string, body: unknown) {

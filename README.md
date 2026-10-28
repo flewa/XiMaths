@@ -62,7 +62,7 @@ Tout passe par des variables d'environnement, décrites dans `.env.example` (dé
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Notifications Web Push (clés créées par `manage.py generate_vapid_keys`) | pas de push, le réglage n'apparaît pas |
 | `ACADEMIC_EXTRA_DOMAINS` | Domaines d'établissements reconnus en plus de la liste intégrée, séparés par des virgules | la liste intégrée seule |
 | `EMBEDDINGS_URL` | Embeddings bge-m3 (E1, et E2 avec un LLM) | doublons détectés par MinHash seul |
-| `ANTHROPIC_API_KEY`, `LLM_TIMEOUT` | Claude : résumés canoniques, avis sur les doublons, questions de compréhension | décisions et questions rédigées par les modérateurs |
+| `ANTHROPIC_API_KEY`, `LLM_TIMEOUT` | Claude : résumés canoniques, avis sur les doublons, questions de compréhension, transcription des photos de copie | décisions et questions rédigées par les modérateurs, pas de transcription |
 | `SENTRY_DSN` | Suivi des erreurs (groupe de dépendances `prod`) | journaux seulement |
 | `NEXT_PUBLIC_SITE_URL` | Adresse publique du site : plan du site, robots.txt, OpenGraph | `http://localhost:3000` |
 
@@ -94,6 +94,10 @@ Clés VAPID : `uv run python manage.py generate_vapid_keys`, à copier dans `.en
 - Les solutions contestées (relecteurs en désaccord) sont tranchées par un expert ou un modérateur, sur `/arbitrages`.
 - Une solution validée puis modifiée de plus de 20 % repart en relecture, pour un nouveau tour.
 - L'auteur d'un exercice peut recommander une solution validée (+5 pour son auteur).
+
+## Photo de copie
+
+Une solution écrite à la main se photographie depuis la fiche de l'exercice (mode libre). Le navigateur réduit la photo (2 576 px au plus grand côté, en JPEG), Claude Opus 5.5 la transcrit en Markdown et LaTeX sans rien corriger ni compléter (`[illisible]` là où il ne peut pas lire), et la transcription s'ajoute à l'éditeur : l'auteur la relit avant d'envoyer. La photo n'est pas conservée. La transcription compte comme une mise en forme par IA (points pleins), cochée d'office et modifiable. JPEG, PNG ou WebP, 5 Mo au plus, 10 photos par heure et 30 par jour. Sans `ANTHROPIC_API_KEY`, le bouton n'apparaît pas.
 
 ## Détection des doublons
 
@@ -203,7 +207,7 @@ npx tsc --noEmit
 npm run lint
 ```
 
-Le backend couvre le ledger et le barème, la relecture par les pairs (tours, délais, volontaires, arbitrages, révisions), les votes, l'authentification (Google compris), les notifications (push compris), la détection des doublons (avec E2 et l'avis du LLM simulés), les classements, les badges et les niveaux de confiance, le niveau de contributeur et la carte de compétences, le fil d'accueil, les signalements, l'anti-plagiat, les sanctions et appels, les questions de compréhension, l'entraînement chronométré, le défi du jour, les séries et objectifs, et les tâches planifiées. Aucun test n'appelle un service externe : Claude, Google et les embeddings sont simulés.
+Le backend couvre le ledger et le barème, la relecture par les pairs (tours, délais, volontaires, arbitrages, révisions), les votes, l'authentification (Google compris), les notifications (push compris), la détection des doublons (avec E2 et l'avis du LLM simulés), les classements, les badges et les niveaux de confiance, le niveau de contributeur et la carte de compétences, le fil d'accueil, les signalements, l'anti-plagiat, les sanctions et appels, les questions de compréhension, la transcription des photos de copie, l'entraînement chronométré, le défi du jour, les séries et objectifs, et les tâches planifiées. Aucun test n'appelle un service externe : Claude, Google et les embeddings sont simulés.
 
 ## Limites connues
 
@@ -211,4 +215,4 @@ Le backend couvre le ledger et le barème, la relecture par les pairs (tours, d�
 - Les appels à Claude sont testés avec un client simulé ; leur premier usage réel se fera avec la clé.
 - Score d'intégrité : les empreintes IA de référence, la rupture de style et le classifieur du document ne sont pas encore mesurés ; leurs poids sont retirés et les autres renormalisés.
 - Le Web Push est testé avec un chiffrement et une signature VAPID réels, mais un service de push simulé : à vérifier sur un appareil au premier déploiement, en HTTPS.
-- Pas encore : épreuves classées (V2), photo de copie.
+- Pas encore : épreuves classées (V2).

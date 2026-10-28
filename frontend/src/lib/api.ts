@@ -450,6 +450,11 @@ export function fetchNotifications() {
   return get<{ unread: number; items: AppNotification[] }>("/notifications");
 }
 
+/** La transcription des photos de copie est-elle proposée ? */
+export async function fetchTranscriptionAvailable() {
+  return (await get<{ available: boolean }>("/transcription"))?.available ?? false;
+}
+
 /** Clé VAPID publique ; null si les notifications push ne sont pas configurées. */
 export async function fetchPushKey() {
   return (await get<{ public_key: string | null }>("/push/key"))?.public_key ?? null;
