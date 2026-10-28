@@ -42,6 +42,7 @@ class UserAdmin(BaseUserAdmin):
                     "verified_teacher",
                     "email_verified_at",
                     "academic_verified_at",
+                    "academic_domain",
                     "leaderboard_visible",
                     "tiers_temps",
                 )

@@ -107,6 +107,9 @@ export type Me = {
   has_password: boolean;
   google_linked: boolean;
   unread_notifications: number;
+  academic_verified_at: string | null;
+  /** Domaine de l'adresse académique vérifiée ; l'adresse elle-même n'est pas gardée. */
+  academic_domain: string;
 };
 
 export type AppNotification = {

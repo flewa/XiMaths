@@ -127,6 +127,11 @@ def export_user_data(user):
             "email": user.email,
             "inscription": dates(user.date_joined),
             "email_verifie": dates(user.email_verified_at),
+            "email_academique": (
+                {"domaine": user.academic_domain, "verifie": dates(user.academic_verified_at)}
+                if user.academic_verified_at
+                else None
+            ),
             "niveau_declare": user.declared_level.code if user.declared_level else None,
             "niveau_de_confiance": user.get_trust_level_display(),
             "tiers_temps": user.tiers_temps,
@@ -234,6 +239,9 @@ def delete_account(user):
     user.set_unusable_password()
     user.is_active = False
     user.email_verified_at = None
+    user.academic_verified_at = None
+    user.academic_domain = ""
+    user.academic_email_digest = None
     user.declared_level = None
     user.google_sub = None
     user.leaderboard_visible = False

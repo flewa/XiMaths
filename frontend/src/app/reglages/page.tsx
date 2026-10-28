@@ -4,7 +4,13 @@ import { redirect } from "next/navigation";
 
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { ProseSection } from "@/components/Prose";
-import { DeleteAccountForm, PasswordForm, PreferencesForm, ThemeChoice } from "@/components/Settings";
+import {
+  AcademicEmailForm,
+  DeleteAccountForm,
+  PasswordForm,
+  PreferencesForm,
+  ThemeChoice,
+} from "@/components/Settings";
 import { fetchLevels, fetchMe } from "@/lib/api";
 import { THEME_COOKIE, type Theme } from "@/lib/site";
 
@@ -36,6 +42,10 @@ export default async function SettingsPage() {
 
       <ProseSection title="Apparence">
         <ThemeChoice current={theme} />
+      </ProseSection>
+
+      <ProseSection title="Email académique">
+        <AcademicEmailForm me={me} />
       </ProseSection>
 
       <ProseSection title="Mot de passe">

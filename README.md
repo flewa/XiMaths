@@ -59,6 +59,7 @@ Tout passe par des variables d'environnement, décrites dans `.env.example` (dé
 | `REDIS_URL` | Cache partagé entre les workers, limitation de débit comprise | cache en mémoire, par processus |
 | `EMAIL_BACKEND`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL` | Envoi réel, par le relais SMTP de Brevo | emails dans la console |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Connexion avec Google (OpenID Connect) | le bouton n'apparaît pas |
+| `ACADEMIC_EXTRA_DOMAINS` | Domaines d'établissements reconnus en plus de la liste intégrée, séparés par des virgules | la liste intégrée seule |
 | `EMBEDDINGS_URL` | Embeddings bge-m3 (E1, et E2 avec un LLM) | doublons détectés par MinHash seul |
 | `ANTHROPIC_API_KEY`, `LLM_TIMEOUT` | Claude : résumés canoniques, avis sur les doublons, questions de compréhension | décisions et questions rédigées par les modérateurs |
 | `SENTRY_DSN` | Suivi des erreurs (groupe de dépendances `prod`) | journaux seulement |
@@ -70,6 +71,7 @@ Tout passe par des variables d'environnement, décrites dans `.env.example` (dé
 - Connexion avec Google : un compte existant à la même adresse vérifiée est lié, sinon un compte est créé. L'adresse de retour à déclarer chez Google est `<site>/api/auth/google/callback`.
 - Mot de passe oublié, changement de mot de passe, export des données (JSON) et suppression du compte depuis `/reglages`. Les contenus publiés restent, sans auteur.
 - Réglages : niveau déclaré, tiers-temps, présence dans les classements, emails, résumé hebdomadaire, notification du défi du jour, thème clair, sombre ou système.
+- Email académique, depuis `/reglages` : un lien signé, envoyé à une adresse d'université ou d'école, donne le badge « Étudiant vérifié ». Seuls le domaine et une empreinte (HMAC) sont gardés, pour qu'une adresse ne vérifie qu'un compte. Les domaines reconnus sont dans `backend/accounts/academic.py` ; `ACADEMIC_EXTRA_DOMAINS` en ajoute, et un modérateur peut aussi marquer un compte dans l'admin.
 
 ## Notifications
 
@@ -108,7 +110,7 @@ Une seule page de 20 exercices, sans défilement infini : 60 % de Tendances, 25 
 
 - **Classements** (`/classements`) : hebdomadaires par niveau et global, du lundi 0 h au dimanche 23 h 59 (heure de Paris), plus un Panthéon au second plan. Les points comptent pour le niveau de l'exercice. Top 50, puis ta position avec 5 voisins de chaque côté ; filtre « mes pairs ». 24 h de consolidation pour annuler des points frauduleux.
 - **Qui est classé** : les membres (niveau 1 ou plus), sans sanction d'exclusion en cours. Chacun peut masquer sa présence.
-- **Badges** (`/badges`), critères publics : Premier pas, Validé !, Pionnier, Auteur, Relecteur fiable, Touche-à-tout, Élégance, Chasseur de doublons, Sous pression (5 défis validés), Régulier bronze, argent et or (4, 12 et 30 semaines d'objectif atteint).
+- **Badges** (`/badges`), critères publics : Premier pas, Validé !, Pionnier, Auteur, Relecteur fiable, Touche-à-tout, Élégance, Chasseur de doublons, Sous pression (5 défis validés), Régulier bronze, argent et or (4, 12 et 30 semaines d'objectif atteint), Étudiant vérifié (email académique confirmé).
 - **Niveaux de confiance**, attribués automatiquement, jamais retirés automatiquement :
     - Membre : 7 jours et 30 points ;
     - Relecteur : 300 points, 5 solutions validées, aucune sanction depuis 90 jours ;
@@ -198,4 +200,4 @@ Le backend couvre le ledger et le barème, la relecture par les pairs (tours, d�
 - Les images Docker et la composition de production n'ont pas été construites ici (pas de Docker sur la machine de développement) : à vérifier au premier déploiement.
 - Les appels à Claude sont testés avec un client simulé ; leur premier usage réel se fera avec la clé.
 - Score d'intégrité : les empreintes IA de référence, la rupture de style et le classifieur du document ne sont pas encore mesurés ; leurs poids sont retirés et les autres renormalisés.
-- Pas encore : épreuves classées (V2), photo de copie, badge « Étudiant vérifié » par email académique, PWA et Web Push.
+- Pas encore : épreuves classées (V2), photo de copie, PWA et Web Push.

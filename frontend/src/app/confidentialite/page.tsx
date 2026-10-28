@@ -22,6 +22,7 @@ export default function PrivacyPage() {
             "Activité : points, badges, sessions chronométrées (temps, nombre de sorties d'onglet, taille des collages venus d'ailleurs, jamais leur contenu), jours actifs, objectifs et mode vacances.",
             "Questions de compréhension, si l'une t'est posée : la question, ta réponse et l'évaluation.",
             "Connexion Google, si tu l'utilises : ton adresse email et l'identifiant de ton compte Google.",
+            "Email académique, si tu en vérifies un : seulement son domaine et une empreinte chiffrée, qui l'empêche de vérifier un second compte. L'adresse elle-même n'est pas conservée.",
           ]}
         />
       </ProseSection>

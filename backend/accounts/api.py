@@ -5,6 +5,7 @@ cookie de session suffit, et chaque écriture porte l'en-tête X-CSRFToken.
 """
 
 import json
+from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
@@ -27,7 +28,7 @@ from config.errors import RuleError
 from content.models import Review, Solution
 from gamification.services import balance
 
-from . import google
+from . import academic, google
 from .models import User
 from .services import (
     delete_account,
@@ -59,6 +60,9 @@ class MeOut(Schema):
     has_password: bool
     google_linked: bool
     unread_notifications: int
+    academic_verified_at: datetime | None
+    # Domaine de l'adresse académique vérifiée ; l'adresse elle-même n'est pas gardée.
+    academic_domain: str
 
     @staticmethod
     def resolve_email_verified(obj):
@@ -243,6 +247,31 @@ def resend_verification(request):
         raise HttpError(409, "Ton adresse email est déjà vérifiée.")
     send_verification_email(request.auth)
     return 204, None
+
+
+@router.post(
+    "/academic",
+    response={204: None},
+    auth=django_auth,
+    throttle=[AuthRateThrottle("5/h")],
+)
+def academic_email(request, payload: EmailIn):
+    """Envoie un lien à une adresse académique : une fois confirmée, elle donne le
+    badge « Étudiant vérifié ». Seuls son domaine et son empreinte sont gardés."""
+    try:
+        academic.send_academic_link(request.auth, payload.email)
+    except RuleError as error:
+        raise HttpError(422, str(error))
+    return 204, None
+
+
+@router.post("/academic/verify", response=MeOut)
+def verify_academic(request, payload: TokenIn):
+    require_csrf(request)
+    try:
+        return academic.verify_academic(payload.token)
+    except RuleError as error:
+        raise HttpError(400, str(error))
 
 
 @router.post("/leaderboard-visibility", response=MeOut, auth=django_auth)

@@ -214,7 +214,15 @@ export function SignupForm({ levels }: { levels: Level[] }) {
   );
 }
 
-export function VerifyEmail({ token }: { token: string }) {
+const VERIFICATIONS = {
+  principale: { path: "/auth/verify-email", success: "Adresse confirmée : tu peux publier, résoudre et voter." },
+  academique: {
+    path: "/auth/academic/verify",
+    success: "Adresse académique confirmée : le badge « Étudiant vérifié » apparaît sur ton profil.",
+  },
+};
+
+export function VerifyEmail({ token, kind = "principale" }: { token: string; kind?: keyof typeof VERIFICATIONS }) {
   const router = useRouter();
   const [state, setState] = useState<{ ok: boolean; message: string } | null>(null);
   const sent = useRef(false);
@@ -223,15 +231,12 @@ export function VerifyEmail({ token }: { token: string }) {
     // Un seul envoi, même quand React monte l'effet deux fois en développement.
     if (sent.current) return;
     sent.current = true;
-    apiPost("/auth/verify-email", { token }).then((result) => {
-      setState(
-        result.ok
-          ? { ok: true, message: "Adresse confirmée : tu peux publier, résoudre et voter." }
-          : { ok: false, message: result.error },
-      );
+    const { path, success } = VERIFICATIONS[kind];
+    apiPost(path, { token }).then((result) => {
+      setState(result.ok ? { ok: true, message: success } : { ok: false, message: result.error });
       if (result.ok) router.refresh();
     });
-  }, [token, router]);
+  }, [token, kind, router]);
 
   if (!state) return <p className="text-mute">Vérification en cours…</p>;
   return (

@@ -51,6 +51,12 @@ EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1"
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 
+# Domaines d'établissements à reconnaître en plus de ceux d'accounts/academic.py,
+# séparés par des virgules : « univ-exemple.fr,ecole.fr ».
+ACADEMIC_EXTRA_DOMAINS = [
+    domain.strip().lower() for domain in os.environ.get("ACADEMIC_EXTRA_DOMAINS", "").split(",") if domain.strip()
+]
+
 # Service Text Embeddings Inference (bge-m3) pour la détection de doublons.
 # Vide : détection par signatures MinHash seulement.
 EMBEDDINGS_URL = os.environ.get("EMBEDDINGS_URL", "")

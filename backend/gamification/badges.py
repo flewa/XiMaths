@@ -109,6 +109,10 @@ def _under_pressure(user):
     )
 
 
+def _verified_student(user):
+    return user.academic_verified_at is not None
+
+
 def _regular(weeks):
     def earned(user):
         return WeeklyStreak.objects.filter(user=user, status=WeeklyStreak.Status.ACHIEVED).count() >= weeks
@@ -156,6 +160,12 @@ BADGES = [
         "Sous pression",
         f"Faire valider la justification de {UNDER_PRESSURE_CHALLENGES} défis du jour.",
         _under_pressure,
+    ),
+    Badge(
+        "etudiant-verifie",
+        "Étudiant vérifié",
+        "Confirmer une adresse email académique, depuis tes réglages.",
+        _verified_student,
     ),
     *(
         Badge(

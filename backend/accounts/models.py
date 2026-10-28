@@ -22,6 +22,10 @@ class User(AbstractUser):
     email = models.EmailField("adresse email", unique=True)
     email_verified_at = models.DateTimeField(null=True, blank=True)
     academic_verified_at = models.DateTimeField(null=True, blank=True)
+    # L'adresse académique n'est pas conservée : son domaine, et une empreinte qui
+    # l'empêche de vérifier un second compte.
+    academic_domain = models.CharField(max_length=253, blank=True)
+    academic_email_digest = models.CharField(max_length=64, null=True, blank=True, unique=True, editable=False)
     verified_teacher = models.BooleanField(default=False)
     declared_level = models.ForeignKey(
         "catalog.Level",
