@@ -450,6 +450,11 @@ export function fetchNotifications() {
   return get<{ unread: number; items: AppNotification[] }>("/notifications");
 }
 
+/** Clé VAPID publique ; null si les notifications push ne sont pas configurées. */
+export async function fetchPushKey() {
+  return (await get<{ public_key: string | null }>("/push/key"))?.public_key ?? null;
+}
+
 export async function fetchProviders() {
   return (await get<{ google: boolean }>("/auth/providers")) ?? { google: false };
 }

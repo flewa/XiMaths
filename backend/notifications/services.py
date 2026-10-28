@@ -1,5 +1,6 @@
 """Notifications : dans l'application toujours, par email seulement pour ce qui
 concerne directement le membre, hors heures calmes, et en résumé hebdomadaire sur opt-in.
+En Web Push, sur les appareils abonnés, une fois par jour au plus (push.py).
 """
 
 from datetime import time, timedelta
@@ -10,6 +11,7 @@ from django.core.mail import EmailMessage
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
+from . import push
 from .models import DigestLog, Notification
 
 Kind = Notification.Kind
@@ -42,6 +44,8 @@ def notify(user, kind, title, body="", url="", *, email=None, now=None):
     )
     if notification.email_pending and not in_quiet_hours(now):
         _send(notification, now=now)
+    if kind in push.PUSH_KINDS:
+        push.deliver_after_commit(user, now=now)
     return notification
 
 

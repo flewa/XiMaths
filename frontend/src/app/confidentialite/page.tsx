@@ -22,6 +22,7 @@ export default function PrivacyPage() {
             "Activité : points, badges, sessions chronométrées (temps, nombre de sorties d'onglet, taille des collages venus d'ailleurs, jamais leur contenu), jours actifs, objectifs et mode vacances.",
             "Questions de compréhension, si l'une t'est posée : la question, ta réponse et l'évaluation.",
             "Connexion Google, si tu l'utilises : ton adresse email et l'identifiant de ton compte Google.",
+            "Notifications push, si tu les actives sur un appareil : l'adresse du service de push de ton navigateur et ses clés de chiffrement.",
             "Email académique, si tu en vérifies un : seulement son domaine et une empreinte chiffrée, qui l'empêche de vérifier un second compte. L'adresse elle-même n'est pas conservée.",
           ]}
         />
@@ -57,6 +58,7 @@ export default function PrivacyPage() {
           items={[
             "Compte et activité : tant que le compte existe.",
             "Notifications : 6 mois.",
+            "Abonnements push : jusqu'à ce que tu les désactives, ou que ton navigateur les révoque.",
             "Signaux d'intégrité (plagiat, collages) : jusqu'à la décision de modération, puis effacés au plus tard après 1 an.",
             "Questions de compréhension : tant que le compte existe ; elles sont effacées avec lui.",
           ]}

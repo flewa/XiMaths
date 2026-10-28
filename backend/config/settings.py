@@ -3,6 +3,7 @@
 import os
 import sys
 import warnings
+from email.utils import parseaddr
 from pathlib import Path
 
 import dj_database_url
@@ -50,6 +51,14 @@ EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1"
 # Connexion avec Google (OpenID Connect). Vides : le bouton n'apparaît pas.
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+
+# Web Push (PWA) : clés VAPID, générées par `manage.py generate_vapid_keys`. Vides :
+# pas de notification push, et le réglage n'apparaît pas.
+VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
+VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "")
+# Contact donné aux services de push : « mailto:… » ou « https://domaine ». Par défaut,
+# l'adresse d'envoi des emails.
+VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT") or f"mailto:{parseaddr(DEFAULT_FROM_EMAIL)[1]}"
 
 # Domaines d'établissements à reconnaître en plus de ceux d'accounts/academic.py,
 # séparés par des virgules : « univ-exemple.fr,ecole.fr ».

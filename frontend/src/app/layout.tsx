@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import "katex/dist/katex.min.css";
 
 import { SiteHeader } from "@/components/SiteHeader";
-import { SITE_URL, THEME_COOKIE, type Theme } from "@/lib/site";
+import { SITE_DESCRIPTION, SITE_URL, THEME_COOKIE, type Theme } from "@/lib/site";
 
 import "./globals.css";
 
@@ -16,15 +16,21 @@ const mono = JetBrains_Mono({
   weight: ["400", "500", "700"],
 });
 
-const DESCRIPTION =
-  "Exercices de mathématiques du supérieur, de la licence au master et en prépa, résolus et relus par la communauté.";
-
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: "XiMaths", template: "%s · XiMaths" },
-  description: DESCRIPTION,
-  openGraph: { siteName: "XiMaths", locale: "fr_FR", type: "website", description: DESCRIPTION },
+  description: SITE_DESCRIPTION,
+  openGraph: { siteName: "XiMaths", locale: "fr_FR", type: "website", description: SITE_DESCRIPTION },
   twitter: { card: "summary" },
+  // Installée sur l'écran d'accueil d'un iPhone, la PWA s'ouvre sans la barre de Safari.
+  appleWebApp: { capable: true, title: "XiMaths", statusBarStyle: "default" },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fdfcfc" },
+    { media: "(prefers-color-scheme: dark)", color: "#161313" },
+  ],
 };
 
 const FOOTER_LINKS = [

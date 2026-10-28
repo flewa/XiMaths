@@ -59,6 +59,7 @@ Tout passe par des variables d'environnement, décrites dans `.env.example` (dé
 | `REDIS_URL` | Cache partagé entre les workers, limitation de débit comprise | cache en mémoire, par processus |
 | `EMAIL_BACKEND`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL` | Envoi réel, par le relais SMTP de Brevo | emails dans la console |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Connexion avec Google (OpenID Connect) | le bouton n'apparaît pas |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Notifications Web Push (clés créées par `manage.py generate_vapid_keys`) | pas de push, le réglage n'apparaît pas |
 | `ACADEMIC_EXTRA_DOMAINS` | Domaines d'établissements reconnus en plus de la liste intégrée, séparés par des virgules | la liste intégrée seule |
 | `EMBEDDINGS_URL` | Embeddings bge-m3 (E1, et E2 avec un LLM) | doublons détectés par MinHash seul |
 | `ANTHROPIC_API_KEY`, `LLM_TIMEOUT` | Claude : résumés canoniques, avis sur les doublons, questions de compréhension | décisions et questions rédigées par les modérateurs |
@@ -76,6 +77,15 @@ Tout passe par des variables d'environnement, décrites dans `.env.example` (dé
 ## Notifications
 
 Dans l'application (`/notifications`) pour tout ce qui concerne le membre. Par email seulement pour ce qui le touche directement : retrait d'un contenu, sanction, appel tranché, solution en vérification, question de compréhension. Jamais d'email entre 22 h et 8 h : ils partent à 8 h. Résumé hebdomadaire le lundi, sur opt-in. Chaque email porte un lien de désinscription en un clic.
+
+**PWA et Web Push.** XiMaths s'installe sur l'écran d'accueil (manifeste, icônes ; sur iPhone et iPad, l'installation ouvre aussi le push). Les notifications push s'activent appareil par appareil dans `/reglages`, sur opt-in :
+
+- une par jour au plus, jamais entre 22 h et 8 h ; plusieurs en attente partent en un seul message qui les résume ;
+- seulement relecture attribuée ou en attente, solution validée ou à compléter, exercice résolu, question de compréhension, défi du jour (s'il est demandé) et bilan de la semaine ;
+- le serveur n'envoie qu'aux services de push des navigateurs (Google, Mozilla, Apple, Microsoft) ; un abonnement révoqué est supprimé, et un navigateur partagé passe au compte qui l'active ;
+- le service worker (`frontend/public/sw.js`) n'affiche que les notifications, sans cache hors ligne.
+
+Clés VAPID : `uv run python manage.py generate_vapid_keys`, à copier dans `.env` ou `.env.prod`. Sans elles, le réglage n'apparaît pas.
 
 ## Relecture par les pairs
 
@@ -166,7 +176,7 @@ Depuis la fiche d'un exercice : 15, 30, 45 ou 60 minutes, ou le temps conseillé
 
 `python manage.py run_jobs hourly`, `run_jobs nightly`, ou `run_jobs --loop` (le service `scheduler` de la production : toutes les heures, et la nuit à 3 h). Une tâche qui échoue est journalisée sans bloquer les suivantes.
 
-- **Toutes les heures** : ouverture des défis du jour, rendu des tentatives abandonnées, relances et réattributions des relectures, fin des sanctions à durée, questions de compréhension (rédaction, délais, préévaluation), emails retenus pendant les heures calmes, résumé hebdomadaire du lundi.
+- **Toutes les heures** : ouverture des défis du jour, rendu des tentatives abandonnées, relances et réattributions des relectures, fin des sanctions à durée, questions de compréhension (rédaction, délais, préévaluation), emails et notifications push retenus pendant les heures calmes, résumé hebdomadaire du lundi.
 - **La nuit** : bilan de la semaine écoulée (séries), doublons (résumés, scan, avis du LLM), promotions et badges, purges (notifications de plus de 6 mois, signaux d'intégrité tranchés depuis un an, sessions expirées).
 
 ## Production
@@ -193,11 +203,12 @@ npx tsc --noEmit
 npm run lint
 ```
 
-Le backend couvre le ledger et le barème, la relecture par les pairs (tours, délais, volontaires, arbitrages, révisions), les votes, l'authentification (Google compris), les notifications, la détection des doublons (avec E2 et l'avis du LLM simulés), les classements, les badges et les niveaux de confiance, le niveau de contributeur et la carte de compétences, le fil d'accueil, les signalements, l'anti-plagiat, les sanctions et appels, les questions de compréhension, l'entraînement chronométré, le défi du jour, les séries et objectifs, et les tâches planifiées. Aucun test n'appelle un service externe : Claude, Google et les embeddings sont simulés.
+Le backend couvre le ledger et le barème, la relecture par les pairs (tours, délais, volontaires, arbitrages, révisions), les votes, l'authentification (Google compris), les notifications (push compris), la détection des doublons (avec E2 et l'avis du LLM simulés), les classements, les badges et les niveaux de confiance, le niveau de contributeur et la carte de compétences, le fil d'accueil, les signalements, l'anti-plagiat, les sanctions et appels, les questions de compréhension, l'entraînement chronométré, le défi du jour, les séries et objectifs, et les tâches planifiées. Aucun test n'appelle un service externe : Claude, Google et les embeddings sont simulés.
 
 ## Limites connues
 
 - Les images Docker et la composition de production n'ont pas été construites ici (pas de Docker sur la machine de développement) : à vérifier au premier déploiement.
 - Les appels à Claude sont testés avec un client simulé ; leur premier usage réel se fera avec la clé.
 - Score d'intégrité : les empreintes IA de référence, la rupture de style et le classifieur du document ne sont pas encore mesurés ; leurs poids sont retirés et les autres renormalisés.
-- Pas encore : épreuves classées (V2), photo de copie, PWA et Web Push.
+- Le Web Push est testé avec un chiffrement et une signature VAPID réels, mais un service de push simulé : à vérifier sur un appareil au premier déploiement, en HTTPS.
+- Pas encore : épreuves classées (V2), photo de copie.

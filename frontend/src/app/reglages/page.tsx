@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { ProseSection } from "@/components/Prose";
+import { PushSettings } from "@/components/PushSettings";
 import {
   AcademicEmailForm,
   DeleteAccountForm,
@@ -11,7 +12,7 @@ import {
   PreferencesForm,
   ThemeChoice,
 } from "@/components/Settings";
-import { fetchLevels, fetchMe } from "@/lib/api";
+import { fetchLevels, fetchMe, fetchPushKey } from "@/lib/api";
 import { THEME_COOKIE, type Theme } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Réglages", robots: { index: false } };
@@ -19,12 +20,12 @@ export const metadata: Metadata = { title: "Réglages", robots: { index: false }
 export default async function SettingsPage() {
   let data;
   try {
-    data = await Promise.all([fetchMe(), fetchLevels()]);
+    data = await Promise.all([fetchMe(), fetchLevels(), fetchPushKey()]);
   } catch (error) {
     logApiError(error);
     return <ApiUnavailable />;
   }
-  const [me, levels] = data;
+  const [me, levels, pushKey] = data;
   if (!me) redirect("/connexion?suivant=/reglages");
   const theme = ((await cookies()).get(THEME_COOKIE)?.value ?? "system") as Theme;
 
@@ -39,6 +40,12 @@ export default async function SettingsPage() {
       <ProseSection title="Préférences">
         <PreferencesForm me={me} levels={levels} />
       </ProseSection>
+
+      {pushKey && (
+        <ProseSection title="Notifications sur cet appareil">
+          <PushSettings publicKey={pushKey} />
+        </ProseSection>
+      )}
 
       <ProseSection title="Apparence">
         <ThemeChoice current={theme} />
