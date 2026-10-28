@@ -1,0 +1,56 @@
+{
+  "text": "Le résultat est juste. Et pourtant : deux sur cinq.",
+  "words": [
+    {
+      "text": "Le",
+      "start": 0,
+      "end": 0.14
+    },
+    {
+      "text": "résultat",
+      "start": 0.14,
+      "end": 0.64
+    },
+    {
+      "text": "est",
+      "start": 0.64,
+      "end": 0.76
+    },
+    {
+      "text": "juste.",
+      "start": 0.76,
+      "end": 1.04
+    },
+    {
+      "text": "Et",
+      "start": 1.38,
+      "end": 1.5
+    },
+    {
+      "text": "pourtant",
+      "start": 1.5,
+      "end": 1.86
+    },
+    {
+      "text": ":",
+      "start": 1.86,
+      "end": 1.86
+    },
+    {
+      "text": "deux",
+      "start": 1.86,
+      "end": 2.24
+    },
+    {
+      "text": "sur",
+      "start": 2.24,
+      "end": 2.38
+    },
+    {
+      "text": "cinq.",
+      "start": 2.38,
+      "end": 2.88
+    }
+  ],
+  "duration": 2.88
+}

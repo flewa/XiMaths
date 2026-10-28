@@ -1,0 +1,61 @@
+{
+  "text": "En L1, ce qui coûte des points, c'est souvent la rédaction.",
+  "words": [
+    {
+      "text": "En",
+      "start": 0,
+      "end": 0.18
+    },
+    {
+      "text": "L1,",
+      "start": 0.18,
+      "end": 0.62
+    },
+    {
+      "text": "ce",
+      "start": 0.92,
+      "end": 1.02
+    },
+    {
+      "text": "qui",
+      "start": 1.02,
+      "end": 1.18
+    },
+    {
+      "text": "coûte",
+      "start": 1.18,
+      "end": 1.42
+    },
+    {
+      "text": "des",
+      "start": 1.42,
+      "end": 1.56
+    },
+    {
+      "text": "points,",
+      "start": 1.56,
+      "end": 1.86
+    },
+    {
+      "text": "c'est",
+      "start": 2.3,
+      "end": 2.38
+    },
+    {
+      "text": "souvent",
+      "start": 2.38,
+      "end": 2.66
+    },
+    {
+      "text": "la",
+      "start": 2.66,
+      "end": 2.8
+    },
+    {
+      "text": "rédaction.",
+      "start": 2.8,
+      "end": 3.24
+    }
+  ],
+  "duration": 3.45
+}

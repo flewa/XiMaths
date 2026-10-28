@@ -1,0 +1,66 @@
+{
+  "text": "Trois autres étudiants relisent ta démo, et te disent ce qui manque.",
+  "words": [
+    {
+      "text": "Trois",
+      "start": 0.68,
+      "end": 1.16
+    },
+    {
+      "text": "autres",
+      "start": 1.16,
+      "end": 1.46
+    },
+    {
+      "text": "étudiants",
+      "start": 1.46,
+      "end": 1.96
+    },
+    {
+      "text": "relisent",
+      "start": 1.96,
+      "end": 2.42
+    },
+    {
+      "text": "ta",
+      "start": 2.42,
+      "end": 2.52
+    },
+    {
+      "text": "démo,",
+      "start": 2.52,
+      "end": 2.8
+    },
+    {
+      "text": "et",
+      "start": 2.8,
+      "end": 3.2
+    },
+    {
+      "text": "te",
+      "start": 3.2,
+      "end": 3.32
+    },
+    {
+      "text": "disent",
+      "start": 3.32,
+      "end": 3.58
+    },
+    {
+      "text": "ce",
+      "start": 3.58,
+      "end": 3.84
+    },
+    {
+      "text": "qui",
+      "start": 3.84,
+      "end": 4
+    },
+    {
+      "text": "manque.",
+      "start": 4,
+      "end": 4.22
+    }
+  ],
+  "duration": 4.89
+}

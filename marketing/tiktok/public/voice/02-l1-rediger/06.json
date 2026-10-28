@@ -1,0 +1,46 @@
+{
+  "text": "XiMaths, lien en bio. Rédige mieux, pas plus.",
+  "words": [
+    {
+      "text": "XiMaths,",
+      "start": 0.19,
+      "end": 0.71
+    },
+    {
+      "text": "lien",
+      "start": 0.83,
+      "end": 1.07
+    },
+    {
+      "text": "en",
+      "start": 1.07,
+      "end": 1.35
+    },
+    {
+      "text": "bio.",
+      "start": 1.35,
+      "end": 1.55
+    },
+    {
+      "text": "Rédige",
+      "start": 1.91,
+      "end": 2.21
+    },
+    {
+      "text": "mieux,",
+      "start": 2.21,
+      "end": 2.47
+    },
+    {
+      "text": "pas",
+      "start": 2.73,
+      "end": 2.79
+    },
+    {
+      "text": "plus.",
+      "start": 2.79,
+      "end": 2.95
+    }
+  ],
+  "duration": 3.135
+}
