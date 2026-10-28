@@ -1,0 +1,61 @@
+{
+  "text": "L'énoncé est tiré pour toi. Tiers-temps ? Tu as quarante minutes.",
+  "words": [
+    {
+      "text": "L'énoncé",
+      "start": 0.18,
+      "end": 0.48
+    },
+    {
+      "text": "est",
+      "start": 0.48,
+      "end": 0.7
+    },
+    {
+      "text": "tiré",
+      "start": 0.7,
+      "end": 0.98
+    },
+    {
+      "text": "pour",
+      "start": 0.98,
+      "end": 1.12
+    },
+    {
+      "text": "toi.",
+      "start": 1.12,
+      "end": 1.34
+    },
+    {
+      "text": "Tiers-temps",
+      "start": 1.8,
+      "end": 2.06
+    },
+    {
+      "text": "?",
+      "start": 2.06,
+      "end": 2.06
+    },
+    {
+      "text": "Tu",
+      "start": 2.2,
+      "end": 2.26
+    },
+    {
+      "text": "as",
+      "start": 2.26,
+      "end": 2.36
+    },
+    {
+      "text": "quarante",
+      "start": 2.36,
+      "end": 2.62
+    },
+    {
+      "text": "minutes.",
+      "start": 2.62,
+      "end": 2.98
+    }
+  ],
+  "duration": 3.18
+}

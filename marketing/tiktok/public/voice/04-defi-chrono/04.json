@@ -1,0 +1,71 @@
+{
+  "text": "Pas d'IA pendant le défi : ta justification est relue par trois membres.",
+  "words": [
+    {
+      "text": "Pas",
+      "start": 0.2,
+      "end": 0.36
+    },
+    {
+      "text": "d'IA",
+      "start": 0.46,
+      "end": 0.56
+    },
+    {
+      "text": "pendant",
+      "start": 0.56,
+      "end": 0.8
+    },
+    {
+      "text": "le",
+      "start": 0.8,
+      "end": 0.98
+    },
+    {
+      "text": "défi",
+      "start": 0.98,
+      "end": 1.34
+    },
+    {
+      "text": ":",
+      "start": 1.34,
+      "end": 1.34
+    },
+    {
+      "text": "ta",
+      "start": 1.7,
+      "end": 1.76
+    },
+    {
+      "text": "justification",
+      "start": 1.76,
+      "end": 2.16
+    },
+    {
+      "text": "est",
+      "start": 2.16,
+      "end": 2.62
+    },
+    {
+      "text": "relue",
+      "start": 2.62,
+      "end": 2.92
+    },
+    {
+      "text": "par",
+      "start": 2.92,
+      "end": 3.04
+    },
+    {
+      "text": "trois",
+      "start": 3.04,
+      "end": 3.24
+    },
+    {
+      "text": "membres.",
+      "start": 3.24,
+      "end": 3.8
+    }
+  ],
+  "duration": 3.85
+}
