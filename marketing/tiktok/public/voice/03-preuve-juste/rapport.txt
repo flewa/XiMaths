@@ -1,0 +1,6 @@
+03-preuve-juste · 1 · chatterbox · 0.95 · commence à voir si t'as preuve est juste quand le corriger fait une ligne.
+03-preuve-juste · 2 · chatterbox · 0.99 · Sur Ximath, tu postes ta solution sous l'exercice.
+03-preuve-juste · 3 · chatterbox · 0.82 · Trois paires tirées au sort la relise. Chacun à 72 heures.
+03-preuve-juste · 4 · chatterbox · 0.99 · correcte, correcte avec l'acune ou incorrecte, toujours avec un commentaire.
+03-preuve-juste · 5 · chatterbox · 0.98 · et une fois validée, la solution aide le suivant qui bloque.
+03-preuve-juste · 6 · chatterbox · 0.92 · Si maths vient en bio, arrête de deviner.

@@ -1,0 +1,56 @@
+{
+  "text": "Correcte, correcte avec lacunes, ou incorrecte. Toujours avec un commentaire.",
+  "words": [
+    {
+      "text": "Correcte,",
+      "start": 0.16,
+      "end": 0.42
+    },
+    {
+      "text": "correcte",
+      "start": 0.82,
+      "end": 1.1
+    },
+    {
+      "text": "avec",
+      "start": 1.1,
+      "end": 1.4
+    },
+    {
+      "text": "lacunes,",
+      "start": 1.58,
+      "end": 1.9
+    },
+    {
+      "text": "ou",
+      "start": 2.06,
+      "end": 2.22
+    },
+    {
+      "text": "incorrecte.",
+      "start": 2.22,
+      "end": 2.62
+    },
+    {
+      "text": "Toujours",
+      "start": 3.08,
+      "end": 3.42
+    },
+    {
+      "text": "avec",
+      "start": 3.42,
+      "end": 3.6
+    },
+    {
+      "text": "un",
+      "start": 3.6,
+      "end": 3.76
+    },
+    {
+      "text": "commentaire.",
+      "start": 3.76,
+      "end": 4.3
+    }
+  ],
+  "duration": 4.44
+}

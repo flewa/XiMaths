@@ -1,0 +1,61 @@
+{
+  "text": "Et une fois validée, ta solution aide le suivant qui bloque.",
+  "words": [
+    {
+      "text": "Et",
+      "start": 0.14,
+      "end": 0.18
+    },
+    {
+      "text": "une",
+      "start": 0.18,
+      "end": 0.32
+    },
+    {
+      "text": "fois",
+      "start": 0.32,
+      "end": 0.54
+    },
+    {
+      "text": "validée,",
+      "start": 0.54,
+      "end": 1.14
+    },
+    {
+      "text": "ta",
+      "start": 1.38,
+      "end": 1.48
+    },
+    {
+      "text": "solution",
+      "start": 1.48,
+      "end": 1.9
+    },
+    {
+      "text": "aide",
+      "start": 1.9,
+      "end": 2.26
+    },
+    {
+      "text": "le",
+      "start": 2.26,
+      "end": 2.48
+    },
+    {
+      "text": "suivant",
+      "start": 2.48,
+      "end": 2.84
+    },
+    {
+      "text": "qui",
+      "start": 2.84,
+      "end": 3.02
+    },
+    {
+      "text": "bloque.",
+      "start": 3.02,
+      "end": 3.28
+    }
+  ],
+  "duration": 3.51
+}
