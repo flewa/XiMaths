@@ -49,7 +49,15 @@ function SceneVisual({
         />
       );
     case "reviewers":
-      return <Reviewers title={visual.title} verdicts={visual.verdicts} continued={continued} />;
+      return (
+        <Reviewers
+          title={visual.title}
+          verdicts={visual.verdicts}
+          lines={visual.lines}
+          note={visual.note}
+          continued={continued}
+        />
+      );
     case "timer":
       return <Timer minutes={visual.minutes} label={visual.label} extra={visual.extra} instant={first} />;
     case "proof":

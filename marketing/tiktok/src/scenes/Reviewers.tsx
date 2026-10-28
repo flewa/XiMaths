@@ -15,13 +15,23 @@ const REVIEWERS = [
 ];
 
 /** Trois relecteurs tirés au sort (les initiales défilent puis s'arrêtent), reliés à la solution. */
+const LINES = [
+  "u_{n+1} - u_n = \\tfrac{1}{(n+1)^2} > 0",
+  "u_n \\le 2 - \\tfrac{1}{n}",
+  "\\text{donc } (u_n) \\text{ converge.}",
+];
+
 export function Reviewers({
   title,
   verdicts = false,
   continued = false,
+  lines = LINES,
+  note = "« pour tout n ≥ 1 ? »",
 }: {
   title?: string;
   verdicts?: boolean;
+  lines?: string[];
+  note?: string;
   /** Suite de la scène précédente : les relecteurs sont déjà tirés, seuls les verdicts arrivent. */
   continued?: boolean;
 }) {
@@ -175,9 +185,9 @@ export function Reviewers({
           </span>
         </div>
         <div style={{ marginTop: 26, display: "flex", flexDirection: "column", gap: 14 }}>
-          <Tex latex="u_{n+1} - u_n = \tfrac{1}{(n+1)^2} > 0" size={40} />
-          <Tex latex="u_n \le 2 - \tfrac{1}{n}" size={40} />
-          <Tex latex="\text{donc } (u_n) \text{ converge.}" size={40} />
+          {lines.map((latex) => (
+            <Tex key={latex} latex={latex} size={40} />
+          ))}
         </div>
         {verdicts && (
           <div
@@ -196,7 +206,7 @@ export function Reviewers({
               boxShadow: "0 10px 24px rgba(0,0,0,0.25)",
             }}
           >
-            « pour tout n ≥ 1 ? »
+            {note}
           </div>
         )}
       </div>

@@ -16,7 +16,14 @@ export type Visual =
       label?: string;
       tap?: string;
     }
-  | { kind: "reviewers"; title?: string; verdicts?: boolean }
+  | {
+      kind: "reviewers";
+      title?: string;
+      verdicts?: boolean;
+      /** La solution relue, en LaTeX, et le commentaire d'un relecteur. */
+      lines?: string[];
+      note?: string;
+    }
   | { kind: "timer"; minutes: number; label?: string; extra?: string }
   | {
       kind: "proof";
@@ -115,7 +122,11 @@ export const VIDEOS: Video[] = [
         visual: {
           kind: "proof",
           title: "Exercice 3",
-          lines: ["u_{n+1} - u_n = \\frac{1}{n+1} > 0", "\\text{donc } (u_n) \\text{ converge.}", "\\boxed{\\ell = 2}"],
+          lines: [
+            "u_{n+1} - u_n = \\frac{1}{(n+1)^2} > 0",
+            "\\text{donc } (u_n) \\text{ converge.}",
+            "\\boxed{\\ell = 2}",
+          ],
           marks: [{ line: 1, type: "question", note: "majorée ?" }],
           stamp: "2/5",
         },
@@ -286,7 +297,16 @@ export const VIDEOS: Video[] = [
       },
       {
         voice: "Ensuite, ce sont trois étudiants qui relisent ta solution.",
-        visual: { kind: "reviewers", title: "relue par 3 étudiants", verdicts: true },
+        visual: {
+          kind: "reviewers",
+          title: "relue par 3 étudiants",
+          verdicts: true,
+          lines: [
+            "\\tfrac{1}{n^2} \\le \\tfrac{1}{n(n-1)} \\text{ pour } n \\ge 2,",
+            "\\text{donc la série converge.}",
+          ],
+          note: "« et ∑ 1/(n(n−1)) ? »",
+        },
       },
       {
         voice: "XiMaths, lien en bio. Ta copie en LaTeX, sans taper une ligne.",
