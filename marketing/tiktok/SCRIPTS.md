@@ -149,7 +149,7 @@ un son tendance très bas sous la voix si l'un colle au ton.
 | # | Début | À l'écran | Voix off |
 | --- | --- | --- | --- |
 | 1 | 0.0 s | Réponse d'IA fausse, tampon « faux » | L'IA t'a sorti une démo fausse. Avec beaucoup d'assurance. |
-| 2 | 3.8 s | Texte : « Fausse et bien rédigée : / le pire piège. » | En maths, une preuve fausse bien rédigée, c'est le pire des pièges. |
+| 2 | 3.8 s | Texte : « Une preuve fausse / bien rédigée : / le pire piège. » | En maths, une preuve fausse bien rédigée, c'est le pire des pièges. |
 | 3 | 8.2 s | Trois relecteurs tirés au sort, verdicts et commentaire : « 3 humains relisent » | Sur XiMaths, chaque solution est relue par trois étudiants. Des humains. |
 | 4 | 13.0 s | Téléphone, capture `defi`, zoom sur `ai` : « IA interdite » | Pendant le défi du jour, l'IA est interdite. |
 | 5 | 16.0 s | As-tu utilisé une IA ? : Aucune · Relecture ou mise en forme · Aide sur une idée · Solution générée | Ailleurs, tu peux t'en servir. Mais tu le déclares. |
