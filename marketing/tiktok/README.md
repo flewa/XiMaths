@@ -40,7 +40,7 @@ Les voix de `public/voice/` sont gratuites et sans limite : elles viennent de mo
 
 ```bash
 uv venv .venv-voix
-VIRTUAL_ENV=.venv-voix uv pip install --torch-backend cpu chatterbox-tts kokoro faster-whisper "setuptools<81"
+VIRTUAL_ENV=.venv-voix uv pip install --torch-backend cpu chatterbox-tts kokoro faster-whisper num2words "setuptools<81"
 ```
 
 ```bash

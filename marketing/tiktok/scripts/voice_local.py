@@ -10,7 +10,7 @@
 Installation (Python 3.12 ou 3.13, processeur suffisant, sans carte graphique) :
 
     uv venv .venv-voix
-    VIRTUAL_ENV=.venv-voix uv pip install --torch-backend cpu chatterbox-tts kokoro faster-whisper "setuptools<81"
+    VIRTUAL_ENV=.venv-voix uv pip install --torch-backend cpu chatterbox-tts kokoro faster-whisper num2words "setuptools<81"
 
 Usage, depuis marketing/tiktok :
 
@@ -33,6 +33,7 @@ import librosa
 import numpy as np
 import soundfile as sf
 import torch
+from num2words import num2words
 
 ROOT = Path(__file__).resolve().parent.parent
 SR = 24000
@@ -70,6 +71,8 @@ def spoken(text):
 
 
 def normalize(text):
+    # Whisper écrit les nombres en chiffres, le script en lettres.
+    text = re.sub(r"\d+", lambda match: num2words(int(match.group()), lang="fr"), text)
     text = unicodedata.normalize("NFD", text.lower())
     text = "".join(c for c in text if unicodedata.category(c) != "Mn")
     return re.sub(r"[^a-z0-9]", "", text)
