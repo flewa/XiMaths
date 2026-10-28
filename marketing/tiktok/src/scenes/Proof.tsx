@@ -95,7 +95,7 @@ export function Proof({
                 clipPath: `inset(0 ${(1 - reveal) * 100}% 0 0)`,
               }}
             >
-              <Tex latex={latex} size={58} color={COLORS.pen} />
+              <Tex latex={latex} size={54} color={COLORS.pen} />
             </div>
           );
         })}
@@ -122,7 +122,7 @@ export function Proof({
                 />
               );
             }
-            const x = CARD.width - 120;
+            const x = CARD.width - 96;
             const path =
               mark.type === "check"
                 ? `M ${x} ${y} l 26 30 l 52 -66`
