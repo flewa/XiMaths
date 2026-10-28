@@ -1,0 +1,51 @@
+{
+  "text": "Ensuite, ce sont trois étudiants qui relisent ta solution.",
+  "words": [
+    {
+      "text": "Ensuite,",
+      "start": 0.57,
+      "end": 1.05
+    },
+    {
+      "text": "ce",
+      "start": 1.25,
+      "end": 1.39
+    },
+    {
+      "text": "sont",
+      "start": 1.39,
+      "end": 1.55
+    },
+    {
+      "text": "trois",
+      "start": 1.55,
+      "end": 1.79
+    },
+    {
+      "text": "étudiants",
+      "start": 1.79,
+      "end": 2.23
+    },
+    {
+      "text": "qui",
+      "start": 2.23,
+      "end": 2.37
+    },
+    {
+      "text": "relisent",
+      "start": 2.37,
+      "end": 2.69
+    },
+    {
+      "text": "ta",
+      "start": 2.69,
+      "end": 2.83
+    },
+    {
+      "text": "solution.",
+      "start": 2.83,
+      "end": 3.19
+    }
+  ],
+  "duration": 3.92
+}

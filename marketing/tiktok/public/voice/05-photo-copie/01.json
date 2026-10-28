@@ -1,0 +1,61 @@
+{
+  "text": "Tu détestes taper du LaTeX ? Prends ta copie en photo.",
+  "words": [
+    {
+      "text": "Tu",
+      "start": 0,
+      "end": 0.08
+    },
+    {
+      "text": "détestes",
+      "start": 0.08,
+      "end": 0.44
+    },
+    {
+      "text": "taper",
+      "start": 0.44,
+      "end": 0.62
+    },
+    {
+      "text": "du",
+      "start": 0.62,
+      "end": 0.78
+    },
+    {
+      "text": "LaTeX",
+      "start": 0.78,
+      "end": 1.18
+    },
+    {
+      "text": "?",
+      "start": 1.18,
+      "end": 1.18
+    },
+    {
+      "text": "Prends",
+      "start": 1.36,
+      "end": 1.48
+    },
+    {
+      "text": "ta",
+      "start": 1.48,
+      "end": 1.62
+    },
+    {
+      "text": "copie",
+      "start": 1.62,
+      "end": 1.88
+    },
+    {
+      "text": "en",
+      "start": 1.88,
+      "end": 1.96
+    },
+    {
+      "text": "photo.",
+      "start": 1.96,
+      "end": 2.18
+    }
+  ],
+  "duration": 2.35
+}
