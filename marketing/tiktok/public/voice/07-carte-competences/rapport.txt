@@ -1,0 +1,5 @@
+07-carte-competences · 1 · chatterbox · 1.00 · Tu révises tout ou tu révises ce qui te manque.
+07-carte-competences · 2 · chatterbox · 0.93 · Simat te dessine une carte de décompétence, chapitre par chapitre.
+07-carte-competences · 3 · chatterbox · 1.00 · Chaque solution validée remplit la carte selon la difficulté de l'exercice.
+07-carte-competences · 4 · chatterbox · 0.96 · dans chaque chapitre, elle propose l'exercice d'un cran au-dessus.
+07-carte-competences · 5 · chatterbox · 0.94 · lien en bio. Révisse-moi. Révisse mieux.

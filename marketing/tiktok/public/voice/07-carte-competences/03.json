@@ -1,0 +1,61 @@
+{
+  "text": "Chaque solution validée remplit la carte, selon la difficulté de l'exercice.",
+  "words": [
+    {
+      "text": "Chaque",
+      "start": 0.62,
+      "end": 1.06
+    },
+    {
+      "text": "solution",
+      "start": 1.06,
+      "end": 1.46
+    },
+    {
+      "text": "validée",
+      "start": 1.46,
+      "end": 2.04
+    },
+    {
+      "text": "remplit",
+      "start": 2.04,
+      "end": 2.4
+    },
+    {
+      "text": "la",
+      "start": 2.4,
+      "end": 2.52
+    },
+    {
+      "text": "carte,",
+      "start": 2.52,
+      "end": 2.9
+    },
+    {
+      "text": "selon",
+      "start": 2.9,
+      "end": 3.24
+    },
+    {
+      "text": "la",
+      "start": 3.24,
+      "end": 3.4
+    },
+    {
+      "text": "difficulté",
+      "start": 3.4,
+      "end": 3.98
+    },
+    {
+      "text": "de",
+      "start": 3.98,
+      "end": 4.08
+    },
+    {
+      "text": "l'exercice.",
+      "start": 4.16,
+      "end": 4.76
+    }
+  ],
+  "duration": 4.92
+}

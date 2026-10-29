@@ -1,0 +1,61 @@
+{
+  "text": "Tu révises tout… ou tu révises ce qui te manque ?",
+  "words": [
+    {
+      "text": "Tu",
+      "start": 0,
+      "end": 0.08
+    },
+    {
+      "text": "révises",
+      "start": 0.08,
+      "end": 0.46
+    },
+    {
+      "text": "tout…",
+      "start": 0.46,
+      "end": 0.68
+    },
+    {
+      "text": "ou",
+      "start": 0.9,
+      "end": 0.98
+    },
+    {
+      "text": "tu",
+      "start": 0.98,
+      "end": 1.1
+    },
+    {
+      "text": "révises",
+      "start": 1.1,
+      "end": 1.5
+    },
+    {
+      "text": "ce",
+      "start": 1.5,
+      "end": 1.64
+    },
+    {
+      "text": "qui",
+      "start": 1.64,
+      "end": 1.76
+    },
+    {
+      "text": "te",
+      "start": 1.76,
+      "end": 1.86
+    },
+    {
+      "text": "manque",
+      "start": 1.86,
+      "end": 2.1
+    },
+    {
+      "text": "?",
+      "start": 2.1,
+      "end": 2.1
+    }
+  ],
+  "duration": 2.67
+}
