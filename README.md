@@ -23,6 +23,7 @@ Dans l'application de bureau Claude Code, `.claude/launch.json` décrit les deux
 | `backend/` | API Django 5.2 + Django Ninja. Apps : `accounts` (comptes, connexion Google, niveau de confiance), `catalog` (niveaux, chapitres), `content` (exercices, solutions, relectures, votes, tâches planifiées), `duplicates` (détection des doublons), `gamification` (ledger, barème, classements, badges, niveaux de confiance, séries et objectifs), `moderation` (signalements, anti-plagiat, sanctions, appels, questions de compréhension), `notifications`, `training` (chronométré et défi du jour) |
 | `frontend/` | Next.js 16 (App Router), React 19, Tailwind 4, Markdown + KaTeX rendus côté serveur, éditeur CodeMirror 6. Design décrit dans `frontend/DESIGN-opencode.ai.md`, avec un mode sombre |
 | `dev.sh` | Lancement local en une commande : dépendances, base de démonstration, API et front |
+| `deploy/` | Mise en ligne sur un serveur (`install.sh`) et mises à jour (`update.sh`) |
 | `marketing/tiktok/` | Vidéos TikTok en Remotion : scripts, captures de l'application, voix off ElevenLabs ([mode d'emploi](marketing/tiktok/README.md)) |
 | `docker-compose.yml` | Développement : PostgreSQL 16 avec pgvector, Redis, et bge-m3 servi par Text Embeddings Inference |
 | `docker-compose.prod.yml`, `Caddyfile` | Production : Caddy (HTTPS), PostgreSQL, Redis, l'API, le planificateur et le front |
@@ -207,14 +208,50 @@ Depuis la fiche d'un exercice : 15, 30, 45 ou 60 minutes, ou le temps conseillé
 
 ## Production
 
+### Mettre en ligne
+
+Il faut :
+
+- un serveur Linux (Ubuntu 24.04 ou Debian 12) avec 4 Go de mémoire, de préférence hébergé dans l'Union européenne (Hetzner, OVHcloud, Scaleway) ;
+- un nom de domaine, dont l'enregistrement A pointe vers l'adresse IP du serveur ;
+- un compte [Brevo](https://www.brevo.com/) pour les emails (inscriptions, mots de passe oubliés), avec le domaine authentifié (SPF et DKIM) pour ne pas finir en indésirables.
+
+Sur le serveur, en root (`sudo -i`) :
+
+```bash
+git clone https://github.com/flewa/XiMaths.git /opt/ximaths
+cd /opt/ximaths
+./deploy/install.sh
+```
+
+Le script installe Docker s'il manque, écrit `.env.prod` (secrets tirés au hasard, questions pour le domaine et Brevo), vérifie que le domaine pointe vers le serveur, construit et démarre le site, crée le compte d'administration et programme une sauvegarde de la base chaque nuit dans `/var/backups/ximaths` (14 jours gardés). Le site est alors en ligne en HTTPS ; la modération se fait sur `/admin/`.
+
+Mise à jour après un changement du code (sauvegarde, `git pull`, reconstruction, migrations) :
+
+```bash
+cd /opt/ximaths && ./deploy/update.sh
+```
+
+Restaurer une sauvegarde :
+
+```bash
+gunzip -c /var/backups/ximaths/ximaths-AAAA-MM-JJ.sql.gz | docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T db psql -U ximaths ximaths
+```
+
+Avant d'ouvrir au public : compléter les mentions légales (éditeur et hébergeur du site) et, dans la page Confidentialité, le responsable des données et les sous-traitants ; puis retirer l'avertissement « Version de travail » des pages Conditions et Confidentialité.
+
+### Fonctionnement
+
+À la main, sans le script :
+
 ```bash
 cp .env.prod.example .env.prod      # puis remplir les secrets
 docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 ```
 
-- Caddy obtient le certificat HTTPS de `SITE_DOMAIN` et sert tout sur une seule origine : `/api`, `/admin` et `/static` vont à Django (gunicorn, fichiers statiques par whitenoise), le reste au front (Next.js en sortie autonome).
-- Les migrations tournent une fois avant l'API et le planificateur.
-- HSTS, cookies sécurisés, en-têtes de sécurité ; Redis pour le cache et la limitation de débit ; Sentry si `SENTRY_DSN` est défini.
+- Caddy obtient le certificat HTTPS de `SITE_DOMAIN` et sert tout sur une seule origine : `/api`, `/admin` et `/static` vont à Django (gunicorn, fichiers statiques par whitenoise), le reste au front (Next.js en sortie autonome). Il redirige le HTTP vers le HTTPS et ajoute les en-têtes de sécurité à tout le site.
+- Les migrations tournent une fois avant l'API et le planificateur. Les niveaux et chapitres sont créés par les migrations : une base neuve est utilisable sans données de démonstration.
+- HSTS (`DJANGO_HSTS_SECONDS`), cookies sécurisés ; Redis pour le cache et la limitation de débit ; Sentry si `SENTRY_DSN` est défini.
 - Embeddings : `--profile embeddings`, et `EMBEDDINGS_URL=http://embeddings` dans `.env.prod`.
 
 ## Tests
