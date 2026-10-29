@@ -1,0 +1,71 @@
+{
+  "text": "Un exercice de M2 fait marquer en M2. Chacun joue à son niveau.",
+  "words": [
+    {
+      "text": "Un",
+      "start": 0.15,
+      "end": 0.27
+    },
+    {
+      "text": "exercice",
+      "start": 0.27,
+      "end": 0.97
+    },
+    {
+      "text": "de",
+      "start": 0.97,
+      "end": 1.07
+    },
+    {
+      "text": "M2",
+      "start": 1.07,
+      "end": 1.49
+    },
+    {
+      "text": "fait",
+      "start": 1.49,
+      "end": 1.69
+    },
+    {
+      "text": "marquer",
+      "start": 1.69,
+      "end": 2.07
+    },
+    {
+      "text": "en",
+      "start": 2.07,
+      "end": 2.25
+    },
+    {
+      "text": "M2.",
+      "start": 2.25,
+      "end": 2.71
+    },
+    {
+      "text": "Chacun",
+      "start": 2.85,
+      "end": 3.17
+    },
+    {
+      "text": "joue",
+      "start": 3.17,
+      "end": 3.45
+    },
+    {
+      "text": "à",
+      "start": 3.45,
+      "end": 3.57
+    },
+    {
+      "text": "son",
+      "start": 3.57,
+      "end": 3.71
+    },
+    {
+      "text": "niveau.",
+      "start": 3.71,
+      "end": 3.95
+    }
+  ],
+  "duration": 4.09
+}

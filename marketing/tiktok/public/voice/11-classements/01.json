@@ -1,0 +1,66 @@
+{
+  "text": "Ton pote dit qu'il est meilleur que toi en maths ? Prouve-le.",
+  "words": [
+    {
+      "text": "Ton",
+      "start": 0,
+      "end": 0.1
+    },
+    {
+      "text": "pote",
+      "start": 0.1,
+      "end": 0.26
+    },
+    {
+      "text": "dit",
+      "start": 0.26,
+      "end": 0.42
+    },
+    {
+      "text": "qu'il",
+      "start": 0.52,
+      "end": 0.56
+    },
+    {
+      "text": "est",
+      "start": 0.56,
+      "end": 0.66
+    },
+    {
+      "text": "meilleur",
+      "start": 0.66,
+      "end": 1.04
+    },
+    {
+      "text": "que",
+      "start": 1.04,
+      "end": 1.24
+    },
+    {
+      "text": "toi",
+      "start": 1.24,
+      "end": 1.42
+    },
+    {
+      "text": "en",
+      "start": 1.42,
+      "end": 1.56
+    },
+    {
+      "text": "maths",
+      "start": 1.56,
+      "end": 1.76
+    },
+    {
+      "text": "?",
+      "start": 1.76,
+      "end": 1.76
+    },
+    {
+      "text": "Prouve-le.",
+      "start": 2,
+      "end": 2.24
+    }
+  ],
+  "duration": 2.56
+}

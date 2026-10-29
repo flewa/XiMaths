@@ -1,0 +1,66 @@
+{
+  "text": "XiMaths a un classement par niveau, chaque semaine, du lundi au dimanche.",
+  "words": [
+    {
+      "text": "XiMaths",
+      "start": 0.32,
+      "end": 0.6
+    },
+    {
+      "text": "a",
+      "start": 0.6,
+      "end": 0.74
+    },
+    {
+      "text": "un",
+      "start": 0.74,
+      "end": 0.82
+    },
+    {
+      "text": "classement",
+      "start": 0.82,
+      "end": 1.28
+    },
+    {
+      "text": "par",
+      "start": 1.28,
+      "end": 1.44
+    },
+    {
+      "text": "niveau,",
+      "start": 1.44,
+      "end": 1.68
+    },
+    {
+      "text": "chaque",
+      "start": 1.68,
+      "end": 1.98
+    },
+    {
+      "text": "semaine,",
+      "start": 1.98,
+      "end": 2.44
+    },
+    {
+      "text": "du",
+      "start": 2.66,
+      "end": 2.76
+    },
+    {
+      "text": "lundi",
+      "start": 2.76,
+      "end": 3.12
+    },
+    {
+      "text": "au",
+      "start": 3.12,
+      "end": 3.2
+    },
+    {
+      "text": "dimanche.",
+      "start": 3.2,
+      "end": 3.64
+    }
+  ],
+  "duration": 3.81
+}
