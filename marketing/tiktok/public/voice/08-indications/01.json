@@ -1,0 +1,56 @@
+{
+  "text": "Bloqué sur un exo ? Surtout, n'ouvre pas le corrigé.",
+  "words": [
+    {
+      "text": "Bloqué",
+      "start": 0,
+      "end": 0.38
+    },
+    {
+      "text": "sur",
+      "start": 0.38,
+      "end": 0.58
+    },
+    {
+      "text": "un",
+      "start": 0.58,
+      "end": 0.74
+    },
+    {
+      "text": "exo",
+      "start": 0.74,
+      "end": 1.12
+    },
+    {
+      "text": "?",
+      "start": 1.12,
+      "end": 1.12
+    },
+    {
+      "text": "Surtout,",
+      "start": 1.46,
+      "end": 1.9
+    },
+    {
+      "text": "n'ouvre",
+      "start": 2.14,
+      "end": 2.3
+    },
+    {
+      "text": "pas",
+      "start": 2.3,
+      "end": 2.44
+    },
+    {
+      "text": "le",
+      "start": 2.44,
+      "end": 2.54
+    },
+    {
+      "text": "corrigé.",
+      "start": 2.54,
+      "end": 2.92
+    }
+  ],
+  "duration": 3.06
+}
