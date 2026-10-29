@@ -1,0 +1,51 @@
+{
+  "text": "Pour les oraux : trois exercices chronométrés par semaine.",
+  "words": [
+    {
+      "text": "Pour",
+      "start": 0.1,
+      "end": 0.22
+    },
+    {
+      "text": "les",
+      "start": 0.22,
+      "end": 0.38
+    },
+    {
+      "text": "oraux",
+      "start": 0.38,
+      "end": 0.38
+    },
+    {
+      "text": ":",
+      "start": 0.38,
+      "end": 0.38
+    },
+    {
+      "text": "trois",
+      "start": 0.38,
+      "end": 0.62
+    },
+    {
+      "text": "exercices",
+      "start": 1.22,
+      "end": 1.8
+    },
+    {
+      "text": "chronométrés",
+      "start": 1.8,
+      "end": 2.32
+    },
+    {
+      "text": "par",
+      "start": 2.32,
+      "end": 2.48
+    },
+    {
+      "text": "semaine.",
+      "start": 2.48,
+      "end": 2.82
+    }
+  ],
+  "duration": 3.02
+}

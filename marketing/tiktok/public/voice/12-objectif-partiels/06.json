@@ -1,0 +1,41 @@
+{
+  "text": "Lien en bio. Trois semaines, c'est assez.",
+  "words": [
+    {
+      "text": "Lien",
+      "start": 0.72,
+      "end": 1.16
+    },
+    {
+      "text": "en",
+      "start": 1.16,
+      "end": 1.36
+    },
+    {
+      "text": "bio.",
+      "start": 1.36,
+      "end": 1.52
+    },
+    {
+      "text": "Trois",
+      "start": 1.52,
+      "end": 2.14
+    },
+    {
+      "text": "semaines,",
+      "start": 2.14,
+      "end": 2.44
+    },
+    {
+      "text": "c'est",
+      "start": 2.64,
+      "end": 2.66
+    },
+    {
+      "text": "assez.",
+      "start": 2.66,
+      "end": 2.96
+    }
+  ],
+  "duration": 2.993
+}

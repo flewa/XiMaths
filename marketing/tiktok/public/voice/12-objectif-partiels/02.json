@@ -1,0 +1,56 @@
+{
+  "text": "Sur XiMaths, tu te fixes un objectif, avec une date.",
+  "words": [
+    {
+      "text": "Sur",
+      "start": 0.75,
+      "end": 1.19
+    },
+    {
+      "text": "XiMaths,",
+      "start": 1.19,
+      "end": 1.63
+    },
+    {
+      "text": "tu",
+      "start": 2.03,
+      "end": 2.09
+    },
+    {
+      "text": "te",
+      "start": 2.09,
+      "end": 2.29
+    },
+    {
+      "text": "fixes",
+      "start": 2.29,
+      "end": 2.45
+    },
+    {
+      "text": "un",
+      "start": 2.45,
+      "end": 2.63
+    },
+    {
+      "text": "objectif,",
+      "start": 2.63,
+      "end": 3.23
+    },
+    {
+      "text": "avec",
+      "start": 3.23,
+      "end": 3.43
+    },
+    {
+      "text": "une",
+      "start": 3.43,
+      "end": 3.67
+    },
+    {
+      "text": "date.",
+      "start": 3.67,
+      "end": 3.91
+    }
+  ],
+  "duration": 4.07
+}
