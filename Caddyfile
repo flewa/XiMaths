@@ -4,6 +4,19 @@
 {$SITE_DOMAIN} {
 	encode zstd gzip
 
+	# En-têtes de sécurité pour tout le site. Les pages du front n'en envoient pas d'elles-mêmes ;
+	# « ? » laisse intacts ceux que Django met déjà sur l'API. HSTS reprend DJANGO_HSTS_SECONDS
+	# de .env.prod (0 : désactivé).
+	header {
+		?X-Content-Type-Options nosniff
+		?X-Frame-Options DENY
+		?Referrer-Policy same-origin
+		?Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		?Strict-Transport-Security "max-age={$HSTS_SECONDS:0}; includeSubDomains"
+		-Server
+		-X-Powered-By
+	}
+
 	@django path /api/* /admin /admin/* /static/*
 	handle @django {
 		reverse_proxy backend:8000
