@@ -1,0 +1,41 @@
+{
+  "text": "Énoncé en LaTeX, indications, niveau et chapitre.",
+  "words": [
+    {
+      "text": "Énoncé",
+      "start": 0.06,
+      "end": 0.64
+    },
+    {
+      "text": "en",
+      "start": 0.64,
+      "end": 0.82
+    },
+    {
+      "text": "LaTeX,",
+      "start": 0.82,
+      "end": 1.28
+    },
+    {
+      "text": "indications,",
+      "start": 1.62,
+      "end": 2.08
+    },
+    {
+      "text": "niveau",
+      "start": 2.54,
+      "end": 2.82
+    },
+    {
+      "text": "et",
+      "start": 2.82,
+      "end": 3.1
+    },
+    {
+      "text": "chapitre.",
+      "start": 3.1,
+      "end": 3.62
+    }
+  ],
+  "duration": 3.91
+}
