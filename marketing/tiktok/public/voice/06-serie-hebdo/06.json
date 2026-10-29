@@ -1,0 +1,41 @@
+{
+  "text": "XiMaths, lien en bio. Régulier, pas esclave.",
+  "words": [
+    {
+      "text": "XiMaths,",
+      "start": 0.25,
+      "end": 0.73
+    },
+    {
+      "text": "lien",
+      "start": 0.87,
+      "end": 1.17
+    },
+    {
+      "text": "en",
+      "start": 1.17,
+      "end": 1.37
+    },
+    {
+      "text": "bio.",
+      "start": 1.37,
+      "end": 1.57
+    },
+    {
+      "text": "Régulier,",
+      "start": 1.83,
+      "end": 2.27
+    },
+    {
+      "text": "pas",
+      "start": 2.27,
+      "end": 2.51
+    },
+    {
+      "text": "esclave.",
+      "start": 2.51,
+      "end": 2.99
+    }
+  ],
+  "duration": 3.026
+}

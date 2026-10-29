@@ -1,0 +1,66 @@
+{
+  "text": "Partiels, concours, vacances : tu la mets en pause, jusqu'à quatre semaines.",
+  "words": [
+    {
+      "text": "Partiels,",
+      "start": 0.13,
+      "end": 0.61
+    },
+    {
+      "text": "concours,",
+      "start": 0.95,
+      "end": 1.47
+    },
+    {
+      "text": "vacances",
+      "start": 1.75,
+      "end": 2.29
+    },
+    {
+      "text": ":",
+      "start": 2.29,
+      "end": 2.29
+    },
+    {
+      "text": "tu",
+      "start": 2.55,
+      "end": 2.61
+    },
+    {
+      "text": "la",
+      "start": 2.61,
+      "end": 2.73
+    },
+    {
+      "text": "mets",
+      "start": 2.73,
+      "end": 2.83
+    },
+    {
+      "text": "en",
+      "start": 2.83,
+      "end": 2.91
+    },
+    {
+      "text": "pause,",
+      "start": 2.91,
+      "end": 3.19
+    },
+    {
+      "text": "jusqu'à",
+      "start": 3.19,
+      "end": 3.55
+    },
+    {
+      "text": "quatre",
+      "start": 3.69,
+      "end": 3.83
+    },
+    {
+      "text": "semaines.",
+      "start": 3.83,
+      "end": 4.19
+    }
+  ],
+  "duration": 4.44
+}
