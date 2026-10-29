@@ -1,6 +1,6 @@
 # Vidéos TikTok
 
-Douze vidéos verticales (1080 × 1920, 30 i/s, 20 à 28 s), une par besoin d'étudiant : retour sur ses rédactions en prépa, rédaction en L1, savoir si sa preuve est juste, défi chronométré, photo de copie en LaTeX, série sans culpabilité, carte de compétences, indications, IA et relecture humaine, publier ses exercices, classements, objectif de partiels.
+Douze vidéos verticales (1080 × 1920, 30 i/s, 18 à 25 s avec la voix), une par besoin d'étudiant : retour sur ses rédactions en prépa, rédaction en L1, savoir si sa preuve est juste, défi chronométré, photo de copie en LaTeX, série sans culpabilité, carte de compétences, indications, IA et relecture humaine, publier ses exercices, classements, objectif de partiels.
 
 Elles sont faites avec [Remotion](https://www.remotion.dev/) : chaque image est du code React, ce qui permet de changer un texte et de tout re-rendre.
 Remotion est gratuit pour un particulier ou une entreprise de trois personnes au plus ; au-delà, il faut [une licence d'entreprise](https://www.remotion.pro/license).
