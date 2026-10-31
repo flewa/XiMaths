@@ -19,10 +19,24 @@ fail() { printf '\n[x] %s\n' "$*" >&2; exit 1; }
 [ "$(id -u)" -eq 0 ] || fail "Lance le script avec sudo : sudo ./deploy/install.sh"
 
 say "[1/6] Docker"
+# Le site doit être joignable depuis Internet : le script prépare le serveur, pas un ordinateur
+# personnel (WSL sous Windows, macOS).
+if grep -qi microsoft /proc/version 2>/dev/null || [ ! -d /run/systemd/system ]; then
+  fail "Ce script se lance sur le serveur (Ubuntu ou Debian), pas sur ton ordinateur. Connecte-toi d'abord au serveur : ssh ubuntu@ADRESSE_DU_SERVEUR"
+fi
 if ! command -v docker >/dev/null 2>&1; then
   curl -fsSL https://get.docker.com | sh
 fi
+# Docker installé mais arrêté (paquet docker.io d'Ubuntu, par exemple) : on le démarre, et avec
+# le serveur désormais.
+if ! docker info >/dev/null 2>&1; then
+  systemctl enable --now docker >/dev/null 2>&1 || true
+  docker info >/dev/null 2>&1 || fail "Docker ne démarre pas. Regarde : journalctl -u docker --no-pager | tail -30"
+fi
 docker compose version >/dev/null 2>&1 || fail "Docker Compose manque : installe le paquet docker-compose-plugin."
+# Sans buildx (absent du paquet docker.io), Compose construit très bien avec son propre moteur :
+# on le lui dit, plutôt que de l'avertir à chaque construction.
+docker buildx version >/dev/null 2>&1 || export COMPOSE_BAKE=false
 
 say "[2/6] Configuration (.env.prod)"
 secret() { openssl rand -base64 64 | tr -dc 'A-Za-z0-9' | head -c "$1"; }

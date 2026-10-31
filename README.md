@@ -270,7 +270,7 @@ Le backend couvre le ledger et le barème, la relecture par les pairs (tours, d�
 
 ## Limites connues
 
-- Les images Docker et la composition de production n'ont pas été construites ici (pas de Docker sur la machine de développement) : à vérifier au premier déploiement.
+- La composition de production a été construite et répétée de bout en bout avec Docker, mais derrière le certificat interne de Caddy : le certificat Let's Encrypt et l'envoi réel des emails par Brevo se vérifient au premier déploiement.
 - Les appels à Claude sont testés avec un client simulé ; leur premier usage réel se fera avec la clé.
 - Score d'intégrité : les empreintes IA de référence, la rupture de style et le classifieur du document ne sont pas encore mesurés ; leurs poids sont retirés et les autres renormalisés.
 - Le Web Push est testé avec un chiffrement et une signature VAPID réels, mais un service de push simulé : à vérifier sur un appareil au premier déploiement, en HTTPS.
