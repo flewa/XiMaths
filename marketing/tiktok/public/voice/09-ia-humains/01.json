@@ -1,0 +1,51 @@
+{
+  "text": "L'IA t'a sorti une démo fausse. Avec beaucoup d'assurance.",
+  "words": [
+    {
+      "text": "L'IA",
+      "start": 0,
+      "end": 0.32
+    },
+    {
+      "text": "t'a",
+      "start": 0.46,
+      "end": 0.52
+    },
+    {
+      "text": "sorti",
+      "start": 0.52,
+      "end": 0.92
+    },
+    {
+      "text": "une",
+      "start": 0.92,
+      "end": 1.04
+    },
+    {
+      "text": "démo",
+      "start": 1.04,
+      "end": 1.32
+    },
+    {
+      "text": "fausse.",
+      "start": 1.32,
+      "end": 1.94
+    },
+    {
+      "text": "Avec",
+      "start": 1.94,
+      "end": 2.16
+    },
+    {
+      "text": "beaucoup",
+      "start": 2.16,
+      "end": 2.46
+    },
+    {
+      "text": "d'assurance.",
+      "start": 2.58,
+      "end": 3
+    }
+  ],
+  "duration": 3.19
+}

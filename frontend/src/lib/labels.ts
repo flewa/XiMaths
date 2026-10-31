@@ -38,7 +38,29 @@ export const SOLUTION_STATUS_LABELS: Record<SolutionStatus, string> = {
 
 export const dateFormat = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" });
 
+/** Une décimale, à la française : « 2,4 ». */
+export const oneDecimal = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
 const monthFormat = new Intl.DateTimeFormat("fr-FR", { month: "long", timeZone: "UTC" });
+
+/** « 1 tendance », « 3 tendances » : en français, 0 et 1 restent au singulier. */
+export function plural(count: number, singular: string, pluralForm = `${singular}s`) {
+  return `${count} ${count > 1 ? pluralForm : singular}`;
+}
+
+/** « à l'instant », « il y a 5 min », « il y a 3 h », « hier », « il y a 4 jours », puis la date.
+ * `now` vient du serveur, pour que le rendu du navigateur soit le même. */
+export function relativeTime(iso: string, now: string) {
+  const minutes = Math.floor((new Date(now).getTime() - new Date(iso).getTime()) / 60_000);
+  if (minutes < 1) return "à l'instant";
+  if (minutes < 60) return `il y a ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `il y a ${hours} h`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return "hier";
+  if (days < 7) return `il y a ${days} jours`;
+  return dateFormat.format(new Date(iso));
+}
 
 /** 1er, 2e, 3e… */
 export function ordinal(rank: number) {

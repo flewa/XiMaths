@@ -1,0 +1,56 @@
+{
+  "text": "XiMaths. Des maths relues par des humains. Lien en bio.",
+  "words": [
+    {
+      "text": "XiMaths.",
+      "start": 0.28,
+      "end": 0.74
+    },
+    {
+      "text": "Des",
+      "start": 0.82,
+      "end": 0.96
+    },
+    {
+      "text": "maths",
+      "start": 0.96,
+      "end": 1.12
+    },
+    {
+      "text": "relues",
+      "start": 1.12,
+      "end": 1.44
+    },
+    {
+      "text": "par",
+      "start": 1.44,
+      "end": 1.56
+    },
+    {
+      "text": "des",
+      "start": 1.56,
+      "end": 1.68
+    },
+    {
+      "text": "humains.",
+      "start": 1.68,
+      "end": 2.02
+    },
+    {
+      "text": "Lien",
+      "start": 2.18,
+      "end": 2.32
+    },
+    {
+      "text": "en",
+      "start": 2.32,
+      "end": 2.48
+    },
+    {
+      "text": "bio.",
+      "start": 2.48,
+      "end": 2.64
+    }
+  ],
+  "duration": 2.731
+}

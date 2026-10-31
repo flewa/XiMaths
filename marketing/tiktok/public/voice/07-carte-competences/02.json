@@ -1,0 +1,61 @@
+{
+  "text": "XiMaths te dessine une carte de tes compétences, chapitre par chapitre.",
+  "words": [
+    {
+      "text": "XiMaths",
+      "start": 0.57,
+      "end": 1.01
+    },
+    {
+      "text": "te",
+      "start": 1.01,
+      "end": 1.21
+    },
+    {
+      "text": "dessine",
+      "start": 1.21,
+      "end": 1.59
+    },
+    {
+      "text": "une",
+      "start": 1.59,
+      "end": 1.69
+    },
+    {
+      "text": "carte",
+      "start": 1.69,
+      "end": 1.95
+    },
+    {
+      "text": "de",
+      "start": 1.95,
+      "end": 2.15
+    },
+    {
+      "text": "tes",
+      "start": 2.15,
+      "end": 2.25
+    },
+    {
+      "text": "compétences,",
+      "start": 2.25,
+      "end": 2.97
+    },
+    {
+      "text": "chapitre",
+      "start": 3.15,
+      "end": 3.51
+    },
+    {
+      "text": "par",
+      "start": 3.51,
+      "end": 3.65
+    },
+    {
+      "text": "chapitre.",
+      "start": 3.65,
+      "end": 4.21
+    }
+  ],
+  "duration": 4.83
+}

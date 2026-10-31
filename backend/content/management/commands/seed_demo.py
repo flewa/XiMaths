@@ -1,4 +1,5 @@
-"""Données de démonstration : quelques comptes, exercices et solutions relues.
+"""Données de démonstration : quelques comptes, une quinzaine d'exercices de la L1 au M1
+et en prépa, des solutions relues ou en relecture, et les défis du jour ouverts.
 
 Tout passe par les services métier, donc par les vraies règles de points.
 Réservé au développement : tous les comptes partagent DEMO_PASSWORD et ont une
@@ -18,6 +19,7 @@ from catalog.models import Level, Topic
 from content.models import Exercise, Review, Solution
 from content.services import cast_vote, publish_exercise, publish_solution, submit_review
 from duplicates.services import index_exercise
+from training.challenges import open_challenges
 from training.models import ChallengeTemplate
 
 User = get_user_model()
@@ -118,6 +120,152 @@ EXERCISES = [
         "topics": ["algebre-lineaire"],
         "solution": None,
     },
+    {
+        "title": "Série géométrique",
+        "statement": "Soit $q \\in \\R$ avec $|q| < 1$. Calculer $\\displaystyle\\sum_{n \\geq 0} q^n$.",
+        "hints": ["Écrire la somme partielle $S_N$ et calculer $(1 - q) S_N$."],
+        "final_answer": "1/(1-q)",
+        "challenge": {
+            "statement": "Calculer $\\displaystyle\\sum_{n \\geq 0} \\frac{1}{{{a}}^n}$.",
+            "parameters": {"a": [2, 3, 4, 5, 10]},
+            "answer": "a/(a-1)",
+        },
+        "difficulty": 1,
+        "level": "L1",
+        "levels": ["L1", "MPSI", "PCSI"],
+        "topics": ["analyse"],
+        "solution": (
+            "lea",
+            "Pour $N \\in \\N$, posons $S_N = \\sum_{n=0}^{N} q^n$. Alors $(1 - q) S_N = 1 - q^{N+1}$, "
+            "donc $S_N = \\frac{1 - q^{N+1}}{1 - q}$. Comme $|q| < 1$, $q^{N+1} \\to 0$ : la série converge "
+            "et sa somme vaut $\\frac{1}{1 - q}$.",
+            True,
+        ),
+    },
+    {
+        "title": "Inverse d'une matrice de rotation",
+        "statement": (
+            "Pour $\\theta \\in \\R$, on pose $R_\\theta = \\begin{pmatrix} \\cos\\theta & -\\sin\\theta \\\\ "
+            "\\sin\\theta & \\cos\\theta \\end{pmatrix}$. Montrer que $R_\\theta$ est inversible et calculer son inverse."
+        ),
+        "hints": ["Calculer le déterminant.", "Que vaut $R_\\theta R_{-\\theta}$ ?"],
+        "difficulty": 2,
+        "level": "L1",
+        "levels": ["L1", "MPSI"],
+        "topics": ["algebre-lineaire"],
+        "solution": None,
+    },
+    {
+        "title": "Théorème de Wilson",
+        "statement": "Soit $p$ un nombre premier. Montrer que $(p - 1)! \\equiv -1 \\pmod p$.",
+        "hints": ["Dans $\\mathbb{Z}/p\\mathbb{Z}$, quels éléments sont leur propre inverse ?"],
+        "difficulty": 3,
+        "level": "L2",
+        "levels": ["L2", "MP"],
+        "topics": ["arithmetique"],
+        "solution": None,
+    },
+    {
+        "title": "Espérance et variance d'une loi de Poisson",
+        "statement": "Soit $X$ une variable aléatoire de loi $\\mathcal{P}(\\lambda)$, avec $\\lambda > 0$. Calculer $E[X]$ et $V(X)$.",
+        "hints": ["Calculer d'abord $E[X(X - 1)]$."],
+        "final_answer": "lambda",
+        "difficulty": 2,
+        "level": "L2",
+        "levels": ["L2", "MP", "PSI"],
+        "topics": ["probabilites"],
+        "author": "relecteur1",
+        "solution": (
+            "yanis",
+            "On a $E[X] = \\sum_{k \\geq 1} k e^{-\\lambda} \\frac{\\lambda^k}{k!} = \\lambda e^{-\\lambda} "
+            "\\sum_{k \\geq 1} \\frac{\\lambda^{k-1}}{(k-1)!} = \\lambda$. De même, $E[X(X-1)] = \\lambda^2$, "
+            "donc $V(X) = E[X(X-1)] + E[X] - E[X]^2 = \\lambda^2 + \\lambda - \\lambda^2 = \\lambda$.",
+            True,
+        ),
+    },
+    {
+        "title": "Seule valeur propre d'une matrice nilpotente",
+        "statement": "Soit $N \\in \\mathcal{M}_n(\\mathbb{C})$ nilpotente. Montrer que $0$ est sa seule valeur propre.",
+        "hints": ["Si $N x = \\mu x$ avec $x \\neq 0$, que vaut $N^k x$ ?"],
+        "difficulty": 2,
+        "level": "MP",
+        "levels": ["MP", "PSI", "L2"],
+        "topics": ["algebre-lineaire"],
+        "solution": (
+            "yanis",
+            "Soit $k$ tel que $N^k = 0$. Si $N x = \\mu x$ avec $x \\neq 0$, alors $N^k x = \\mu^k x = 0$, "
+            "donc $\\mu^k = 0$ et $\\mu = 0$. Enfin $N$ n'est pas inversible (sinon $N^k$ le serait), "
+            "donc $0$ est bien valeur propre : c'est la seule.",
+            False,
+        ),
+    },
+    {
+        "title": "Ensemble des barycentres à poids positifs",
+        "statement": (
+            "Soit $A_1, \\dots, A_n$ des points du plan. Montrer que l'ensemble des barycentres des $A_i$ "
+            "affectés de poids positifs (de somme non nulle) est convexe."
+        ),
+        "hints": ["Associativité du barycentre."],
+        "difficulty": 2,
+        "level": "PSI",
+        "levels": ["PSI", "PT", "PC"],
+        "topics": ["geometrie"],
+        "solution": None,
+    },
+    {
+        "title": "Lemme de Borel–Cantelli",
+        "statement": (
+            "Soit $(A_n)_{n \\geq 0}$ une suite d'événements telle que $\\sum_n P(A_n) < +\\infty$. "
+            "Montrer que $P\\left(\\limsup_{n} A_n\\right) = 0$."
+        ),
+        "hints": ["$\\limsup A_n = \\bigcap_{N} \\bigcup_{n \\geq N} A_n$."],
+        "difficulty": 3,
+        "level": "L3",
+        "levels": ["L3", "M1"],
+        "topics": ["probabilites"],
+        "solution": (
+            "relecteur2",
+            "Pour tout $N$, $\\limsup A_n \\subset \\bigcup_{n \\geq N} A_n$, donc "
+            "$P(\\limsup A_n) \\leq \\sum_{n \\geq N} P(A_n)$, reste d'une série convergente : il tend vers 0 "
+            "quand $N \\to +\\infty$. D'où $P(\\limsup A_n) = 0$.",
+            True,
+        ),
+    },
+    {
+        "title": "Théorème de Heine",
+        "statement": (
+            "Soit $(E, d)$ un espace métrique et $K \\subset E$ compact. Montrer que toute fonction continue "
+            "$f : K \\to \\R$ est uniformément continue."
+        ),
+        "hints": ["Raisonner par l'absurde et extraire des sous-suites convergentes."],
+        "difficulty": 3,
+        "level": "L3",
+        "levels": ["L3"],
+        "topics": ["topologie"],
+        "solution": None,
+    },
+    {
+        "title": "Groupe d'ordre premier",
+        "statement": "Montrer qu'un groupe fini d'ordre premier est cyclique.",
+        "hints": ["Théorème de Lagrange."],
+        "difficulty": 2,
+        "level": "L3",
+        "levels": ["L3", "MP"],
+        "topics": ["algebre"],
+        "author": "relecteur1",
+        "solution": None,
+    },
+    {
+        "title": "Intégrale de Gauss",
+        "statement": "Calculer $\\displaystyle\\int_{-\\infty}^{+\\infty} e^{-x^2}\\, dx$.",
+        "hints": ["Passer en coordonnées polaires dans le carré de l'intégrale."],
+        "final_answer": "sqrt(pi)",
+        "difficulty": 4,
+        "level": "M1",
+        "levels": ["M1", "L3"],
+        "topics": ["analyse"],
+        "solution": None,
+    },
 ]
 
 
@@ -130,7 +278,8 @@ class Command(BaseCommand):
             raise CommandError("seed_demo est réservé au développement (DEBUG=1).")
         if Exercise.objects.filter(author__username="camille").exists():
             self.challenge_templates()
-            self.stdout.write("Données de démonstration déjà présentes.")
+            open_challenges()
+            self.stdout.write("Données de démonstration déjà présentes ; défis du jour ouverts.")
             return
 
         rng = random.Random(42)
@@ -151,7 +300,7 @@ class Command(BaseCommand):
 
         for spec in EXERCISES:
             exercise = Exercise.objects.create(
-                author=users["camille"],
+                author=users[spec.get("author", "camille")],
                 title=spec["title"],
                 statement=spec["statement"],
                 hints=spec["hints"],
@@ -174,9 +323,11 @@ class Command(BaseCommand):
             if validate:
                 for review in Review.objects.filter(solution=solution)[:2]:
                     submit_review(review, Review.Verdict.CORRECT)
-            cast_vote(users["relecteur1"], exercise=exercise)
+            voter = "relecteur2" if spec.get("author") == "relecteur1" else "relecteur1"
+            cast_vote(users[voter], exercise=exercise)
 
         self.challenge_templates()
+        open_challenges()
         self.stdout.write(
             self.style.SUCCESS(
                 f"{len(EXERCISES)} exercices de démonstration créés. "
@@ -187,6 +338,6 @@ class Command(BaseCommand):
     def challenge_templates(self):
         """Gabarits du défi du jour, ajoutés aussi à une base déjà remplie."""
         for spec in EXERCISES:
-            exercise = Exercise.objects.filter(author__username="camille", title=spec["title"]).first()
+            exercise = Exercise.objects.filter(title=spec["title"]).first()
             if "challenge" in spec and exercise is not None:
                 ChallengeTemplate.objects.get_or_create(exercise=exercise, defaults=spec["challenge"])

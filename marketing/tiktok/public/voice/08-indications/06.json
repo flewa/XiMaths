@@ -1,0 +1,36 @@
+{
+  "text": "XiMaths, lien en bio. Cherche d'abord.",
+  "words": [
+    {
+      "text": "XiMaths,",
+      "start": 0.22,
+      "end": 0.66
+    },
+    {
+      "text": "lien",
+      "start": 0.84,
+      "end": 1.1
+    },
+    {
+      "text": "en",
+      "start": 1.1,
+      "end": 1.34
+    },
+    {
+      "text": "bio.",
+      "start": 1.34,
+      "end": 1.5
+    },
+    {
+      "text": "Cherche",
+      "start": 1.7,
+      "end": 1.82
+    },
+    {
+      "text": "d'abord.",
+      "start": 2,
+      "end": 2.18
+    }
+  ],
+  "duration": 2.279
+}

@@ -19,7 +19,8 @@ export function ExerciseList({ exercises }: { exercises: (ExerciseSummary | Feed
           <Link href={`/exercices/${exercise.id}`} className="group block py-3 hover:bg-surface-soft">
             <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
               {"reason" in exercise && (
-                <Tag strong={exercise.reason === "tendance"}>{exercise.reason_label}</Tag>
+                // « À résoudre » ressort : c'est là que la communauté attend une première solution.
+                <Tag strong={exercise.reason === "a_resoudre"}>{exercise.reason_label}</Tag>
               )}
               <span className="font-medium group-hover:underline group-hover:underline-offset-4">
                 {exercise.title}

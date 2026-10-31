@@ -1,0 +1,56 @@
+{
+  "text": "Sur XiMaths, les exercices ont des indications. Une par une.",
+  "words": [
+    {
+      "text": "Sur",
+      "start": 0.37,
+      "end": 0.81
+    },
+    {
+      "text": "XiMaths,",
+      "start": 0.81,
+      "end": 1.23
+    },
+    {
+      "text": "les",
+      "start": 1.37,
+      "end": 1.51
+    },
+    {
+      "text": "exercices",
+      "start": 1.51,
+      "end": 2.01
+    },
+    {
+      "text": "ont",
+      "start": 2.01,
+      "end": 2.13
+    },
+    {
+      "text": "des",
+      "start": 2.13,
+      "end": 2.25
+    },
+    {
+      "text": "indications.",
+      "start": 2.25,
+      "end": 2.69
+    },
+    {
+      "text": "Une",
+      "start": 2.99,
+      "end": 3.11
+    },
+    {
+      "text": "par",
+      "start": 3.11,
+      "end": 3.29
+    },
+    {
+      "text": "une.",
+      "start": 3.29,
+      "end": 3.51
+    }
+  ],
+  "duration": 3.66
+}

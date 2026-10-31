@@ -1,0 +1,34 @@
+{
+  "name": "ximaths-tiktok",
+  "private": true,
+  "description": "Vidéos TikTok de XiMaths, en Remotion : scripts, captures de l'application, voix off.",
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "node scripts/render.mjs",
+    "captures": "node scripts/captures.mjs",
+    "voice": "tsx scripts/voice.ts",
+    "scripts-doc": "tsx scripts/doc.ts",
+    "typecheck": "tsc --noEmit",
+    "preview": "node scripts/preview.mjs",
+    "voice:import": "tsx scripts/voice-import.ts"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.539",
+    "@remotion/media": "4.0.539",
+    "@remotion/transitions": "4.0.539",
+    "@remotion/fonts": "4.0.539",
+    "katex": "0.16.22",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "remotion": "4.0.539"
+  },
+  "devDependencies": {
+    "@fontsource/jetbrains-mono": "5.2.8",
+    "@fontsource/caveat": "5.2.8",
+    "@types/katex": "0.16.7",
+    "@types/react": "19.2.2",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
+  }
+}

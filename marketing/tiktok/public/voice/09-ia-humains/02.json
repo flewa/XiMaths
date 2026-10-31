@@ -1,0 +1,66 @@
+{
+  "text": "En maths, une preuve fausse bien rédigée, c'est le pire des pièges.",
+  "words": [
+    {
+      "text": "En",
+      "start": 0.19,
+      "end": 0.29
+    },
+    {
+      "text": "maths,",
+      "start": 0.29,
+      "end": 0.79
+    },
+    {
+      "text": "une",
+      "start": 0.95,
+      "end": 1.05
+    },
+    {
+      "text": "preuve",
+      "start": 1.05,
+      "end": 1.43
+    },
+    {
+      "text": "fausse",
+      "start": 1.43,
+      "end": 1.81
+    },
+    {
+      "text": "bien",
+      "start": 1.81,
+      "end": 1.91
+    },
+    {
+      "text": "rédigée,",
+      "start": 1.91,
+      "end": 2.49
+    },
+    {
+      "text": "c'est",
+      "start": 3.05,
+      "end": 3.11
+    },
+    {
+      "text": "le",
+      "start": 3.11,
+      "end": 3.21
+    },
+    {
+      "text": "pire",
+      "start": 3.21,
+      "end": 3.47
+    },
+    {
+      "text": "des",
+      "start": 3.47,
+      "end": 3.59
+    },
+    {
+      "text": "pièges.",
+      "start": 3.59,
+      "end": 4.05
+    }
+  ],
+  "duration": 4.25
+}

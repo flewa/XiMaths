@@ -1,0 +1,56 @@
+{
+  "text": "En prépa, tu rédiges des dizaines de démonstrations par semaine.",
+  "words": [
+    {
+      "text": "En",
+      "start": 0,
+      "end": 0.12
+    },
+    {
+      "text": "prépa,",
+      "start": 0.12,
+      "end": 0.5
+    },
+    {
+      "text": "tu",
+      "start": 0.92,
+      "end": 1.08
+    },
+    {
+      "text": "rédiges",
+      "start": 1.08,
+      "end": 1.46
+    },
+    {
+      "text": "des",
+      "start": 1.46,
+      "end": 1.6
+    },
+    {
+      "text": "dizaines",
+      "start": 1.6,
+      "end": 1.98
+    },
+    {
+      "text": "de",
+      "start": 1.98,
+      "end": 2.12
+    },
+    {
+      "text": "démonstrations",
+      "start": 2.12,
+      "end": 2.76
+    },
+    {
+      "text": "par",
+      "start": 2.76,
+      "end": 2.94
+    },
+    {
+      "text": "semaine.",
+      "start": 2.94,
+      "end": 3.3
+    }
+  ],
+  "duration": 3.52
+}

@@ -1,0 +1,66 @@
+{
+  "text": "En chrono, chaque indication coûte dix pour cent de bonus de rapidité.",
+  "words": [
+    {
+      "text": "En",
+      "start": 0.18,
+      "end": 0.26
+    },
+    {
+      "text": "chrono,",
+      "start": 0.26,
+      "end": 0.8
+    },
+    {
+      "text": "chaque",
+      "start": 1.04,
+      "end": 1.22
+    },
+    {
+      "text": "indication",
+      "start": 1.22,
+      "end": 1.8
+    },
+    {
+      "text": "coûte",
+      "start": 1.8,
+      "end": 2.22
+    },
+    {
+      "text": "dix",
+      "start": 2.22,
+      "end": 2.395
+    },
+    {
+      "text": "pour",
+      "start": 2.395,
+      "end": 2.627
+    },
+    {
+      "text": "cent",
+      "start": 2.627,
+      "end": 2.86
+    },
+    {
+      "text": "de",
+      "start": 2.86,
+      "end": 3.06
+    },
+    {
+      "text": "bonus",
+      "start": 3.06,
+      "end": 3.38
+    },
+    {
+      "text": "de",
+      "start": 3.38,
+      "end": 3.58
+    },
+    {
+      "text": "rapidité.",
+      "start": 3.58,
+      "end": 4.14
+    }
+  ],
+  "duration": 4.36
+}

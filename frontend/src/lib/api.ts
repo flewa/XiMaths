@@ -107,6 +107,9 @@ export type Me = {
   has_password: boolean;
   google_linked: boolean;
   unread_notifications: number;
+  academic_verified_at: string | null;
+  /** Domaine de l'adresse académique vérifiée ; l'adresse elle-même n'est pas gardée. */
+  academic_domain: string;
 };
 
 export type AppNotification = {
@@ -215,6 +218,26 @@ export type Progress = {
     status_label: string;
   }[];
   goals: PersonalGoal[];
+  contributor: ContributorLevel;
+  skills: Skill[];
+};
+
+/** Niveau de contributeur, de 1 à 30 ; `next` est null au niveau 30. */
+export type ContributorLevel = {
+  level: number;
+  points: number;
+  floor: number;
+  next: number | null;
+};
+
+/** Maîtrise d'un chapitre, de 0 à 5, et l'exercice proposé un cran au-dessus. */
+export type Skill = {
+  topic: string;
+  slug: string;
+  mastery: number;
+  solved: number;
+  target: number;
+  next: { id: number; title: string; difficulty: number } | null;
 };
 
 export type LeaderboardEntry = {
@@ -297,8 +320,9 @@ export type Member = {
   declared_level: string | null;
   trust_level: string;
   joined: string;
-  /** null si le membre a masqué sa présence dans les classements. */
+  /** null, comme le niveau, si le membre a masqué sa présence dans les classements. */
   points: number | null;
+  contributor_level: number | null;
   exercises_published: number;
   solutions_validated: number;
   badges: { slug: string; name: string; criterion: string; awarded_at: string }[];
@@ -424,6 +448,16 @@ export function fetchTrainingSession(id: string) {
 
 export function fetchNotifications() {
   return get<{ unread: number; items: AppNotification[] }>("/notifications");
+}
+
+/** La transcription des photos de copie est-elle proposée ? */
+export async function fetchTranscriptionAvailable() {
+  return (await get<{ available: boolean }>("/transcription"))?.available ?? false;
+}
+
+/** Clé VAPID publique ; null si les notifications push ne sont pas configurées. */
+export async function fetchPushKey() {
+  return (await get<{ public_key: string | null }>("/push/key"))?.public_key ?? null;
 }
 
 export async function fetchProviders() {

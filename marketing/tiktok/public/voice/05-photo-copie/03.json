@@ -1,0 +1,61 @@
+{
+  "text": "XiMaths la transcrit en texte et en LaTeX, directement dans l'éditeur.",
+  "words": [
+    {
+      "text": "XiMaths",
+      "start": 0.25,
+      "end": 0.69
+    },
+    {
+      "text": "la",
+      "start": 0.69,
+      "end": 0.85
+    },
+    {
+      "text": "transcrit",
+      "start": 0.85,
+      "end": 1.31
+    },
+    {
+      "text": "en",
+      "start": 1.31,
+      "end": 1.45
+    },
+    {
+      "text": "texte",
+      "start": 1.45,
+      "end": 1.87
+    },
+    {
+      "text": "et",
+      "start": 1.87,
+      "end": 1.95
+    },
+    {
+      "text": "en",
+      "start": 1.95,
+      "end": 2.03
+    },
+    {
+      "text": "LaTeX,",
+      "start": 2.03,
+      "end": 2.47
+    },
+    {
+      "text": "directement",
+      "start": 2.47,
+      "end": 3.05
+    },
+    {
+      "text": "dans",
+      "start": 3.05,
+      "end": 3.37
+    },
+    {
+      "text": "l'éditeur.",
+      "start": 3.47,
+      "end": 3.89
+    }
+  ],
+  "duration": 4.1
+}

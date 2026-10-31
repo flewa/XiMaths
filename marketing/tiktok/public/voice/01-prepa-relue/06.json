@@ -1,0 +1,51 @@
+{
+  "text": "XiMaths, lien en bio. Ta prochaine démo sera relue.",
+  "words": [
+    {
+      "text": "XiMaths,",
+      "start": 0.26,
+      "end": 0.68
+    },
+    {
+      "text": "lien",
+      "start": 0.92,
+      "end": 1.12
+    },
+    {
+      "text": "en",
+      "start": 1.12,
+      "end": 1.32
+    },
+    {
+      "text": "bio.",
+      "start": 1.32,
+      "end": 1.5
+    },
+    {
+      "text": "Ta",
+      "start": 1.8,
+      "end": 1.88
+    },
+    {
+      "text": "prochaine",
+      "start": 1.88,
+      "end": 2.18
+    },
+    {
+      "text": "démo",
+      "start": 2.18,
+      "end": 2.54
+    },
+    {
+      "text": "sera",
+      "start": 2.54,
+      "end": 2.8
+    },
+    {
+      "text": "relue.",
+      "start": 2.8,
+      "end": 3.08
+    }
+  ],
+  "duration": 3.111
+}

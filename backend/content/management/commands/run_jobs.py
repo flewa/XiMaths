@@ -1,8 +1,8 @@
 """Tâches planifiées de XiMaths.
 
 - `run_jobs hourly` : défis du jour à ouvrir et tentatives à rendre, relectures en
-  retard, fin des sanctions, emails retenus pendant les heures calmes, résumé
-  hebdomadaire du lundi matin.
+  retard, fin des sanctions, emails et notifications push retenus pendant les heures
+  calmes, résumé hebdomadaire du lundi matin.
 - `run_jobs nightly` : bilan de la semaine écoulée (séries), doublons, progression
   et badges, purges.
 - `run_jobs --loop` : pour le conteneur planificateur ; les tâches horaires chaque
@@ -23,6 +23,7 @@ from content.services import review_deadlines
 from gamification.rankings import Week
 from gamification.streaks import close_week
 from moderation.services import comprehension_tick, lift_expired, purge_signals
+from notifications.push import send_pending_pushes
 from notifications.services import in_quiet_hours, purge_old, send_digests, send_pending_emails
 from training.challenges import open_challenges
 from training.services import close_expired
@@ -46,6 +47,7 @@ HOURLY = {
     "sanctions arrivées à échéance": lambda now: lift_expired(now=now),
     "questions de compréhension (rédaction, délais, préévaluation)": lambda now: comprehension_tick(now=now),
     "emails retenus pendant les heures calmes": lambda now: send_pending_emails(now=now),
+    "notifications push retenues": lambda now: send_pending_pushes(now=now),
     "résumés hebdomadaires": weekly_digests,
 }
 

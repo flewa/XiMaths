@@ -1,0 +1,66 @@
+{
+  "text": "Sur XiMaths, la série est hebdomadaire. C'est toi qui choisis ton rythme.",
+  "words": [
+    {
+      "text": "Sur",
+      "start": 0.13,
+      "end": 0.31
+    },
+    {
+      "text": "XiMaths,",
+      "start": 0.31,
+      "end": 0.89
+    },
+    {
+      "text": "la",
+      "start": 1.19,
+      "end": 1.39
+    },
+    {
+      "text": "série",
+      "start": 1.39,
+      "end": 1.67
+    },
+    {
+      "text": "est",
+      "start": 1.67,
+      "end": 1.87
+    },
+    {
+      "text": "hebdomadaire.",
+      "start": 1.87,
+      "end": 2.59
+    },
+    {
+      "text": "C'est",
+      "start": 2.89,
+      "end": 2.95
+    },
+    {
+      "text": "toi",
+      "start": 2.95,
+      "end": 3.11
+    },
+    {
+      "text": "qui",
+      "start": 3.11,
+      "end": 3.25
+    },
+    {
+      "text": "choisis",
+      "start": 3.25,
+      "end": 3.57
+    },
+    {
+      "text": "ton",
+      "start": 3.57,
+      "end": 3.67
+    },
+    {
+      "text": "rythme.",
+      "start": 3.67,
+      "end": 4.09
+    }
+  ],
+  "duration": 4.2
+}

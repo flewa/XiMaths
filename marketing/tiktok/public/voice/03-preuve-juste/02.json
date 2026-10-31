@@ -1,0 +1,46 @@
+{
+  "text": "Sur XiMaths, tu postes ta solution sous l'exercice.",
+  "words": [
+    {
+      "text": "Sur",
+      "start": 0.17,
+      "end": 0.31
+    },
+    {
+      "text": "XiMaths,",
+      "start": 0.31,
+      "end": 0.95
+    },
+    {
+      "text": "tu",
+      "start": 1.47,
+      "end": 1.59
+    },
+    {
+      "text": "postes",
+      "start": 1.59,
+      "end": 1.91
+    },
+    {
+      "text": "ta",
+      "start": 1.91,
+      "end": 2.03
+    },
+    {
+      "text": "solution",
+      "start": 2.03,
+      "end": 2.43
+    },
+    {
+      "text": "sous",
+      "start": 2.43,
+      "end": 2.69
+    },
+    {
+      "text": "l'exercice.",
+      "start": 2.79,
+      "end": 3.43
+    }
+  ],
+  "duration": 4.03
+}

@@ -1,0 +1,66 @@
+{
+  "text": "C'est le défi du jour sur XiMaths. Un par niveau, chaque jour.",
+  "words": [
+    {
+      "text": "C'est",
+      "start": 0.2,
+      "end": 0.28
+    },
+    {
+      "text": "le",
+      "start": 0.28,
+      "end": 0.36
+    },
+    {
+      "text": "défi",
+      "start": 0.36,
+      "end": 0.64
+    },
+    {
+      "text": "du",
+      "start": 0.64,
+      "end": 0.78
+    },
+    {
+      "text": "jour",
+      "start": 0.78,
+      "end": 1
+    },
+    {
+      "text": "sur",
+      "start": 1,
+      "end": 1.18
+    },
+    {
+      "text": "XiMaths.",
+      "start": 1.18,
+      "end": 1.84
+    },
+    {
+      "text": "Un",
+      "start": 2.02,
+      "end": 2.14
+    },
+    {
+      "text": "par",
+      "start": 2.14,
+      "end": 2.34
+    },
+    {
+      "text": "niveau,",
+      "start": 2.34,
+      "end": 2.62
+    },
+    {
+      "text": "chaque",
+      "start": 2.74,
+      "end": 2.9
+    },
+    {
+      "text": "jour.",
+      "start": 2.9,
+      "end": 3.22
+    }
+  ],
+  "duration": 3.43
+}

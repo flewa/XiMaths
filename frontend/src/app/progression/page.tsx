@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { DeleteGoalButton, GoalForm, VacationForm, WeeklyGoalForm } from "@/components/ProgressForms";
 import { Tag } from "@/components/Tag";
-import { type WeekStatus, fetchProgress, fetchTopics } from "@/lib/api";
-import { dateFormat, progressBar, weekRange } from "@/lib/labels";
+import { type ContributorLevel, type Skill, type WeekStatus, fetchProgress, fetchTopics } from "@/lib/api";
+import { dateFormat, oneDecimal, progressBar, weekRange } from "@/lib/labels";
 
 export const metadata: Metadata = { title: "Ma progression" };
 
@@ -22,6 +23,54 @@ function plus(iso: string, days: number) {
 }
 
 const STATUS_MARK: Record<WeekStatus, string> = { atteint: "[+]", joker: "[j]", vacances: "[~]", manque: "[-]" };
+
+function LevelLine({ contributor }: { contributor: ContributorLevel }) {
+  if (contributor.next === null) {
+    return (
+      <p className="font-mono tabular-nums">
+        <span aria-hidden="true">{progressBar(1, 1)}</span> {contributor.points} points · niveau maximal
+      </p>
+    );
+  }
+  return (
+    <p className="font-mono tabular-nums">
+      <span aria-hidden="true">{progressBar(contributor.points - contributor.floor, contributor.next - contributor.floor)}</span>{" "}
+      {contributor.points} /{" "}
+      {contributor.next} points <span className="text-mute">pour le niveau {contributor.level + 1}</span>
+    </p>
+  );
+}
+
+function SkillRow({ skill }: { skill: Skill }) {
+  return (
+    <li className="py-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <span className="font-medium">{skill.topic}</span>
+        <span className="text-sm text-mute">
+          {skill.solved === 0
+            ? "aucun exercice résolu"
+            : `${skill.solved} exercice${skill.solved > 1 ? "s" : ""} résolu${skill.solved > 1 ? "s" : ""}`}
+        </span>
+      </div>
+      <p className="mt-1 font-mono tabular-nums">
+        <span aria-hidden="true">{progressBar(skill.mastery, 5)}</span> {oneDecimal.format(skill.mastery)} / 5
+      </p>
+      <p className="text-sm text-mute">
+        {skill.next ? (
+          <>
+            Prochain :{" "}
+            <Link href={`/exercices/${skill.next.id}`} className="text-ink underline underline-offset-4">
+              {skill.next.title}
+            </Link>{" "}
+            · difficulté {skill.next.difficulty}
+          </>
+        ) : (
+          "Rien à te proposer dans ce chapitre pour l'instant."
+        )}
+      </p>
+    </li>
+  );
+}
 
 export default async function ProgressPage() {
   let data;
@@ -50,7 +99,7 @@ export default async function ProgressPage() {
         </h2>
         <ol className="mt-4 grid grid-cols-7 gap-1 text-center">
           {progress.days.map((item) => (
-            <li key={item.date} className={item.future ? "text-ash" : ""}>
+            <li key={item.date} className={item.future ? "text-stone" : ""}>
               <span className="block text-sm text-mute">{weekday.format(new Date(`${item.date}T00:00:00Z`))}</span>
               <span aria-label={item.active ? "actif" : item.future ? "à venir" : "inactif"}>
                 {item.active ? "[x]" : item.future ? " · " : "[ ]"}
@@ -83,6 +132,32 @@ export default async function ProgressPage() {
         <p className="mt-3 text-sm text-mute">
           Deux jokers par mois protègent ta série d&apos;eux-mêmes quand une semaine est manquée.
         </p>
+      </section>
+
+      <section aria-labelledby="skills" className="mt-12">
+        <h2 id="skills" className="border-b border-hairline pb-2 font-bold">
+          Niveau de contributeur
+        </h2>
+        <p className="mt-4 text-[28px] font-bold leading-normal tabular-nums">
+          {progress.contributor.level} <span className="text-base font-normal text-mute">sur 30</span>
+        </p>
+        <LevelLine contributor={progress.contributor} />
+        <p className="mt-2 text-sm text-mute">
+          Le niveau de contributeur suit tes points, sur une courbe quadratique : 20 points pour le niveau 2,
+          1 620 pour le 10, 16 820 pour le 30.
+        </p>
+
+        <h3 className="mt-8 font-medium">Carte de compétences</h3>
+        <p className="mt-1 text-sm text-mute">
+          Dans chaque chapitre, ta maîtrise est la moyenne des difficultés de tes 5 exercices résolus les plus
+          difficiles ; une case vide compte 0. L&apos;exercice proposé vise un cran au-dessus. Cette carte
+          n&apos;est visible que par toi.
+        </p>
+        <ul className="mt-2 divide-y divide-hairline">
+          {progress.skills.map((skill) => (
+            <SkillRow key={skill.slug} skill={skill} />
+          ))}
+        </ul>
       </section>
 
       <section aria-labelledby="settings" className="mt-12 space-y-8">

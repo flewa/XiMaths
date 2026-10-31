@@ -7,9 +7,14 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from ninja import Router, Schema
+from ninja.errors import HttpError
 from ninja.security import django_auth
+from pydantic import Field
 
-from .models import Notification
+from config.throttles import AuthRouteThrottle
+
+from . import push
+from .models import Notification, PushSubscription
 from .services import unsubscribe
 
 router = Router(tags=["notifications"])
@@ -61,3 +66,69 @@ def unsubscribe_view(request, token: str = ""):
     """Lien des emails : désabonne sans connexion, puis affiche une confirmation."""
     user = unsubscribe(token)
     return HttpResponseRedirect(f"{settings.FRONTEND_URL}/desabonnement?{'ok=1' if user else 'erreur=1'}")
+
+
+# ---------------------------------------------------------------- Web Push
+
+
+class PushKeyOut(Schema):
+    # null : le Web Push n'est pas configuré, le réglage ne s'affiche pas.
+    public_key: str | None
+
+
+class PushKeysIn(Schema):
+    p256dh: str = Field(max_length=200)
+    auth: str = Field(max_length=100)
+
+
+class PushSubscriptionIn(Schema):
+    """Le PushSubscription.toJSON() du navigateur."""
+
+    endpoint: str = Field(max_length=1000)
+    keys: PushKeysIn
+
+
+class EndpointIn(Schema):
+    endpoint: str = Field(max_length=1000)
+
+
+@router.get("/push/key", response=PushKeyOut)
+def push_key(request):
+    """Clé publique VAPID, pour que le navigateur s'abonne."""
+    return {"public_key": settings.VAPID_PUBLIC_KEY if push.enabled() else None}
+
+
+@router.post(
+    "/push/subscriptions",
+    response={204: None},
+    auth=django_auth,
+    throttle=[AuthRouteThrottle("push", "30/h")],
+)
+def push_subscribe(request, payload: PushSubscriptionIn):
+    """Active les notifications push sur ce navigateur : une par jour au plus, jamais
+    entre 22 h et 8 h."""
+    if not push.enabled():
+        raise HttpError(404, "Les notifications push ne sont pas configurées.")
+    if not push.allowed_endpoint(payload.endpoint):
+        raise HttpError(422, "Service de notifications inconnu.")
+    if not push.valid_keys(payload.keys.p256dh, payload.keys.auth):
+        raise HttpError(422, "Clés d'abonnement invalides.")
+    push.subscribe(request.auth, payload.endpoint, payload.keys.p256dh, payload.keys.auth)
+    return 204, None
+
+
+class PushStatusOut(Schema):
+    active: bool
+
+
+@router.post("/push/status", response=PushStatusOut, auth=django_auth)
+def push_status(request, payload: EndpointIn):
+    """L'abonnement de ce navigateur est-il celui de ce compte ? Un navigateur partagé
+    peut être abonné pour un autre compte."""
+    return {"active": PushSubscription.objects.filter(user=request.auth, endpoint=payload.endpoint).exists()}
+
+
+@router.post("/push/unsubscribe", response={204: None}, auth=django_auth)
+def push_unsubscribe(request, payload: EndpointIn):
+    PushSubscription.objects.filter(user=request.auth, endpoint=payload.endpoint).delete()
+    return 204, None

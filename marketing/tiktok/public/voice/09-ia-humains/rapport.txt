@@ -1,0 +1,6 @@
+09-ia-humains · 1 · chatterbox · 0.99 · Liya t'a sorti une démo fausse avec beaucoup d'assurance.
+09-ia-humains · 2 · chatterbox · 1.00 · En maths, une preuve fausse bien rédigée, c'est le pire des pièges.
+09-ia-humains · 3 · chatterbox · 0.99 · Sur Ximath, chaque solution est relue par trois étudiants, des humains.
+09-ia-humains · 4 · chatterbox · 1.00 · Pendant le défi du jour, l'IA est interdite.
+09-ia-humains · 5 · chatterbox · 0.97 · ailleurs tu peux t'en servir, mais tu le déclas.
+09-ia-humains · 6 · chatterbox · 0.94 · Si maths, des maths relues par des humains, vient en bio.

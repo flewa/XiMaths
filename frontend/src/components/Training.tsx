@@ -111,7 +111,7 @@ export function TrainingStart({
           onChange={(event) => setExtraTime(event.target.checked)}
           className="sr-only"
         />
-        <span aria-hidden="true" className="shrink-0 text-ash group-has-checked:hidden">
+        <span aria-hidden="true" className="shrink-0 text-stone group-has-checked:hidden">
           [ ]
         </span>
         <span aria-hidden="true" className="hidden shrink-0 font-bold group-has-checked:inline">
@@ -280,26 +280,26 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
     <div>
       <div className="sticky top-0 z-10 -mx-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 bg-surface-dark px-4 py-3 text-on-dark sm:mx-0">
         <p className="font-medium">
-          <span className="text-ash">chrono </span>
+          <span className="text-on-dark-mute">chrono </span>
           {hidden ? (
-            <span className="text-ash">masqué · rappels à 10, 5 et 1 min</span>
+            <span className="text-on-dark-mute">masqué · rappels à 10, 5 et 1 min</span>
           ) : (
             <span className={`tabular-nums ${warning ? "text-warning" : ""}`}>{clock(remaining)}</span>
           )}
-          {session.status === "en_pause" && <span className="text-ash"> [pause]</span>}
+          {session.status === "en_pause" && <span className="text-on-dark-mute"> [pause]</span>}
         </p>
         <p className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
-          <button type="button" onClick={() => setHidden(!hidden)} className="text-ash hover:text-on-dark">
+          <button type="button" onClick={() => setHidden(!hidden)} className="text-on-dark-mute hover:text-on-dark">
             [{hidden ? "afficher" : "masquer"}]
           </button>
           {ranked ? (
-            <span className="text-ash">défi · une seule tentative</span>
+            <span className="text-on-dark-mute">défi · une seule tentative</span>
           ) : running ? (
             <button
               type="button"
               disabled={session.pauses_left === 0}
               onClick={() => call("/pause")}
-              className="text-ash hover:text-on-dark disabled:opacity-50"
+              className="text-on-dark-mute hover:text-on-dark disabled:opacity-50"
             >
               [pause · {session.pauses_left} restante{session.pauses_left > 1 ? "s" : ""}]
             </button>

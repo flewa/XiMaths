@@ -4,15 +4,11 @@ import { notFound } from "next/navigation";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { ExerciseList } from "@/components/ExerciseList";
 import { FilterChip, Tabs } from "@/components/FilterChip";
-import { fetchFeed, fetchLevels, fetchMe, type FeedItem } from "@/lib/api";
+import { HowItWorks, MemberHero, VisitorHero } from "@/components/HomeHero";
+import { fetchDailyChallenges, fetchFeed, fetchLevels, fetchMe, fetchProgress } from "@/lib/api";
 
 // Valeur de ?niveau= pour le fil de tous les niveaux.
 const ALL_LEVELS = "tous";
-
-function composition(feed: FeedItem[]) {
-  const count = (reason: FeedItem["reason"]) => feed.filter((item) => item.reason === reason).length;
-  return `${count("tendance")} tendances · ${count("a_resoudre")} à résoudre · ${count("exploration")} à découvrir`;
-}
 
 export default async function Home({
   searchParams,
@@ -25,40 +21,33 @@ export default async function Home({
     const [levels, me] = await Promise.all([fetchLevels(), fetchMe()]);
     // Par défaut, le fil du niveau déclaré.
     const level = niveau === ALL_LEVELS ? undefined : (niveau ?? me?.declared_level ?? undefined);
-    data = { levels, level, feed: await fetchFeed(level) };
+    const [feed, progress, challenges] = await Promise.all([
+      fetchFeed(level),
+      me ? fetchProgress() : null,
+      me ? fetchDailyChallenges() : [],
+    ]);
+    data = { levels, me, level, feed, progress, challenges };
   } catch (error) {
     logApiError(error);
     return <ApiUnavailable />;
   }
-  const { levels, level, feed } = data;
+  const { levels, me, level, feed, progress, challenges } = data;
   if (!feed) notFound();
   const browseHref = level ? `/exercices?niveau=${level}` : "/exercices";
 
   return (
     <>
-      {/* La seule surface sombre de la page : un terminal qui annonce le fil. */}
-      <section aria-labelledby="accroche" className="-mx-4 bg-surface-dark px-4 py-10 text-on-dark sm:mx-0 sm:px-8 sm:py-14">
-        <p className="text-sm text-ash">ximaths ~ fil {level ? `--niveau ${level}` : "--tous-niveaux"}</p>
-        <h1 id="accroche" className="mt-3 max-w-[30ch]">
-          Des maths du supérieur, résolues et relues par la communauté.
-        </h1>
-        <p className="mt-8 rounded-sm bg-surface-dark-elevated px-3 py-2">
-          <span className="text-ash">│ </span>
-          {feed.length === 0 ? "aucun exercice à ce niveau pour l'instant" : composition(feed)}
-        </p>
-        <p className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-sm text-ash">
-          <Link href="/exercices/nouveau" className="hover:text-on-dark">
-            [+] publier un exercice
-          </Link>
-          <Link href={browseHref} className="hover:text-on-dark">
-            [&gt;] parcourir le catalogue
-          </Link>
-          <Link href="/classements" className="hover:text-on-dark">
-            [#] classements
-          </Link>
-        </p>
-      </section>
+      {/* La seule surface sombre de la page : un terminal, qui accueille ou dit quoi faire. */}
+      {me ? (
+        <MemberHero me={me} progress={progress} challenges={challenges} level={level} browseHref={browseHref} />
+      ) : (
+        <>
+          <VisitorHero feed={feed} level={level} browseHref={browseHref} />
+          <HowItWorks />
+        </>
+      )}
 
+      <h2 className="sr-only">Le fil</h2>
       <Tabs label="Choisir un niveau" className="mt-12">
         <FilterChip href={`/?niveau=${ALL_LEVELS}`} label="Tous" active={!level} />
         {levels.map((item) => (

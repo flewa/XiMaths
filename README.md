@@ -4,12 +4,27 @@ Plateforme communautaire d'exercices de mathématiques du supérieur (L1 à M2, 
 
 La conception complète (barème, détection de doublons, anti-triche, phasage) est dans le document [XiMaths — Proposition de développement](https://claude.ai/artifact/SFjJeg2DwwHuPvjJZ6MGcB). Les contenus publiés sont sous licence CC BY-SA 4.0.
 
+## Voir l'application
+
+Il faut [uv](https://docs.astral.sh/uv/) et Node 24. Depuis la racine du dépôt :
+
+```bash
+./dev.sh
+```
+
+Le script installe les dépendances, crée la base de démonstration (14 exercices de la L1 au M1 et en prépa, des solutions relues ou en relecture, les défis du jour ouverts), puis démarre l'API et le front. Ouvre ensuite http://localhost:3000 et connecte-toi avec `lea` (L1), `yanis` (PSI), `camille` (experte) ou `moderateur` (admin), mot de passe `demo-ximaths-2026`. Ctrl-C arrête tout.
+
+Dans l'application de bureau Claude Code, `.claude/launch.json` décrit les deux serveurs pour l'aperçu intégré ; la base doit avoir été préparée une fois, par `./dev.sh` ou par les commandes ci-dessous.
+
 ## Structure
 
 | Dossier ou fichier | Contenu |
 | --- | --- |
 | `backend/` | API Django 5.2 + Django Ninja. Apps : `accounts` (comptes, connexion Google, niveau de confiance), `catalog` (niveaux, chapitres), `content` (exercices, solutions, relectures, votes, tâches planifiées), `duplicates` (détection des doublons), `gamification` (ledger, barème, classements, badges, niveaux de confiance, séries et objectifs), `moderation` (signalements, anti-plagiat, sanctions, appels, questions de compréhension), `notifications`, `training` (chronométré et défi du jour) |
 | `frontend/` | Next.js 16 (App Router), React 19, Tailwind 4, Markdown + KaTeX rendus côté serveur, éditeur CodeMirror 6. Design décrit dans `frontend/DESIGN-opencode.ai.md`, avec un mode sombre |
+| `dev.sh` | Lancement local en une commande : dépendances, base de démonstration, API et front |
+| `deploy/` | Mise en ligne sur un serveur (`install.sh`) et mises à jour (`update.sh`) |
+| `marketing/tiktok/` | Vidéos TikTok en Remotion : scripts, captures de l'application, voix off ElevenLabs ([mode d'emploi](marketing/tiktok/README.md)) |
 | `docker-compose.yml` | Développement : PostgreSQL 16 avec pgvector, Redis, et bge-m3 servi par Text Embeddings Inference |
 | `docker-compose.prod.yml`, `Caddyfile` | Production : Caddy (HTTPS), PostgreSQL, Redis, l'API, le planificateur et le front |
 | `.github/workflows/ci.yml` | Intégration continue : tests du backend, typage, lint, tests et construction du front |
@@ -22,13 +37,15 @@ La conception complète (barème, détection de doublons, anti-triche, phasage) 
 
 ## Lancer en local
 
+`./dev.sh` fait tout ce qui suit. Pour lancer chaque partie à la main :
+
 Backend, sur http://127.0.0.1:8000 :
 
 ```bash
 cd backend
 uv sync
 uv run python manage.py migrate
-uv run python manage.py seed_demo          # comptes, exercices, solutions et un gabarit de défi
+uv run python manage.py seed_demo          # comptes, exercices, solutions, défis du jour ouverts
 uv run python manage.py runserver 8000
 ```
 
@@ -59,8 +76,10 @@ Tout passe par des variables d'environnement, décrites dans `.env.example` (dé
 | `REDIS_URL` | Cache partagé entre les workers, limitation de débit comprise | cache en mémoire, par processus |
 | `EMAIL_BACKEND`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL` | Envoi réel, par le relais SMTP de Brevo | emails dans la console |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Connexion avec Google (OpenID Connect) | le bouton n'apparaît pas |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Notifications Web Push (clés créées par `manage.py generate_vapid_keys`) | pas de push, le réglage n'apparaît pas |
+| `ACADEMIC_EXTRA_DOMAINS` | Domaines d'établissements reconnus en plus de la liste intégrée, séparés par des virgules | la liste intégrée seule |
 | `EMBEDDINGS_URL` | Embeddings bge-m3 (E1, et E2 avec un LLM) | doublons détectés par MinHash seul |
-| `ANTHROPIC_API_KEY`, `LLM_TIMEOUT` | Claude : résumés canoniques, avis sur les doublons, questions de compréhension | décisions et questions rédigées par les modérateurs |
+| `ANTHROPIC_API_KEY`, `LLM_TIMEOUT` | Claude : résumés canoniques, avis sur les doublons, questions de compréhension, transcription des photos de copie | décisions et questions rédigées par les modérateurs, pas de transcription |
 | `SENTRY_DSN` | Suivi des erreurs (groupe de dépendances `prod`) | journaux seulement |
 | `NEXT_PUBLIC_SITE_URL` | Adresse publique du site : plan du site, robots.txt, OpenGraph | `http://localhost:3000` |
 
@@ -70,10 +89,20 @@ Tout passe par des variables d'environnement, décrites dans `.env.example` (dé
 - Connexion avec Google : un compte existant à la même adresse vérifiée est lié, sinon un compte est créé. L'adresse de retour à déclarer chez Google est `<site>/api/auth/google/callback`.
 - Mot de passe oublié, changement de mot de passe, export des données (JSON) et suppression du compte depuis `/reglages`. Les contenus publiés restent, sans auteur.
 - Réglages : niveau déclaré, tiers-temps, présence dans les classements, emails, résumé hebdomadaire, notification du défi du jour, thème clair, sombre ou système.
+- Email académique, depuis `/reglages` : un lien signé, envoyé à une adresse d'université ou d'école, donne le badge « Étudiant vérifié ». Seuls le domaine et une empreinte (HMAC) sont gardés, pour qu'une adresse ne vérifie qu'un compte. Les domaines reconnus sont dans `backend/accounts/academic.py` ; `ACADEMIC_EXTRA_DOMAINS` en ajoute, et un modérateur peut aussi marquer un compte dans l'admin.
 
 ## Notifications
 
 Dans l'application (`/notifications`) pour tout ce qui concerne le membre. Par email seulement pour ce qui le touche directement : retrait d'un contenu, sanction, appel tranché, solution en vérification, question de compréhension. Jamais d'email entre 22 h et 8 h : ils partent à 8 h. Résumé hebdomadaire le lundi, sur opt-in. Chaque email porte un lien de désinscription en un clic.
+
+**PWA et Web Push.** XiMaths s'installe sur l'écran d'accueil (manifeste, icônes ; sur iPhone et iPad, l'installation ouvre aussi le push). Les notifications push s'activent appareil par appareil dans `/reglages`, sur opt-in :
+
+- une par jour au plus, jamais entre 22 h et 8 h ; plusieurs en attente partent en un seul message qui les résume ;
+- seulement relecture attribuée ou en attente, solution validée ou à compléter, exercice résolu, question de compréhension, défi du jour (s'il est demandé) et bilan de la semaine ;
+- le serveur n'envoie qu'aux services de push des navigateurs (Google, Mozilla, Apple, Microsoft) ; un abonnement révoqué est supprimé, et un navigateur partagé passe au compte qui l'active ;
+- le service worker (`frontend/public/sw.js`) n'affiche que les notifications, sans cache hors ligne.
+
+Clés VAPID : `uv run python manage.py generate_vapid_keys`, à copier dans `.env` ou `.env.prod`. Sans elles, le réglage n'apparaît pas.
 
 ## Relecture par les pairs
 
@@ -82,6 +111,10 @@ Dans l'application (`/notifications`) pour tout ce qui concerne le membre. Par e
 - Les solutions contestées (relecteurs en désaccord) sont tranchées par un expert ou un modérateur, sur `/arbitrages`.
 - Une solution validée puis modifiée de plus de 20 % repart en relecture, pour un nouveau tour.
 - L'auteur d'un exercice peut recommander une solution validée (+5 pour son auteur).
+
+## Photo de copie
+
+Une solution écrite à la main se photographie depuis la fiche de l'exercice (mode libre). Le navigateur réduit la photo (2 576 px au plus grand côté, en JPEG), Claude Opus 5.5 la transcrit en Markdown et LaTeX sans rien corriger ni compléter (`[illisible]` là où il ne peut pas lire), et la transcription s'ajoute à l'éditeur : l'auteur la relit avant d'envoyer. La photo n'est pas conservée. La transcription compte comme une mise en forme par IA (points pleins), cochée d'office et modifiable. JPEG, PNG ou WebP, 5 Mo au plus, 10 photos par heure et 30 par jour. Sans `ANTHROPIC_API_KEY`, le bouton n'apparaît pas.
 
 ## Détection des doublons
 
@@ -100,6 +133,12 @@ uv run python manage.py scan_duplicates            # exercices publiés depuis 2
 uv run python manage.py scan_duplicates --reindex --all   # après un changement de normalisation ou de modèle
 ```
 
+## Interface
+
+- **Accueil d'un membre** : un terminal qui dit quoi faire, du plus pressé au moins pressé (relectures à rendre, défi du jour de son niveau, prochain exercice tiré de la carte de compétences, notifications non lues), avec la semaine en cours. Un visiteur voit la promesse, un bouton d'inscription et les trois étapes du site.
+- **Mobile et tablette** (sous 1 024 px) : barre d'onglets en bas d'écran, à portée du pouce (Fil, Parcourir, Publier, Défi, Moi), masquée pendant une session chronométrée ; en-tête réduit au logo, aux notifications et au menu.
+- **Accessibilité** : contrastes d'au moins 4,5:1 (marqueurs d'état, textes sur la surface sombre, indications des champs), anneau de focus de 2 px sur toutes les surfaces, lien « Aller au contenu », cibles tactiles d'au moins 24 px, onglets qui ramènent l'onglet actif dans la vue.
+
 ## Fil d'accueil et catalogue
 
 Une seule page de 20 exercices, sans défilement infini : 60 % de Tendances, 25 % d'« À résoudre » (moins de 14 jours, moins de 2 solutions validées), 15 % d'exploration. Chaque exercice dit pourquoi il est là. Les scores sont logarithmiques : cent fois plus de solutions ne donnent qu'un score sept fois plus élevé. `/exercices` parcourt tout le catalogue : récents, populaires ou sans solution validée.
@@ -108,7 +147,7 @@ Une seule page de 20 exercices, sans défilement infini : 60 % de Tendances, 25 
 
 - **Classements** (`/classements`) : hebdomadaires par niveau et global, du lundi 0 h au dimanche 23 h 59 (heure de Paris), plus un Panthéon au second plan. Les points comptent pour le niveau de l'exercice. Top 50, puis ta position avec 5 voisins de chaque côté ; filtre « mes pairs ». 24 h de consolidation pour annuler des points frauduleux.
 - **Qui est classé** : les membres (niveau 1 ou plus), sans sanction d'exclusion en cours. Chacun peut masquer sa présence.
-- **Badges** (`/badges`), critères publics : Premier pas, Validé !, Pionnier, Auteur, Relecteur fiable, Touche-à-tout, Élégance, Chasseur de doublons, Sous pression (5 défis validés), Régulier bronze, argent et or (4, 12 et 30 semaines d'objectif atteint).
+- **Badges** (`/badges`), critères publics : Premier pas, Validé !, Pionnier, Auteur, Relecteur fiable, Touche-à-tout, Élégance, Chasseur de doublons, Sous pression (5 défis validés), Régulier bronze, argent et or (4, 12 et 30 semaines d'objectif atteint), Étudiant vérifié (email académique confirmé).
 - **Niveaux de confiance**, attribués automatiquement, jamais retirés automatiquement :
     - Membre : 7 jours et 30 points ;
     - Relecteur : 300 points, 5 solutions validées, aucune sanction depuis 90 jours ;
@@ -135,6 +174,14 @@ Sur `/progression` :
 - **Objectifs personnels** : « 10 exercices d'ici le 10 janvier » (éventuellement dans un chapitre) ou « 3 exercices chronométrés par semaine », avec une barre de progression.
 - La régularité rapporte des badges, jamais de points. Le bilan de la semaine arrive le lundi, sur un ton neutre.
 
+## Niveau de contributeur et carte de compétences
+
+Sur `/progression` également :
+
+- **Niveau de contributeur**, de 1 à 30, sur une courbe quadratique : le niveau n demande 20 (n − 1)² points (20 pour le niveau 2, 1 620 pour le 10, 16 820 pour le 30). Il suit le solde du ledger. Sur le profil public, il est masqué avec les points.
+- **Carte de compétences**, visible de soi seul : dans chaque chapitre, la maîtrise (de 0 à 5) est la moyenne des difficultés de ses 5 exercices résolus les plus difficiles, une case vide comptant 0. Une solution avec l'aide de l'IA sur une idée compte pour moitié, une solution générée pas du tout ; un exercice et ses doublons fusionnés comptent une fois.
+- **Prochain exercice** : dans chaque chapitre, un exercice publié ni écrit ni tenté, au plus près d'un cran au-dessus de la maîtrise, de son année d'études ou d'avant de préférence.
+
 ## Entraînement chronométré
 
 Depuis la fiche d'un exercice : 15, 30, 45 ou 60 minutes, ou le temps conseillé. Non classé, documents autorisés, deux pauses. Le serveur fait foi : chaque sauvegarde (toutes les 10 s) fait avancer le chrono, et un onglet fermé l'arrête. Au rendu : réponse finale vérifiée par SymPy (grammaire restreinte, jamais de Python libre), justification envoyée en relecture, temps comparé à la médiane, auto-évaluation de la difficulté.
@@ -156,19 +203,55 @@ Depuis la fiche d'un exercice : 15, 30, 45 ou 60 minutes, ou le temps conseillé
 
 `python manage.py run_jobs hourly`, `run_jobs nightly`, ou `run_jobs --loop` (le service `scheduler` de la production : toutes les heures, et la nuit à 3 h). Une tâche qui échoue est journalisée sans bloquer les suivantes.
 
-- **Toutes les heures** : ouverture des défis du jour, rendu des tentatives abandonnées, relances et réattributions des relectures, fin des sanctions à durée, questions de compréhension (rédaction, délais, préévaluation), emails retenus pendant les heures calmes, résumé hebdomadaire du lundi.
+- **Toutes les heures** : ouverture des défis du jour, rendu des tentatives abandonnées, relances et réattributions des relectures, fin des sanctions à durée, questions de compréhension (rédaction, délais, préévaluation), emails et notifications push retenus pendant les heures calmes, résumé hebdomadaire du lundi.
 - **La nuit** : bilan de la semaine écoulée (séries), doublons (résumés, scan, avis du LLM), promotions et badges, purges (notifications de plus de 6 mois, signaux d'intégrité tranchés depuis un an, sessions expirées).
 
 ## Production
+
+### Mettre en ligne
+
+Il faut :
+
+- un serveur Linux (Ubuntu 24.04 ou Debian 12) avec 4 Go de mémoire, de préférence hébergé dans l'Union européenne (Hetzner, OVHcloud, Scaleway) ;
+- un nom de domaine, dont l'enregistrement A pointe vers l'adresse IP du serveur ;
+- un compte [Brevo](https://www.brevo.com/) pour les emails (inscriptions, mots de passe oubliés), avec le domaine authentifié (SPF et DKIM) pour ne pas finir en indésirables.
+
+Sur le serveur, en root (`sudo -i`) :
+
+```bash
+git clone https://github.com/flewa/XiMaths.git /opt/ximaths
+cd /opt/ximaths
+./deploy/install.sh
+```
+
+Le script installe Docker s'il manque, écrit `.env.prod` (secrets tirés au hasard, questions pour le domaine et Brevo), vérifie que le domaine pointe vers le serveur, construit et démarre le site, crée le compte d'administration et programme une sauvegarde de la base chaque nuit dans `/var/backups/ximaths` (14 jours gardés). Le site est alors en ligne en HTTPS ; la modération se fait sur `/admin/`.
+
+Mise à jour après un changement du code (sauvegarde, `git pull`, reconstruction, migrations) :
+
+```bash
+cd /opt/ximaths && ./deploy/update.sh
+```
+
+Restaurer une sauvegarde :
+
+```bash
+gunzip -c /var/backups/ximaths/ximaths-AAAA-MM-JJ.sql.gz | docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T db psql -U ximaths ximaths
+```
+
+Avant d'ouvrir au public : compléter les mentions légales (éditeur et hébergeur du site) et, dans la page Confidentialité, le responsable des données et les sous-traitants ; puis retirer l'avertissement « Version de travail » des pages Conditions et Confidentialité.
+
+### Fonctionnement
+
+À la main, sans le script :
 
 ```bash
 cp .env.prod.example .env.prod      # puis remplir les secrets
 docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 ```
 
-- Caddy obtient le certificat HTTPS de `SITE_DOMAIN` et sert tout sur une seule origine : `/api`, `/admin` et `/static` vont à Django (gunicorn, fichiers statiques par whitenoise), le reste au front (Next.js en sortie autonome).
-- Les migrations tournent une fois avant l'API et le planificateur.
-- HSTS, cookies sécurisés, en-têtes de sécurité ; Redis pour le cache et la limitation de débit ; Sentry si `SENTRY_DSN` est défini.
+- Caddy obtient le certificat HTTPS de `SITE_DOMAIN` et sert tout sur une seule origine : `/api`, `/admin` et `/static` vont à Django (gunicorn, fichiers statiques par whitenoise), le reste au front (Next.js en sortie autonome). Il redirige le HTTP vers le HTTPS et ajoute les en-têtes de sécurité à tout le site.
+- Les migrations tournent une fois avant l'API et le planificateur. Les niveaux et chapitres sont créés par les migrations : une base neuve est utilisable sans données de démonstration.
+- HSTS (`DJANGO_HSTS_SECONDS`), cookies sécurisés ; Redis pour le cache et la limitation de débit ; Sentry si `SENTRY_DSN` est défini.
 - Embeddings : `--profile embeddings`, et `EMBEDDINGS_URL=http://embeddings` dans `.env.prod`.
 
 ## Tests
@@ -183,11 +266,12 @@ npx tsc --noEmit
 npm run lint
 ```
 
-Le backend couvre le ledger et le barème, la relecture par les pairs (tours, délais, volontaires, arbitrages, révisions), les votes, l'authentification (Google compris), les notifications, la détection des doublons (avec E2 et l'avis du LLM simulés), les classements, les badges et les niveaux de confiance, le fil d'accueil, les signalements, l'anti-plagiat, les sanctions et appels, les questions de compréhension, l'entraînement chronométré, le défi du jour, les séries et objectifs, et les tâches planifiées. Aucun test n'appelle un service externe : Claude, Google et les embeddings sont simulés.
+Le backend couvre le ledger et le barème, la relecture par les pairs (tours, délais, volontaires, arbitrages, révisions), les votes, l'authentification (Google compris), les notifications (push compris), la détection des doublons (avec E2 et l'avis du LLM simulés), les classements, les badges et les niveaux de confiance, le niveau de contributeur et la carte de compétences, le fil d'accueil, les signalements, l'anti-plagiat, les sanctions et appels, les questions de compréhension, la transcription des photos de copie, l'entraînement chronométré, le défi du jour, les séries et objectifs, et les tâches planifiées. Aucun test n'appelle un service externe : Claude, Google et les embeddings sont simulés.
 
 ## Limites connues
 
 - Les images Docker et la composition de production n'ont pas été construites ici (pas de Docker sur la machine de développement) : à vérifier au premier déploiement.
 - Les appels à Claude sont testés avec un client simulé ; leur premier usage réel se fera avec la clé.
 - Score d'intégrité : les empreintes IA de référence, la rupture de style et le classifieur du document ne sont pas encore mesurés ; leurs poids sont retirés et les autres renormalisés.
-- Pas encore : épreuves classées (V2), photo de copie, badge « Étudiant vérifié » par email académique, carte de compétences et niveau de contributeur.
+- Le Web Push est testé avec un chiffrement et une signature VAPID réels, mais un service de push simulé : à vérifier sur un appareil au premier déploiement, en HTTPS.
+- Pas encore : épreuves classées (V2).

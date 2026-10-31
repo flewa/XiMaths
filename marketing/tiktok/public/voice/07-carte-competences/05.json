@@ -1,0 +1,41 @@
+{
+  "text": "Lien en bio. Révise moins, révise mieux.",
+  "words": [
+    {
+      "text": "Lien",
+      "start": 0.34,
+      "end": 0.78
+    },
+    {
+      "text": "en",
+      "start": 0.78,
+      "end": 1.08
+    },
+    {
+      "text": "bio.",
+      "start": 1.08,
+      "end": 1.26
+    },
+    {
+      "text": "Révise",
+      "start": 1.48,
+      "end": 1.92
+    },
+    {
+      "text": "moins,",
+      "start": 1.92,
+      "end": 2.14
+    },
+    {
+      "text": "révise",
+      "start": 2.44,
+      "end": 2.84
+    },
+    {
+      "text": "mieux.",
+      "start": 2.84,
+      "end": 3.02
+    }
+  ],
+  "duration": 3.056
+}

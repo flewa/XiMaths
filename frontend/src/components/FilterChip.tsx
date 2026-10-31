@@ -1,6 +1,10 @@
-import Link from "next/link";
+"use client";
 
-/** Barre d'onglets : filet sous la barre, défilement horizontal sur mobile. */
+import Link from "next/link";
+import { useEffect, useRef } from "react";
+
+/** Barre d'onglets : filet sous la barre, défilement horizontal quand elle déborde.
+ * L'onglet actif est ramené dans la vue, et un fondu à droite signale la suite sur mobile. */
 export function Tabs({
   label,
   className = "",
@@ -10,10 +14,21 @@ export function Tabs({
   className?: string;
   children: React.ReactNode;
 }) {
+  const strip = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const container = strip.current;
+    const active = container?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!container || !active) return;
+    // Centré, sans faire défiler la page elle-même.
+    container.scrollLeft = active.offsetLeft - (container.clientWidth - active.offsetWidth) / 2;
+  }, []);
+
   return (
     <nav
+      ref={strip}
       aria-label={label}
-      className={`flex overflow-x-auto border-b border-hairline-strong [scrollbar-width:none] ${className}`}
+      className={`flex overflow-x-auto border-b border-hairline-strong [scrollbar-width:none] max-md:[mask-image:linear-gradient(to_right,#000_88%,transparent)] ${className}`}
     >
       {children}
     </nav>
@@ -37,7 +52,7 @@ export function FilterChip({
       href={href}
       title={title}
       aria-current={active ? "page" : undefined}
-      className={`-mb-px shrink-0 whitespace-nowrap border-b-2 px-4 py-1 font-medium leading-8 ${
+      className={`-mb-px shrink-0 whitespace-nowrap border-b-2 px-3 py-1 font-medium leading-8 ${
         active ? "border-ink text-ink" : "border-transparent text-mute hover:text-ink"
       }`}
     >

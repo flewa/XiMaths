@@ -1,0 +1,76 @@
+{
+  "text": "Il est comparé aux exercices existants pour éviter les doublons, puis ouvert à tous.",
+  "words": [
+    {
+      "text": "Il",
+      "start": 0.29,
+      "end": 0.65
+    },
+    {
+      "text": "est",
+      "start": 0.65,
+      "end": 0.77
+    },
+    {
+      "text": "comparé",
+      "start": 0.77,
+      "end": 1.19
+    },
+    {
+      "text": "aux",
+      "start": 1.19,
+      "end": 1.27
+    },
+    {
+      "text": "exercices",
+      "start": 1.27,
+      "end": 1.73
+    },
+    {
+      "text": "existants",
+      "start": 1.73,
+      "end": 2.19
+    },
+    {
+      "text": "pour",
+      "start": 2.19,
+      "end": 2.35
+    },
+    {
+      "text": "éviter",
+      "start": 2.35,
+      "end": 2.63
+    },
+    {
+      "text": "les",
+      "start": 2.63,
+      "end": 2.73
+    },
+    {
+      "text": "doublons,",
+      "start": 2.73,
+      "end": 3.11
+    },
+    {
+      "text": "puis",
+      "start": 3.37,
+      "end": 3.51
+    },
+    {
+      "text": "ouvert",
+      "start": 3.59,
+      "end": 3.93
+    },
+    {
+      "text": "à",
+      "start": 3.93,
+      "end": 3.93
+    },
+    {
+      "text": "tous.",
+      "start": 3.93,
+      "end": 4.15
+    }
+  ],
+  "duration": 4.34
+}

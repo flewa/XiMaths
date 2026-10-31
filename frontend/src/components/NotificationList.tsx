@@ -6,11 +6,11 @@ import { useState } from "react";
 
 import type { AppNotification } from "@/lib/api";
 import { apiPost } from "@/lib/client-api";
-import { dateFormat } from "@/lib/labels";
+import { dateFormat, relativeTime } from "@/lib/labels";
 
 import { secondaryButtonClass } from "./Form";
 
-export function NotificationList({ initial }: { initial: AppNotification[] }) {
+export function NotificationList({ initial, now }: { initial: AppNotification[]; now: string }) {
   const router = useRouter();
   const [items, setItems] = useState(initial);
   const unread = items.filter((item) => !item.read).length;
@@ -44,11 +44,17 @@ export function NotificationList({ initial }: { initial: AppNotification[] }) {
               className="block px-2 py-3 hover:bg-surface-card"
             >
               <span className="flex gap-2">
-                <span className={`shrink-0 ${item.read ? "text-ash" : "font-bold"}`}>{item.read ? "[ ]" : "[•]"}</span>
+                <span className={`shrink-0 ${item.read ? "text-stone" : "font-bold"}`}>{item.read ? "[ ]" : "[•]"}</span>
                 <span>
                   <span className={item.read ? "" : "font-bold"}>{item.title}</span>
                   {item.body && <span className="block whitespace-pre-line text-sm text-body">{item.body}</span>}
-                  <span className="block text-sm text-mute">{dateFormat.format(new Date(item.created_at))}</span>
+                  <time
+                    dateTime={item.created_at}
+                    title={dateFormat.format(new Date(item.created_at))}
+                    className="block text-sm text-mute"
+                  >
+                    {relativeTime(item.created_at, now)}
+                  </time>
                 </span>
               </span>
             </Link>

@@ -1,0 +1,71 @@
+{
+  "text": "Correcte, avec lacunes ou incorrecte : tu as trois verdicts, et leurs commentaires.",
+  "words": [
+    {
+      "text": "Correcte,",
+      "start": 0.13,
+      "end": 0.41
+    },
+    {
+      "text": "avec",
+      "start": 0.81,
+      "end": 0.97
+    },
+    {
+      "text": "lacunes",
+      "start": 1.17,
+      "end": 1.45
+    },
+    {
+      "text": "ou",
+      "start": 1.45,
+      "end": 1.55
+    },
+    {
+      "text": "incorrecte",
+      "start": 1.65,
+      "end": 1.99
+    },
+    {
+      "text": ":",
+      "start": 1.99,
+      "end": 1.99
+    },
+    {
+      "text": "tu",
+      "start": 2.33,
+      "end": 2.41
+    },
+    {
+      "text": "as",
+      "start": 2.41,
+      "end": 2.51
+    },
+    {
+      "text": "trois",
+      "start": 2.51,
+      "end": 2.71
+    },
+    {
+      "text": "verdicts,",
+      "start": 2.71,
+      "end": 3.39
+    },
+    {
+      "text": "et",
+      "start": 3.39,
+      "end": 3.49
+    },
+    {
+      "text": "leurs",
+      "start": 3.49,
+      "end": 3.61
+    },
+    {
+      "text": "commentaires.",
+      "start": 3.61,
+      "end": 4.09
+    }
+  ],
+  "duration": 4.35
+}

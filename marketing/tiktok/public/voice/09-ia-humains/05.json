@@ -1,0 +1,51 @@
+{
+  "text": "Ailleurs, tu peux t'en servir. Mais tu le déclares.",
+  "words": [
+    {
+      "text": "Ailleurs,",
+      "start": 0.71,
+      "end": 1.17
+    },
+    {
+      "text": "tu",
+      "start": 1.29,
+      "end": 1.35
+    },
+    {
+      "text": "peux",
+      "start": 1.35,
+      "end": 1.51
+    },
+    {
+      "text": "t'en",
+      "start": 1.57,
+      "end": 1.63
+    },
+    {
+      "text": "servir.",
+      "start": 1.63,
+      "end": 1.97
+    },
+    {
+      "text": "Mais",
+      "start": 2.23,
+      "end": 2.33
+    },
+    {
+      "text": "tu",
+      "start": 2.33,
+      "end": 2.43
+    },
+    {
+      "text": "le",
+      "start": 2.43,
+      "end": 2.51
+    },
+    {
+      "text": "déclares.",
+      "start": 2.51,
+      "end": 2.81
+    }
+  ],
+  "duration": 3.09
+}

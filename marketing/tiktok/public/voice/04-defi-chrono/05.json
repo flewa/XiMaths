@@ -1,0 +1,56 @@
+{
+  "text": "Et tes points comptent dans le classement de la semaine.",
+  "words": [
+    {
+      "text": "Et",
+      "start": 0.01,
+      "end": 0.15
+    },
+    {
+      "text": "tes",
+      "start": 0.15,
+      "end": 0.29
+    },
+    {
+      "text": "points",
+      "start": 0.29,
+      "end": 0.47
+    },
+    {
+      "text": "comptent",
+      "start": 0.47,
+      "end": 0.95
+    },
+    {
+      "text": "dans",
+      "start": 0.95,
+      "end": 1.07
+    },
+    {
+      "text": "le",
+      "start": 1.07,
+      "end": 1.19
+    },
+    {
+      "text": "classement",
+      "start": 1.19,
+      "end": 1.61
+    },
+    {
+      "text": "de",
+      "start": 1.61,
+      "end": 1.71
+    },
+    {
+      "text": "la",
+      "start": 1.71,
+      "end": 1.81
+    },
+    {
+      "text": "semaine.",
+      "start": 1.81,
+      "end": 2.11
+    }
+  ],
+  "duration": 2.34
+}

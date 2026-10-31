@@ -2,6 +2,7 @@
 
 import hashlib
 import re
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
@@ -115,7 +116,7 @@ def export_user_data(user):
     from content.models import Exercise, Review, Solution, Vote
     from gamification.models import Goal, PointTransaction, UserBadge, WeeklyStreak
     from moderation.models import ComprehensionQuestion, Report
-    from notifications.models import Notification
+    from notifications.models import Notification, PushSubscription
     from training.models import TimedSession
 
     def dates(value):
@@ -127,6 +128,11 @@ def export_user_data(user):
             "email": user.email,
             "inscription": dates(user.date_joined),
             "email_verifie": dates(user.email_verified_at),
+            "email_academique": (
+                {"domaine": user.academic_domain, "verifie": dates(user.academic_verified_at)}
+                if user.academic_verified_at
+                else None
+            ),
             "niveau_declare": user.declared_level.code if user.declared_level else None,
             "niveau_de_confiance": user.get_trust_level_display(),
             "tiers_temps": user.tiers_temps,
@@ -206,6 +212,14 @@ def export_user_data(user):
             {"titre": n.title, "texte": n.body, "date": dates(n.created_at)}
             for n in Notification.objects.filter(user=user)
         ],
+        "appareils_notifications_push": [
+            {
+                "service": urlparse(device.endpoint).hostname,
+                "ajoute": dates(device.created_at),
+                "dernier_envoi": dates(device.last_push_at),
+            }
+            for device in PushSubscription.objects.filter(user=user)
+        ],
     }
 
 
@@ -217,10 +231,11 @@ def delete_account(user):
     from content.models import Exercise, Solution
     from gamification.models import Goal, UserBadge, WeeklyStreak
     from moderation.models import ComprehensionQuestion
-    from notifications.models import Notification
+    from notifications.models import Notification, PushSubscription
     from training.models import TimedSession
 
     Exercise.objects.filter(author=user).update(author=None)
+    PushSubscription.objects.filter(user=user).delete()
     Solution.objects.filter(author=user).update(author=None)
     Notification.objects.filter(user=user).delete()
     TimedSession.objects.filter(user=user).delete()
@@ -234,6 +249,9 @@ def delete_account(user):
     user.set_unusable_password()
     user.is_active = False
     user.email_verified_at = None
+    user.academic_verified_at = None
+    user.academic_domain = ""
+    user.academic_email_digest = None
     user.declared_level = None
     user.google_sub = None
     user.leaderboard_visible = False

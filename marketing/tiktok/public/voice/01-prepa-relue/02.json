@@ -1,0 +1,56 @@
+{
+  "text": "Et à part en colle, presque personne ne les relit.",
+  "words": [
+    {
+      "text": "Et",
+      "start": 0.22,
+      "end": 0.26
+    },
+    {
+      "text": "à",
+      "start": 0.26,
+      "end": 0.38
+    },
+    {
+      "text": "part",
+      "start": 0.38,
+      "end": 0.54
+    },
+    {
+      "text": "en",
+      "start": 0.54,
+      "end": 0.66
+    },
+    {
+      "text": "colle,",
+      "start": 0.66,
+      "end": 0.86
+    },
+    {
+      "text": "presque",
+      "start": 1.18,
+      "end": 1.36
+    },
+    {
+      "text": "personne",
+      "start": 1.36,
+      "end": 1.9
+    },
+    {
+      "text": "ne",
+      "start": 1.9,
+      "end": 2.08
+    },
+    {
+      "text": "les",
+      "start": 2.08,
+      "end": 2.2
+    },
+    {
+      "text": "relit.",
+      "start": 2.2,
+      "end": 2.38
+    }
+  ],
+  "duration": 2.56
+}

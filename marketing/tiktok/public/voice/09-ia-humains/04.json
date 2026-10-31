@@ -1,0 +1,46 @@
+{
+  "text": "Pendant le défi du jour, l'IA est interdite.",
+  "words": [
+    {
+      "text": "Pendant",
+      "start": 0.13,
+      "end": 0.41
+    },
+    {
+      "text": "le",
+      "start": 0.41,
+      "end": 0.51
+    },
+    {
+      "text": "défi",
+      "start": 0.51,
+      "end": 0.79
+    },
+    {
+      "text": "du",
+      "start": 0.79,
+      "end": 0.91
+    },
+    {
+      "text": "jour,",
+      "start": 0.91,
+      "end": 1.19
+    },
+    {
+      "text": "l'IA",
+      "start": 1.47,
+      "end": 1.75
+    },
+    {
+      "text": "est",
+      "start": 1.75,
+      "end": 1.93
+    },
+    {
+      "text": "interdite.",
+      "start": 1.93,
+      "end": 2.57
+    }
+  ],
+  "duration": 3.28
+}

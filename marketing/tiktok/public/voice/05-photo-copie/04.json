@@ -1,0 +1,56 @@
+{
+  "text": "L'IA ne corrige rien : elle recopie, même tes erreurs.",
+  "words": [
+    {
+      "text": "L'IA",
+      "start": 0.21,
+      "end": 0.29
+    },
+    {
+      "text": "ne",
+      "start": 0.29,
+      "end": 0.49
+    },
+    {
+      "text": "corrige",
+      "start": 0.49,
+      "end": 0.75
+    },
+    {
+      "text": "rien",
+      "start": 0.75,
+      "end": 1.01
+    },
+    {
+      "text": ":",
+      "start": 1.01,
+      "end": 1.01
+    },
+    {
+      "text": "elle",
+      "start": 1.37,
+      "end": 1.49
+    },
+    {
+      "text": "recopie,",
+      "start": 1.49,
+      "end": 2.03
+    },
+    {
+      "text": "même",
+      "start": 2.03,
+      "end": 2.39
+    },
+    {
+      "text": "tes",
+      "start": 2.39,
+      "end": 2.57
+    },
+    {
+      "text": "erreurs.",
+      "start": 2.57,
+      "end": 3.17
+    }
+  ],
+  "duration": 3.74
+}

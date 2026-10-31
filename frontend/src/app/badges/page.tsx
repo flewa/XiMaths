@@ -36,7 +36,7 @@ export default async function BadgesPage() {
           >
             <p className="flex items-center justify-between gap-2">
               <span className="font-bold">
-                <span className={badge.awarded_at ? "" : "text-ash"}>{badge.awarded_at ? "[x]" : "[ ]"}</span>{" "}
+                <span className={badge.awarded_at ? "" : "text-stone"}>{badge.awarded_at ? "[x]" : "[ ]"}</span>{" "}
                 {badge.name}
               </span>
               {!badge.available && <Tag>bientôt</Tag>}

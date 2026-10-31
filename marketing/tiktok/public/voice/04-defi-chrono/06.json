@@ -1,0 +1,46 @@
+{
+  "text": "Lien en bio. Demain, nouveau défi. Trente minutes.",
+  "words": [
+    {
+      "text": "Lien",
+      "start": 0.23,
+      "end": 0.65
+    },
+    {
+      "text": "en",
+      "start": 0.65,
+      "end": 0.83
+    },
+    {
+      "text": "bio.",
+      "start": 0.83,
+      "end": 1.07
+    },
+    {
+      "text": "Demain,",
+      "start": 1.35,
+      "end": 1.65
+    },
+    {
+      "text": "nouveau",
+      "start": 1.75,
+      "end": 1.89
+    },
+    {
+      "text": "défi.",
+      "start": 1.89,
+      "end": 2.31
+    },
+    {
+      "text": "Trente",
+      "start": 2.31,
+      "end": 2.65
+    },
+    {
+      "text": "minutes.",
+      "start": 2.65,
+      "end": 2.89
+    }
+  ],
+  "duration": 3.065
+}

@@ -1,0 +1,46 @@
+{
+  "text": "Partiels dans trois semaines. Tu fais comment ?",
+  "words": [
+    {
+      "text": "Partiels",
+      "start": 0,
+      "end": 0.38
+    },
+    {
+      "text": "dans",
+      "start": 0.38,
+      "end": 0.52
+    },
+    {
+      "text": "trois",
+      "start": 0.52,
+      "end": 0.76
+    },
+    {
+      "text": "semaines.",
+      "start": 0.76,
+      "end": 1.08
+    },
+    {
+      "text": "Tu",
+      "start": 1.44,
+      "end": 1.48
+    },
+    {
+      "text": "fais",
+      "start": 1.48,
+      "end": 1.62
+    },
+    {
+      "text": "comment",
+      "start": 1.62,
+      "end": 1.84
+    },
+    {
+      "text": "?",
+      "start": 1.84,
+      "end": 1.84
+    }
+  ],
+  "duration": 2.59
+}

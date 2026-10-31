@@ -1,13 +1,30 @@
 import { unstable_rethrow } from "next/navigation";
 
-export function Difficulty({ value }: { value: number }) {
+/** Difficulté en carrés pleins sur 5 ; `withLabel` l'écrit aussi en toutes lettres. */
+export function Difficulty({ value, withLabel = false }: { value: number; withLabel?: boolean }) {
   return (
-    <span aria-label={`Difficulté ${value} sur 5`} title={`Difficulté ${value} sur 5`}>
+    <span aria-label={`Difficulté ${value} sur 5`} title={`Difficulté ${value} sur 5`} className="whitespace-nowrap">
       <span aria-hidden="true">
         {"■".repeat(value)}
-        <span className="text-ash">{"□".repeat(5 - value)}</span>
+        <span className="text-stone">{"□".repeat(5 - value)}</span>
+        {withLabel && <span className="text-mute"> difficulté {value}/5</span>}
       </span>
     </span>
+  );
+}
+
+const LICENSES: Record<string, { label: string; url: string }> = {
+  "CC-BY-SA-4.0": { label: "CC BY-SA 4.0", url: "https://creativecommons.org/licenses/by-sa/4.0/deed.fr" },
+};
+
+/** Licence d'un contenu, lisible et liée à son texte quand on la connaît. */
+export function License({ code }: { code: string }) {
+  const license = LICENSES[code];
+  if (!license) return <>{code}</>;
+  return (
+    <a href={license.url} rel="license" className="underline underline-offset-4 hover:text-ink">
+      {license.label}
+    </a>
   );
 }
 

@@ -5,6 +5,7 @@ cookie de session suffit, et chaque écriture porte l'en-tête X-CSRFToken.
 """
 
 import json
+from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
@@ -18,16 +19,16 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from ninja import Router, Schema
 from ninja.errors import HttpError
 from ninja.security import django_auth
-from ninja.throttling import AnonRateThrottle, AuthRateThrottle
 from ninja.utils import check_csrf
 from pydantic import Field
 
 from catalog.models import Level
 from config.errors import RuleError
+from config.throttles import AnonRouteThrottle, AuthRouteThrottle
 from content.models import Review, Solution
 from gamification.services import balance
 
-from . import google
+from . import academic, google
 from .models import User
 from .services import (
     delete_account,
@@ -59,6 +60,9 @@ class MeOut(Schema):
     has_password: bool
     google_linked: bool
     unread_notifications: int
+    academic_verified_at: datetime | None
+    # Domaine de l'adresse académique vérifiée ; l'adresse elle-même n'est pas gardée.
+    academic_domain: str
 
     @staticmethod
     def resolve_email_verified(obj):
@@ -162,7 +166,7 @@ def csrf(request):
 @router.post(
     "/signup",
     response={201: MeOut},
-    throttle=[AnonRateThrottle("20/h")],
+    throttle=[AnonRouteThrottle("inscription", "20/h")],
 )
 def signup(request, payload: SignupIn):
     require_csrf(request)
@@ -194,7 +198,7 @@ def signup(request, payload: SignupIn):
     return 201, user
 
 
-@router.post("/login", response=MeOut, throttle=[AnonRateThrottle("10/m")])
+@router.post("/login", response=MeOut, throttle=[AnonRouteThrottle("connexion", "10/m")])
 def login_view(request, payload: LoginIn):
     require_csrf(request)
     identifier = payload.login.strip()
@@ -236,13 +240,38 @@ def verify_email_view(request, payload: TokenIn):
     "/resend-verification",
     response={204: None},
     auth=django_auth,
-    throttle=[AuthRateThrottle("3/h")],
+    throttle=[AuthRouteThrottle("verification", "3/h")],
 )
 def resend_verification(request):
     if request.auth.email_verified_at is not None:
         raise HttpError(409, "Ton adresse email est déjà vérifiée.")
     send_verification_email(request.auth)
     return 204, None
+
+
+@router.post(
+    "/academic",
+    response={204: None},
+    auth=django_auth,
+    throttle=[AuthRouteThrottle("email-academique", "5/h")],
+)
+def academic_email(request, payload: EmailIn):
+    """Envoie un lien à une adresse académique : une fois confirmée, elle donne le
+    badge « Étudiant vérifié ». Seuls son domaine et son empreinte sont gardés."""
+    try:
+        academic.send_academic_link(request.auth, payload.email)
+    except RuleError as error:
+        raise HttpError(422, str(error))
+    return 204, None
+
+
+@router.post("/academic/verify", response=MeOut)
+def verify_academic(request, payload: TokenIn):
+    require_csrf(request)
+    try:
+        return academic.verify_academic(payload.token)
+    except RuleError as error:
+        raise HttpError(400, str(error))
 
 
 @router.post("/leaderboard-visibility", response=MeOut, auth=django_auth)
@@ -277,7 +306,7 @@ def set_preferences(request, payload: PreferencesIn):
 @router.post(
     "/password-reset",
     response={204: None},
-    throttle=[AnonRateThrottle("5/h")],
+    throttle=[AnonRouteThrottle("mot-de-passe-oublie", "5/h")],
 )
 def password_reset(request, payload: EmailIn):
     """Envoie un lien de réinitialisation. Répond pareil que l'adresse existe ou non."""
@@ -289,7 +318,7 @@ def password_reset(request, payload: EmailIn):
 @router.post(
     "/password-reset/confirm",
     response={204: None},
-    throttle=[AnonRateThrottle("10/h")],
+    throttle=[AnonRouteThrottle("nouveau-mot-de-passe", "10/h")],
 )
 def password_reset_confirm(request, payload: ResetIn):
     require_csrf(request)
@@ -300,7 +329,12 @@ def password_reset_confirm(request, payload: ResetIn):
     return 204, None
 
 
-@router.post("/password", response={204: None}, auth=django_auth, throttle=[AuthRateThrottle("10/h")])
+@router.post(
+    "/password",
+    response={204: None},
+    auth=django_auth,
+    throttle=[AuthRouteThrottle("mot-de-passe", "10/h")],
+)
 def change_password(request, payload: PasswordIn):
     """Change le mot de passe ; un compte créé avec Google en choisit un sans l'ancien."""
     user = request.auth

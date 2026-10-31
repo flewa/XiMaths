@@ -1,0 +1,71 @@
+{
+  "text": "Une hypothèse oubliée, un quantificateur flou : tu le vois avant le partiel.",
+  "words": [
+    {
+      "text": "Une",
+      "start": 0.67,
+      "end": 0.81
+    },
+    {
+      "text": "hypothèse",
+      "start": 0.81,
+      "end": 1.31
+    },
+    {
+      "text": "oubliée,",
+      "start": 1.31,
+      "end": 1.81
+    },
+    {
+      "text": "un",
+      "start": 2.11,
+      "end": 2.23
+    },
+    {
+      "text": "quantificateur",
+      "start": 2.23,
+      "end": 2.89
+    },
+    {
+      "text": "flou",
+      "start": 2.89,
+      "end": 3.21
+    },
+    {
+      "text": ":",
+      "start": 3.21,
+      "end": 3.21
+    },
+    {
+      "text": "tu",
+      "start": 3.45,
+      "end": 3.55
+    },
+    {
+      "text": "le",
+      "start": 3.55,
+      "end": 3.69
+    },
+    {
+      "text": "vois",
+      "start": 3.69,
+      "end": 3.87
+    },
+    {
+      "text": "avant",
+      "start": 3.87,
+      "end": 4.15
+    },
+    {
+      "text": "le",
+      "start": 4.15,
+      "end": 4.29
+    },
+    {
+      "text": "partiel.",
+      "start": 4.29,
+      "end": 4.73
+    }
+  ],
+  "duration": 4.92
+}

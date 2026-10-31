@@ -22,12 +22,14 @@ export function LogoutButton() {
   );
 }
 
-/** Menu repliable sous 768 px. Il se referme à chaque changement de page. */
+/** Menu repliable sous 1024 px. Il se referme à chaque changement de page. */
 export function MobileMenu({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
-    <details key={pathname} className="plain relative md:hidden">
-      <summary className="font-medium">[≡] Menu</summary>
+    <details key={pathname} className="plain relative lg:hidden">
+      <summary className="whitespace-nowrap py-2 font-medium" aria-label="Menu">
+        [≡]<span aria-hidden="true"> Menu</span>
+      </summary>
       <div className="absolute right-0 top-full z-10 mt-3 flex w-56 flex-col border border-hairline bg-canvas py-2 [&>*]:px-4 [&>*]:py-2 [&>*]:text-left">
         {children}
       </div>
@@ -40,7 +42,9 @@ export function AccountMenu({ label, children }: { label: string; children: Reac
   const pathname = usePathname();
   return (
     <details key={pathname} className="plain relative">
-      <summary className="whitespace-nowrap text-mute hover:text-ink">{label} ▾</summary>
+      <summary className="flex whitespace-nowrap text-mute hover:text-ink">
+        <span className="max-w-[16ch] truncate">{label}</span>&nbsp;▾
+      </summary>
       <div className="absolute right-0 top-full z-10 mt-4 flex w-56 flex-col border border-hairline bg-canvas py-2 font-normal [&>*]:px-4 [&>*]:py-2 [&>*]:text-left">
         {children}
       </div>

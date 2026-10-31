@@ -59,6 +59,16 @@ class VolunteerTests(ReviewFlowTestCase):
         with self.assertRaises(RuleError):
             volunteer_review(solution, volunteer)
 
+    def test_reviewers_list_the_solutions_open_to_volunteers(self):
+        solution = self.publish()
+        volunteer = make_user("volontaire", trust=TL.REVIEWER, email_verified_at=timezone.now())
+        self.client.force_login(volunteer)
+
+        response = self.client.get("/api/reviews/open")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item["solution_id"] for item in response.json()], [solution.pk])
+
     def test_members_and_the_author_cannot_volunteer(self):
         solution = self.publish()
         with self.assertRaises(PermissionDenied):

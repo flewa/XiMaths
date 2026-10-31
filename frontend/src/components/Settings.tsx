@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import type { Level, Me } from "@/lib/api";
 import { apiPost } from "@/lib/client-api";
+import { dateFormat } from "@/lib/labels";
 import { THEME_COOKIE, type Theme } from "@/lib/site";
 
 import { AsciiCheckbox, Field, FormMessage, SubmitButton, inputClass } from "./Form";
@@ -121,6 +122,61 @@ export function ThemeChoice({ current }: { current: Theme }) {
         </label>
       ))}
     </fieldset>
+  );
+}
+
+export function AcademicEmailForm({ me }: { me: Me }) {
+  const [result, setResult] = useState<{ error?: string; success?: string }>({});
+  const [pending, setPending] = useState(false);
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formElement = event.currentTarget;
+    const email = String(new FormData(formElement).get("academic_email") ?? "");
+    setPending(true);
+    const sent = await apiPost("/auth/academic", { email });
+    setPending(false);
+    if (sent.ok) formElement.reset();
+    setResult(
+      sent.ok
+        ? { success: `Lien envoyé à ${email.trim()} : il est valable 3 jours.` }
+        : { error: sent.error },
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {me.academic_verified_at ? (
+        <p>
+          [x] Vérifiée le {dateFormat.format(new Date(me.academic_verified_at))}{" "}
+          <span className="text-mute">· une adresse @{me.academic_domain}</span>
+        </p>
+      ) : (
+        <p className="text-body">
+          Une adresse de ton université ou de ton école donne le badge « Étudiant vérifié ». Elle peut être
+          différente de celle de ton compte.
+        </p>
+      )}
+      <form onSubmit={onSubmit} className="space-y-4">
+        <Field
+          label={me.academic_verified_at ? "Vérifier une autre adresse" : "Adresse académique"}
+          htmlFor="academic_email"
+          hint="On ne garde pas cette adresse : seulement son domaine, et une empreinte qui l'empêche de servir à un second compte."
+        >
+          <input
+            id="academic_email"
+            name="academic_email"
+            type="email"
+            required
+            autoComplete="off"
+            placeholder="prenom.nom@etu.univ-exemple.fr"
+            className={inputClass}
+          />
+        </Field>
+        <FormMessage error={result.error} success={result.success} />
+        <SubmitButton pending={pending}>Recevoir le lien</SubmitButton>
+      </form>
+    </div>
   );
 }
 

@@ -1,0 +1,51 @@
+{
+  "text": "Lien en bio. Ton exo mérite mieux qu'un classeur.",
+  "words": [
+    {
+      "text": "Lien",
+      "start": 0,
+      "end": 0.34
+    },
+    {
+      "text": "en",
+      "start": 0.34,
+      "end": 0.66
+    },
+    {
+      "text": "bio.",
+      "start": 0.66,
+      "end": 0.88
+    },
+    {
+      "text": "Ton",
+      "start": 1.28,
+      "end": 1.44
+    },
+    {
+      "text": "exo",
+      "start": 1.44,
+      "end": 1.82
+    },
+    {
+      "text": "mérite",
+      "start": 1.82,
+      "end": 2.08
+    },
+    {
+      "text": "mieux",
+      "start": 2.08,
+      "end": 2.26
+    },
+    {
+      "text": "qu'un",
+      "start": 2.4,
+      "end": 2.48
+    },
+    {
+      "text": "classeur.",
+      "start": 2.48,
+      "end": 2.92
+    }
+  ],
+  "duration": 2.949
+}

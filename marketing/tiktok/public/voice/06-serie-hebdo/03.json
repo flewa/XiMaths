@@ -1,0 +1,71 @@
+{
+  "text": "Une solution, une relecture ou quinze minutes de chrono : ta journée compte.",
+  "words": [
+    {
+      "text": "Une",
+      "start": 0.11,
+      "end": 0.27
+    },
+    {
+      "text": "solution,",
+      "start": 0.27,
+      "end": 0.75
+    },
+    {
+      "text": "une",
+      "start": 1.29,
+      "end": 1.39
+    },
+    {
+      "text": "relecture",
+      "start": 1.39,
+      "end": 1.95
+    },
+    {
+      "text": "ou",
+      "start": 1.95,
+      "end": 2.05
+    },
+    {
+      "text": "quinze",
+      "start": 2.05,
+      "end": 2.29
+    },
+    {
+      "text": "minutes",
+      "start": 2.29,
+      "end": 2.55
+    },
+    {
+      "text": "de",
+      "start": 2.55,
+      "end": 2.77
+    },
+    {
+      "text": "chrono",
+      "start": 2.77,
+      "end": 3.19
+    },
+    {
+      "text": ":",
+      "start": 3.19,
+      "end": 3.19
+    },
+    {
+      "text": "ta",
+      "start": 3.45,
+      "end": 3.51
+    },
+    {
+      "text": "journée",
+      "start": 3.51,
+      "end": 3.71
+    },
+    {
+      "text": "compte.",
+      "start": 3.71,
+      "end": 4.05
+    }
+  ],
+  "duration": 4.21
+}

@@ -9,10 +9,10 @@ from django.utils import timezone
 from ninja import Router, Schema
 from ninja.errors import HttpError
 from ninja.security import django_auth
-from ninja.throttling import AuthRateThrottle
 from pydantic import Field
 
 from accounts.permissions import contributor, is_moderator
+from config.throttles import AuthRouteThrottle
 from content.models import Exercise, Solution
 
 from . import comprehension
@@ -82,7 +82,7 @@ class ReportOut(Schema):
     "/reports",
     response={201: ReportOut},
     auth=django_auth,
-    throttle=[AuthRateThrottle("20/h")],
+    throttle=[AuthRouteThrottle("signalement", "20/h")],
 )
 def report(request, payload: ReportIn):
     """Signale un exercice publié ou une solution validée. Un doublon demande le
