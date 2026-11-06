@@ -1,14 +1,24 @@
 import { unstable_rethrow } from "next/navigation";
 
-/** Difficulté en carrés pleins sur 5 ; `withLabel` l'écrit aussi en toutes lettres. */
+/** Difficulté en cinq barres croissantes ; `withLabel` l'écrit aussi en toutes lettres. */
 export function Difficulty({ value, withLabel = false }: { value: number; withLabel?: boolean }) {
   return (
-    <span aria-label={`Difficulté ${value} sur 5`} title={`Difficulté ${value} sur 5`} className="whitespace-nowrap">
-      <span aria-hidden="true">
-        {"■".repeat(value)}
-        <span className="text-stone">{"□".repeat(5 - value)}</span>
-        {withLabel && <span className="text-mute"> difficulté {value}/5</span>}
+    <span
+      role="img"
+      aria-label={`Difficulté ${value} sur 5`}
+      title={`Difficulté ${value} sur 5`}
+      className="inline-flex items-center gap-2 whitespace-nowrap"
+    >
+      <span aria-hidden="true" className="inline-flex items-end gap-[2px]">
+        {[6, 8, 10, 12, 14].map((height, index) => (
+          <span
+            key={height}
+            style={{ height }}
+            className={`w-[3px] rounded-[1px] ${index < value ? "bg-ink" : "bg-hairline-strong"}`}
+          />
+        ))}
       </span>
+      {withLabel && <span className="text-mute">difficulté {value}/5</span>}
     </span>
   );
 }
@@ -29,7 +39,7 @@ export function License({ code }: { code: string }) {
 }
 
 export function LevelTags({ levels }: { levels: string[] }) {
-  return <span className="font-medium text-ink">[{levels.join(" ")}]</span>;
+  return <span className="font-medium text-ink">{levels.join(", ")}</span>;
 }
 
 /** À appeler dans le catch d'une page : laisse remonter les signaux internes de Next
@@ -41,8 +51,8 @@ export function logApiError(error: unknown) {
 
 export function ApiUnavailable() {
   return (
-    <div role="alert" className="border border-hairline p-4">
-      <h1 className="text-base">[x] L&apos;API ne répond pas</h1>
+    <div role="alert" className="rounded-xl bg-surface-soft p-5">
+      <h1 className="text-2xl">L&apos;API ne répond pas</h1>
       <p className="mt-2 text-mute">Lance le backend Django sur le port 8000, puis recharge la page.</p>
     </div>
   );

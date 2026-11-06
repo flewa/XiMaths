@@ -33,7 +33,7 @@ function SimilarHeader({ exercise }: { exercise: SimilarExercise }) {
         {exercise.title}
       </Link>
       <span className="text-sm text-mute">
-        [{exercise.primary_level}] · {solutionsLabel(exercise.validated_solutions)}
+        {exercise.primary_level} · {solutionsLabel(exercise.validated_solutions)}
       </span>
     </p>
   );
@@ -44,8 +44,8 @@ export function SimilarPanel({ exercises }: { exercises: SimilarExercise[] }) {
   if (exercises.length === 0) return null;
   return (
     <aside aria-labelledby="exercices-proches" className="border border-hairline px-4 py-3">
-      <h2 id="exercices-proches" className="font-bold">
-        [!] Exercices proches
+      <h2 id="exercices-proches">
+        Exercices proches
       </h2>
       <p className="text-sm text-mute">
         Vérifie que ton exercice n&apos;existe pas déjà. Rien n&apos;est bloqué pour autant.
@@ -98,7 +98,7 @@ export function DuplicateScreen({
   return (
     <section aria-labelledby="doublon" className="space-y-5">
       <div>
-        <h2 id="doublon" className="text-xl font-bold">
+        <h2 id="doublon">
           Cet exercice existe peut-être déjà
         </h2>
         <p className="mt-1 text-sm text-mute">

@@ -1,80 +1,112 @@
 @import "tailwindcss";
 
 /*
- * Design XiMaths, d'après DESIGN-opencode.ai.md : tout en monospace, encre presque
- * noire sur crème, filets de 1 px, aucun dégradé ni ombre. Rayon de 4 px pour les
- * éléments interactifs, 0 pour les conteneurs. Une seule surface sombre par page.
+ * Design XiMaths : le calme d'un espace de travail en sombre, la voix d'un livre de maths.
+ * - Fond graphite neutre, texte adouci, filets discrets plutôt que cadres.
+ * - Titres composés dans la police des formules (Computer Modern, servie par KaTeX) :
+ *   le texte et les mathématiques parlent la même langue. Le reste en Inter.
+ * - Un seul accent, le corail, réservé à ce qui attend une action : publier, relever le
+ *   défi, rendre une relecture, résoudre un exercice qui n'a pas encore de solution.
+ * Sombre par défaut ; le clair et le choix du système se règlent dans les réglages.
  */
 :root {
-  --ink: #201d1d;
-  --ink-deep: #0f0000;
-  --charcoal: #302c2c;
-  --body: #424245;
-  --mute: #646262;
-  --stone: #6e6e73;
-  --ash: #9a9898;
-  --canvas: #fdfcfc;
-  --surface-soft: #f8f7f7;
-  --surface-card: #f1eeee;
-  --surface-dark: #201d1d;
-  --surface-dark-elevated: #302c2c;
-  --hairline: rgba(15, 0, 0, 0.12);
-  --hairline-strong: #646262;
-  --on-dark: #fdfcfc;
-  /* Texte atténué sur une surface sombre : 5,8:1 sur surface-dark. */
-  --on-dark-mute: #9a9898;
-  /* Couleurs d'état, réservées aux états du produit, jamais à la navigation. */
-  --success: #30d158;
-  --warning: #ff9f0a;
-  --danger: #ff3b30;
-  --danger-text: #d70015;
+  --canvas: #191919;
+  --sidebar: #1f1f1f;
+  --surface-soft: #202020;
+  --surface-card: #262626;
+  --surface-dark: #202020;
+  --surface-dark-elevated: #2a2a2a;
+  --ink: #e2e2e2;
+  --ink-deep: #f5f5f5;
+  --charcoal: #d0d0d0;
+  --body: #bdbdbd;
+  /* Texte secondaire : 5,4:1 sur le fond. */
+  --mute: #8c8c8c;
+  --stone: #737373;
+  --ash: #555555;
+  --hairline: rgba(255, 255, 255, 0.08);
+  --hairline-strong: rgba(255, 255, 255, 0.16);
+  --hover: rgba(255, 255, 255, 0.045);
+  --selected: rgba(255, 255, 255, 0.075);
+  --on-dark: #e2e2e2;
+  --on-dark-mute: #8c8c8c;
+  /* Corail : 7,4:1 sur le fond, et le texte des boutons 7,4:1 sur le corail. */
+  --accent: #f28b82;
+  --accent-ink: #2a1111;
+  --accent-text: #f28b82;
+  --accent-soft: rgba(242, 139, 130, 0.12);
+  --success: #6fbf8e;
+  --warning: #e0a458;
+  --danger: #e5534b;
+  --danger-text: #ff8f87;
+  color-scheme: dark;
 }
 
-/*
- * Mode sombre, même style terminal : encre claire sur fond presque noir. La surface
- * « sombre » (bloc d'accueil, chrono) descend d'un cran pour rester distincte.
- * Il suit le système, sauf choix explicite (data-theme, posé depuis les réglages).
- */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --ink: #f1eeee;
-    --ink-deep: #ffffff;
-    --charcoal: #d9d4d4;
-    --body: #c9c4c4;
-    --mute: #a09d9d;
-    --stone: #8e8b8b;
-    --ash: #6e6b6b;
-    --canvas: #161313;
-    --surface-soft: #1d1a1a;
-    --surface-card: #262222;
-    --surface-dark: #0b0909;
-    --surface-dark-elevated: #201d1d;
-    --hairline: rgba(255, 240, 240, 0.14);
-    --hairline-strong: #a09d9d;
-    --on-dark: #fdfcfc;
-    --on-dark-mute: #a09d9d;
-    --danger-text: #ff6961;
+/* Clair : papier blanc, encre douce, corail plus profond pour garder le contraste.
+ * Même jeu de valeurs ci-dessous pour « comme le système » quand le système est en clair. */
+:root[data-theme="light"] {
+  --canvas: #ffffff;
+  --sidebar: #f7f7f5;
+  --surface-soft: #f7f7f5;
+  --surface-card: #efefed;
+  --surface-dark: #f7f7f5;
+  --surface-dark-elevated: #ececea;
+  --ink: #2f2f2f;
+  --ink-deep: #191919;
+  --charcoal: #3a3a3a;
+  --body: #4b4b4b;
+  --mute: #73726e;
+  --stone: #8f8e8a;
+  --ash: #b9b8b4;
+  --hairline: rgba(0, 0, 0, 0.08);
+  --hairline-strong: rgba(0, 0, 0, 0.16);
+  --hover: rgba(0, 0, 0, 0.04);
+  --selected: rgba(0, 0, 0, 0.06);
+  --on-dark: #2f2f2f;
+  --on-dark-mute: #73726e;
+  /* 5:1 sur le blanc, en texte comme sous un texte blanc. */
+  --accent: #c73e35;
+  --accent-ink: #ffffff;
+  --accent-text: #c73e35;
+  --accent-soft: rgba(199, 62, 53, 0.08);
+  --success: #2f7d4f;
+  --warning: #9a5b13;
+  --danger: #b42318;
+  --danger-text: #b42318;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-theme="system"] {
+    --canvas: #ffffff;
+    --sidebar: #f7f7f5;
+    --surface-soft: #f7f7f5;
+    --surface-card: #efefed;
+    --surface-dark: #f7f7f5;
+    --surface-dark-elevated: #ececea;
+    --ink: #2f2f2f;
+    --ink-deep: #191919;
+    --charcoal: #3a3a3a;
+    --body: #4b4b4b;
+    --mute: #73726e;
+    --stone: #8f8e8a;
+    --ash: #b9b8b4;
+    --hairline: rgba(0, 0, 0, 0.08);
+    --hairline-strong: rgba(0, 0, 0, 0.16);
+    --hover: rgba(0, 0, 0, 0.04);
+    --selected: rgba(0, 0, 0, 0.06);
+    --on-dark: #2f2f2f;
+    --on-dark-mute: #73726e;
+    --accent: #c73e35;
+    --accent-ink: #ffffff;
+    --accent-text: #c73e35;
+    --accent-soft: rgba(199, 62, 53, 0.08);
+    --success: #2f7d4f;
+    --warning: #9a5b13;
+    --danger: #b42318;
+    --danger-text: #b42318;
+    color-scheme: light;
   }
-}
-
-:root[data-theme="dark"] {
-  --ink: #f1eeee;
-  --ink-deep: #ffffff;
-  --charcoal: #d9d4d4;
-  --body: #c9c4c4;
-  --mute: #a09d9d;
-  --stone: #8e8b8b;
-  --ash: #6e6b6b;
-  --canvas: #161313;
-  --surface-soft: #1d1a1a;
-  --surface-card: #262222;
-  --surface-dark: #0b0909;
-  --surface-dark-elevated: #201d1d;
-  --hairline: rgba(255, 240, 240, 0.14);
-  --hairline-strong: #a09d9d;
-  --on-dark: #fdfcfc;
-  --on-dark-mute: #a09d9d;
-  --danger-text: #ff6961;
 }
 
 @theme inline {
@@ -86,56 +118,63 @@
   --color-stone: var(--stone);
   --color-ash: var(--ash);
   --color-canvas: var(--canvas);
+  --color-sidebar: var(--sidebar);
   --color-surface-soft: var(--surface-soft);
   --color-surface-card: var(--surface-card);
   --color-surface-dark: var(--surface-dark);
   --color-surface-dark-elevated: var(--surface-dark-elevated);
   --color-hairline: var(--hairline);
   --color-hairline-strong: var(--hairline-strong);
+  --color-hover: var(--hover);
+  --color-selected: var(--selected);
   --color-on-dark: var(--on-dark);
   --color-on-dark-mute: var(--on-dark-mute);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-text: var(--accent-text);
+  --color-accent-soft: var(--accent-soft);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
   --color-danger-text: var(--danger-text);
-  --font-sans: var(--font-mono-face);
-  --font-mono: var(--font-mono-face);
+  --font-sans: var(--font-sans-face), ui-sans-serif, system-ui, sans-serif;
+  /* La police des formules de KaTeX, chargée avec sa feuille de style. */
+  --font-serif: KaTeX_Main, "Latin Modern Roman", "CMU Serif", Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
 }
 
 @layer base {
-  html {
-    color-scheme: light dark;
-  }
-
-  :root[data-theme="light"] {
-    color-scheme: light;
-  }
-
-  :root[data-theme="dark"] {
-    color-scheme: dark;
-  }
-
   body {
     background: var(--canvas);
     color: var(--ink);
     font-size: 16px;
-    line-height: 1.5;
+    line-height: 1.55;
   }
 
-  /* display-xl : le titre en tête de page. */
+  /* Titres en Computer Modern, sans gras : la typographie d'un manuel. */
   h1 {
-    font-size: 28px;
-    font-weight: 700;
-    line-height: 1.5;
+    font-family: var(--font-serif);
+    font-size: 2.125rem;
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--ink-deep);
   }
 
   @media (min-width: 640px) {
     h1 {
-      font-size: 38px;
+      font-size: 2.75rem;
     }
   }
 
-  /* Repliables : marqueurs ASCII au lieu de chevrons. */
+  h2 {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 400;
+    line-height: 1.25;
+    color: var(--ink-deep);
+  }
+
+  /* Repliables : un chevron qui tourne à l'ouverture. */
   summary {
     cursor: pointer;
     list-style: none;
@@ -146,41 +185,34 @@
   }
 
   details:not(.plain) > summary::before {
-    content: "[+] ";
+    content: "";
+    display: inline-block;
+    width: 0.45em;
+    height: 0.45em;
+    margin: 0 0.6em 0.12em 0.1em;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform 0.15s;
+    color: var(--mute);
   }
 
   details[open]:not(.plain) > summary::before {
-    content: "[-] ";
+    transform: rotate(45deg);
   }
 
-  /* Boutons radio en ASCII : ( ) puis (x). */
-  input[type="radio"] {
-    appearance: none;
-    margin: 0;
-    font: inherit;
-    cursor: pointer;
-  }
-
-  /* Les marqueurs d'état ( ), [ ] et □ sont en stone : 4,9:1 en clair, 5,5:1 en sombre. */
-  input[type="radio"]::before {
-    content: "( )";
-    color: var(--stone);
-  }
-
-  input[type="radio"]:checked::before {
-    content: "(x)";
-    color: var(--ink);
-    font-weight: 700;
+  /* Cases et boutons radio natifs, à la couleur du site. */
+  input[type="radio"],
+  input[type="checkbox"] {
+    accent-color: var(--accent);
+    width: 1rem;
+    height: 1rem;
+    margin-top: 0.2rem;
   }
 
   :focus-visible {
-    outline: 2px solid var(--ink);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
-  }
-
-  /* Sur la surface sombre (accueil, chrono), l'anneau d'encre se confondrait avec le fond. */
-  .bg-surface-dark :focus-visible {
-    outline-color: var(--on-dark);
   }
 
   /* Tailwind 4 rend aux boutons le curseur par défaut : on remet la main. */
@@ -194,6 +226,13 @@
   button:disabled {
     cursor: not-allowed;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before {
+      transition: none !important;
+    }
+  }
 }
 
 .math-markdown p {
@@ -206,4 +245,9 @@
   overflow-x: auto;
   overflow-y: hidden;
   padding: 0.25rem 0;
+}
+
+/* Une formule courte dans une ligne de liste ne se coupe pas au milieu. */
+.nowrap-math .katex {
+  white-space: nowrap;
 }

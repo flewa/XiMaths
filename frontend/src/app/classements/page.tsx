@@ -88,12 +88,11 @@ export default async function RankingsPage({ searchParams }: { searchParams: Pro
       </Tabs>
 
       <div className="mt-8 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
-        <h2 className="font-bold">
+        <h2>
           {pantheon ? "Panthéon des points cumulés" : board.board_label}
           {board.week_start && board.week_end && (
-            <span className="ml-2 font-normal text-mute">
-              · semaine {weekRange(board.week_start, board.week_end)} [
-              {board.final ? "définitif" : "provisoire"}]
+            <span className="ml-2 font-sans text-base text-mute">
+              semaine {weekRange(board.week_start, board.week_end)} ({board.final ? "définitif" : "provisoire"})
             </span>
           )}
         </h2>
@@ -212,7 +211,7 @@ function MyPosition({ board }: { board: Leaderboard }) {
   }
   const { rank, points, message } = board.me;
   if (rank === null || points === null) {
-    return <p className="mt-6 text-body">[-] {message}</p>;
+    return <p className="mt-6 text-body">{message}</p>;
   }
   const week = board.next_week ? "cette semaine-là" : "cette semaine";
   const scope =
@@ -223,7 +222,7 @@ function MyPosition({ board }: { board: Leaderboard }) {
         : `en ${board.board} ${week}`;
   return (
     <p className="mt-6">
-      [+] Tu es <strong>{ordinal(rank)}</strong> sur {board.total} {scope}
+      Tu es <strong>{ordinal(rank)}</strong> sur {board.total} {scope}
       {board.peers_level && `, parmi les ${board.peers_level}`}, avec{" "}
       {points > 1 ? `${points} points` : `${points} point`}.
     </p>

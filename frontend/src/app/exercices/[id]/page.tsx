@@ -10,6 +10,8 @@ import {
   VoteButton,
 } from "@/components/ContributionForms";
 import { ApiUnavailable, Difficulty, LevelTags, License, logApiError } from "@/components/ExerciseMeta";
+import { secondaryButtonClass } from "@/components/Form";
+import { Icon } from "@/components/Icon";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { ReportButton } from "@/components/ReportButton";
 import { Tag } from "@/components/Tag";
@@ -30,8 +32,8 @@ import { excerpt } from "@/lib/seo";
 type Props = { params: Promise<{ id: string }> };
 
 // Sections espacées, titrées par un libellé gras au-dessus d'un filet.
-const section = "mt-12 sm:mt-20";
-const sectionTitle = "border-b border-hairline pb-2 font-bold";
+const section = "mt-12 sm:mt-16";
+const sectionTitle = "mb-3";
 
 /** Pourquoi le visiteur ne peut pas voter pour ce contenu, ou null s'il le peut. */
 function voteBlocker(me: Me | null, author: string | null) {
@@ -122,7 +124,10 @@ export default async function ExercisePage({ params }: Props) {
         <h2 id="enonce" className={sectionTitle}>
           Énoncé
         </h2>
-        <MathMarkdown>{exercise.statement}</MathMarkdown>
+        {/* L'énoncé, comme dans un manuel : filet corail à gauche. */}
+        <div className="rounded-r-xl border-l-2 border-accent bg-surface-soft px-5 py-1 sm:px-6">
+          <MathMarkdown>{exercise.statement}</MathMarkdown>
+        </div>
       </section>
 
       {exercise.hints.length > 0 && (
@@ -162,11 +167,12 @@ export default async function ExercisePage({ params }: Props) {
             ))}
             {!pending && (
               <>
-                <p className="mt-3">
-                  <Link href={`/exercices/${exercise.id}/chrono`} className="underline underline-offset-4">
-                    [⏱] S&apos;entraîner en temps limité
+                <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <Link href={`/exercices/${exercise.id}/chrono`} className={secondaryButtonClass}>
+                    <Icon name="timer" size={16} />
+                    S&apos;entraîner en temps limité
                   </Link>
-                  <span className="text-mute"> · ou rédige librement ci-dessous</span>
+                  <span className="text-mute">ou rédige librement ci-dessous</span>
                 </p>
                 <SolutionForm exerciseId={exercise.id} transcription={transcription} />
               </>
@@ -205,7 +211,7 @@ export default async function ExercisePage({ params }: Props) {
           <ul className="mt-3 space-y-1">
             {exercise.variants.map((variant) => (
               <li key={variant.id}>
-                <span className="text-mute">[~] </span>
+                
                 <Link href={`/exercices/${variant.id}`} className="underline underline-offset-4">
                   {variant.title}
                 </Link>
@@ -275,7 +281,7 @@ function MySolutionCard({ solution }: { solution: MySolution }) {
       </details>
       {solution.integrity_question && solution.integrity_signal_id && (
         <div className="mt-3 border-l-2 border-hairline-strong pl-3">
-          <p className="text-body">[?] {solution.integrity_question}</p>
+          <p className="text-body">{solution.integrity_question}</p>
           <IntegrityAnswer signalId={solution.integrity_signal_id} initial={solution.integrity_answer} />
         </div>
       )}
@@ -285,7 +291,7 @@ function MySolutionCard({ solution }: { solution: MySolution }) {
           <ul className="mt-1 space-y-1 text-body">
             {solution.feedback.map((feedback, index) => (
               <li key={index}>
-                <span className="text-mute">[-] </span>
+                
                 {feedback}
               </li>
             ))}

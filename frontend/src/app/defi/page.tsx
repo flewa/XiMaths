@@ -35,10 +35,10 @@ function Attempt({ attempt }: { attempt: NonNullable<DailyChallenge["attempt"]> 
       </Link>
     );
   }
-  if (attempt.status === "abandonnee") return <p className="text-mute">[-] Abandonné : à demain.</p>;
+  if (attempt.status === "abandonnee") return <p className="text-mute">Abandonné : à demain.</p>;
   return (
     <p>
-      {attempt.answer_correct ? `[+] Réponse juste : +${attempt.answer_points} points` : "[-] Réponse non reconnue"}
+      {attempt.answer_correct ? `Réponse juste : +${attempt.answer_points} points` : "Réponse non reconnue"}
       {" · "}
       <Link href={`/entrainement/${attempt.session_id}`} className="underline underline-offset-4">
         voir mon rendu
@@ -51,7 +51,7 @@ function ChallengeCard({ challenge, me }: { challenge: DailyChallenge; me: Me | 
   return (
     <li className="py-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-bold">
+        <h2>
           {challenge.level_name} <span className="font-normal text-mute">· {challenge.exercise_title}</span>
         </h2>
         {challenge.attempt && <Tag strong>{ATTEMPT_LABELS[challenge.attempt.status]}</Tag>}
@@ -102,7 +102,7 @@ export default async function ChallengePage() {
       <ul className="mt-6 space-y-2 text-body">
         {RULES.map((rule) => (
           <li key={rule} className="flex gap-2">
-            <span className="shrink-0 text-mute">[+]</span>
+            <span aria-hidden="true" className="mt-[0.6em] size-1.5 shrink-0 rounded-full bg-stone" />
             <span>{rule}</span>
           </li>
         ))}

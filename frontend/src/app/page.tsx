@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { ExerciseList } from "@/components/ExerciseList";
-import { FilterChip, Tabs } from "@/components/FilterChip";
 import { HowItWorks, MemberHero, VisitorHero } from "@/components/HomeHero";
+import { LevelPicker } from "@/components/LevelPicker";
 import { fetchDailyChallenges, fetchFeed, fetchLevels, fetchMe, fetchProgress } from "@/lib/api";
 
 // Valeur de ?niveau= pour le fil de tous les niveaux.
@@ -37,53 +37,45 @@ export default async function Home({
 
   return (
     <>
-      {/* La seule surface sombre de la page : un terminal, qui accueille ou dit quoi faire. */}
       {me ? (
-        <MemberHero me={me} progress={progress} challenges={challenges} level={level} browseHref={browseHref} />
+        <MemberHero me={me} progress={progress} challenges={challenges} />
       ) : (
         <>
-          <VisitorHero feed={feed} level={level} browseHref={browseHref} />
+          <VisitorHero />
           <HowItWorks />
         </>
       )}
 
-      <h2 className="sr-only">Le fil</h2>
-      <Tabs label="Choisir un niveau" className="mt-12">
-        <FilterChip href={`/?niveau=${ALL_LEVELS}`} label="Tous" active={!level} />
-        {levels.map((item) => (
-          <FilterChip
-            key={item.code}
-            href={`/?niveau=${item.code}`}
-            label={item.code}
-            title={item.name}
-            active={level === item.code}
+      <section aria-labelledby="fil" className="mt-14">
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 id="fil">Exercices</h2>
+          <LevelPicker
+            levels={levels}
+            current={level}
+            hrefFor={(code) => `/?niveau=${code ?? ALL_LEVELS}`}
           />
-        ))}
-      </Tabs>
+        </div>
+        <p className="mb-4 mt-1.5 text-sm text-mute">
+          Ceux dont on parle, ceux qui attendent leur première solution, et quelques nouveautés au hasard.
+        </p>
 
-      <p className="py-3 text-sm text-mute">
-        Le fil mélange les exercices en vogue, des exercices récents qui attendent leurs premières
-        solutions, et des nouveautés tirées au hasard.
-      </p>
+        {feed.length === 0 ? (
+          <p className="border-t border-hairline py-6 text-mute">
+            Aucun exercice publié à ce niveau.{" "}
+            <Link href="/exercices/nouveau" className="text-ink underline decoration-stone underline-offset-4">
+              Publier le premier
+            </Link>
+          </p>
+        ) : (
+          <ExerciseList exercises={feed} />
+        )}
 
-      {feed.length === 0 ? (
-        <p className="border-t border-hairline py-6">
-          Aucun exercice publié à ce niveau.{" "}
-          <Link href="/exercices/nouveau" className="underline underline-offset-4">
-            Publier le premier
+        <p className="mt-5">
+          <Link href={browseHref} className="text-mute underline decoration-stone underline-offset-4 hover:text-ink">
+            Voir tout le catalogue{level ? ` de ${level}` : ""}
           </Link>
         </p>
-      ) : (
-        <div className="border-t border-hairline">
-          <ExerciseList exercises={feed} />
-        </div>
-      )}
-
-      <p className="mt-6">
-        <Link href={browseHref} className="underline underline-offset-4">
-          Tout le catalogue{level ? ` de ${level}` : ""} : récents, populaires, sans solution →
-        </Link>
-      </p>
+      </section>
     </>
   );
 }

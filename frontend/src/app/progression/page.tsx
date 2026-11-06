@@ -3,10 +3,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
+import { Icon } from "@/components/Icon";
+import { ProgressBar } from "@/components/ProgressBar";
 import { DeleteGoalButton, GoalForm, VacationForm, WeeklyGoalForm } from "@/components/ProgressForms";
 import { Tag } from "@/components/Tag";
 import { type ContributorLevel, type Skill, type WeekStatus, fetchProgress, fetchTopics } from "@/lib/api";
-import { dateFormat, oneDecimal, progressBar, weekRange } from "@/lib/labels";
+import { dateFormat, oneDecimal, weekRange } from "@/lib/labels";
 
 export const metadata: Metadata = { title: "Ma progression" };
 
@@ -22,19 +24,20 @@ function plus(iso: string, days: number) {
   return date.toISOString().slice(0, 10);
 }
 
-const STATUS_MARK: Record<WeekStatus, string> = { atteint: "[+]", joker: "[j]", vacances: "[~]", manque: "[-]" };
+// Pastille de chaque semaine passée : corail atteinte, grise sinon.
+const STATUS_DOT: Record<WeekStatus, string> = { atteint: "bg-accent", joker: "bg-mute", vacances: "bg-stone", manque: "bg-surface-card" };
 
 function LevelLine({ contributor }: { contributor: ContributorLevel }) {
   if (contributor.next === null) {
     return (
-      <p className="font-mono tabular-nums">
-        <span aria-hidden="true">{progressBar(1, 1)}</span> {contributor.points} points · niveau maximal
+      <p className="flex flex-wrap items-center gap-3 tabular-nums">
+        <ProgressBar done={1} target={1} /> {contributor.points} points, niveau maximal
       </p>
     );
   }
   return (
-    <p className="font-mono tabular-nums">
-      <span aria-hidden="true">{progressBar(contributor.points - contributor.floor, contributor.next - contributor.floor)}</span>{" "}
+    <p className="flex flex-wrap items-center gap-x-3 gap-y-1 tabular-nums">
+      <ProgressBar done={contributor.points - contributor.floor} target={contributor.next - contributor.floor} />
       {contributor.points} /{" "}
       {contributor.next} points <span className="text-mute">pour le niveau {contributor.level + 1}</span>
     </p>
@@ -52,8 +55,8 @@ function SkillRow({ skill }: { skill: Skill }) {
             : `${skill.solved} exercice${skill.solved > 1 ? "s" : ""} résolu${skill.solved > 1 ? "s" : ""}`}
         </span>
       </div>
-      <p className="mt-1 font-mono tabular-nums">
-        <span aria-hidden="true">{progressBar(skill.mastery, 5)}</span> {oneDecimal.format(skill.mastery)} / 5
+      <p className="mt-1.5 flex items-center gap-3 tabular-nums">
+        <ProgressBar done={skill.mastery} target={5} /> {oneDecimal.format(skill.mastery)} / 5
       </p>
       <p className="text-sm text-mute">
         {skill.next ? (
@@ -94,22 +97,28 @@ export default async function ProgressPage() {
       </p>
 
       <section aria-labelledby="this-week" className="mt-10">
-        <h2 id="this-week" className="border-b border-hairline pb-2 font-bold">
+        <h2 id="this-week">
           Cette semaine <span className="font-normal text-mute">· {weekRange(progress.days[0].date, progress.days[6].date)}</span>
         </h2>
         <ol className="mt-4 grid grid-cols-7 gap-1 text-center">
           {progress.days.map((item) => (
             <li key={item.date} className={item.future ? "text-stone" : ""}>
               <span className="block text-sm text-mute">{weekday.format(new Date(`${item.date}T00:00:00Z`))}</span>
-              <span aria-label={item.active ? "actif" : item.future ? "à venir" : "inactif"}>
-                {item.active ? "[x]" : item.future ? " · " : "[ ]"}
+              <span
+                role="img"
+                aria-label={item.active ? "actif" : item.future ? "à venir" : "inactif"}
+                className={`mx-auto mt-1.5 grid size-8 place-items-center rounded-lg ${
+                  item.active ? "bg-accent text-accent-ink" : item.future ? "bg-surface-soft" : "bg-surface-card"
+                }`}
+              >
+                {item.active && <Icon name="check" size={16} />}
               </span>
             </li>
           ))}
         </ol>
         <p className="mt-4">
           {progress.achieved
-            ? `[+] Objectif atteint : ${progress.active_days} jours actifs sur ${progress.goal_days}.`
+            ? `Objectif atteint : ${progress.active_days} jours actifs sur ${progress.goal_days}.`
             : `${progress.active_days} jour${progress.active_days > 1 ? "s" : ""} actif${progress.active_days > 1 ? "s" : ""} sur ${progress.goal_days} · encore ${missing} cette semaine.`}
         </p>
 
@@ -135,7 +144,7 @@ export default async function ProgressPage() {
       </section>
 
       <section aria-labelledby="skills" className="mt-12">
-        <h2 id="skills" className="border-b border-hairline pb-2 font-bold">
+        <h2 id="skills">
           Niveau de contributeur
         </h2>
         <p className="mt-4 text-[28px] font-bold leading-normal tabular-nums">
@@ -161,7 +170,7 @@ export default async function ProgressPage() {
       </section>
 
       <section aria-labelledby="settings" className="mt-12 space-y-8">
-        <h2 id="settings" className="border-b border-hairline pb-2 font-bold">
+        <h2 id="settings">
           Mon rythme
         </h2>
         <WeeklyGoalForm days={progress.goal_days} />
@@ -177,7 +186,7 @@ export default async function ProgressPage() {
       </section>
 
       <section aria-labelledby="goals" className="mt-12">
-        <h2 id="goals" className="border-b border-hairline pb-2 font-bold">
+        <h2 id="goals">
           Mes objectifs
         </h2>
         {progress.goals.length === 0 ? (
@@ -193,8 +202,8 @@ export default async function ProgressPage() {
                   <span className="font-medium">{goal.title}</span>
                   <DeleteGoalButton goalId={goal.id} />
                 </div>
-                <p className="mt-2 font-mono tabular-nums">
-                  {progressBar(goal.done, goal.target)} {goal.done} / {goal.target}
+                <p className="mt-2 flex flex-wrap items-center gap-x-3 tabular-nums">
+                  <ProgressBar done={goal.done} target={goal.target} /> {goal.done} / {goal.target}
                   {goal.per_week && <span className="text-mute"> cette semaine</span>}
                 </p>
                 <p className="text-sm text-mute">
@@ -213,14 +222,14 @@ export default async function ProgressPage() {
 
       {progress.history.length > 0 && (
         <section aria-labelledby="history" className="mt-12">
-          <h2 id="history" className="border-b border-hairline pb-2 font-bold">
+          <h2 id="history">
             Semaines passées
           </h2>
           <ul className="mt-2 divide-y divide-hairline">
             {progress.history.map((week) => (
               <li key={week.week} className="flex flex-wrap items-center justify-between gap-2 py-2">
                 <span>
-                  <span className="text-mute">{STATUS_MARK[week.status]}</span>{" "}
+                  <span aria-hidden="true" className={`mr-2.5 inline-block size-2 rounded-full ${STATUS_DOT[week.status]}`} />
                   {weekRange(week.week_start, plus(week.week_start, 6))}
                 </span>
                 <span className="text-sm text-mute">

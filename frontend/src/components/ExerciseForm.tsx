@@ -38,18 +38,12 @@ function duplicateCandidates(body: unknown) {
 export const LATEX_HELP =
   "Markdown et LaTeX : $x^2$ dans le texte, $$\\sum_n u_n$$ en bloc. Macros disponibles : \\R, \\N, \\Z, \\Q, \\C, \\K.";
 
-/** Case à cocher façon terminal : [ ] ou [x]. */
+/** Choix multiple en pastille : elle se remplit quand elle est cochée. */
 function Chip({ name, value, label }: { name: string; value: string; label: string }) {
   return (
-    <label className="group cursor-pointer rounded-sm px-2 py-1 hover:bg-surface-soft has-focus-visible:outline has-focus-visible:outline-1 has-focus-visible:outline-ink">
+    <label className="cursor-pointer rounded-full border border-hairline-strong px-3 py-1 text-sm text-mute hover:text-ink has-checked:border-accent has-checked:bg-accent-soft has-checked:text-accent-text has-focus-visible:outline-2 has-focus-visible:outline-accent has-focus-visible:outline">
       <input type="checkbox" name={name} value={value} className="sr-only" />
-      <span aria-hidden="true" className="text-stone group-has-checked:hidden">
-        [ ]
-      </span>
-      <span aria-hidden="true" className="hidden font-bold group-has-checked:inline">
-        [x]
-      </span>{" "}
-      <span className="group-has-checked:font-medium">{label}</span>
+      {label}
     </label>
   );
 }
