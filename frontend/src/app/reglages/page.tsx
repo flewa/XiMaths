@@ -13,7 +13,7 @@ import {
   ThemeChoice,
 } from "@/components/Settings";
 import { fetchLevels, fetchMe, fetchPushKey } from "@/lib/api";
-import { THEME_COOKIE, type Theme } from "@/lib/site";
+import { DEFAULT_THEME, THEME_COOKIE, type Theme } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Réglages", robots: { index: false } };
 
@@ -27,7 +27,7 @@ export default async function SettingsPage() {
   }
   const [me, levels, pushKey] = data;
   if (!me) redirect("/connexion?suivant=/reglages");
-  const theme = ((await cookies()).get(THEME_COOKIE)?.value ?? "system") as Theme;
+  const theme = ((await cookies()).get(THEME_COOKIE)?.value ?? DEFAULT_THEME) as Theme;
 
   return (
     <div className="max-w-[640px]">

@@ -44,7 +44,10 @@ export function NotificationList({ initial, now }: { initial: AppNotification[];
               className="block px-2 py-3 hover:bg-surface-card"
             >
               <span className="flex gap-2">
-                <span className={`shrink-0 ${item.read ? "text-stone" : "font-bold"}`}>{item.read ? "[ ]" : "[•]"}</span>
+                <span
+                  aria-hidden="true"
+                  className={`mt-[0.55em] size-2 shrink-0 rounded-full ${item.read ? "bg-transparent" : "bg-accent"}`}
+                />
                 <span>
                   <span className={item.read ? "" : "font-bold"}>{item.title}</span>
                   {item.body && <span className="block whitespace-pre-line text-sm text-body">{item.body}</span>}

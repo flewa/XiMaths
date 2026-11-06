@@ -1,4 +1,4 @@
-import type { DailyChallenge, Progress, Skill } from "./api";
+import type { DailyChallenge, Skill } from "./api";
 
 /** Chapitre où proposer le prochain exercice : celui où le membre a le plus résolu
  * (on continue sur sa lancée), puis le mieux maîtrisé ; null s'il n'y a rien à proposer. */
@@ -14,9 +14,4 @@ export function nextSkill(skills: Skill[]): Skill | null {
 export function openChallenge(challenges: DailyChallenge[], level: string | null) {
   const mine = challenges.find((challenge) => challenge.level === level) ?? null;
   return mine && mine.attempt === null ? mine : null;
-}
-
-/** La semaine en cours en une ligne : ■ jour actif, □ jour passé sans activité, · à venir. */
-export function weekLine(days: Progress["days"]) {
-  return days.map((day) => (day.active ? "■" : day.future ? "·" : "□")).join(" ");
 }

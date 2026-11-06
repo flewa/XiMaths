@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { DailyChallenge, Skill } from "./api";
-import { nextSkill, openChallenge, weekLine } from "./home";
+import { nextSkill, openChallenge } from "./home";
 
 const skill = (topic: string, solved: number, mastery: number, next = true): Skill => ({
   topic,
@@ -33,16 +33,5 @@ describe("openChallenge", () => {
     expect(openChallenge([challenge("L2", false), challenge("L1", false)], "L1")?.level).toBe("L1");
     expect(openChallenge([challenge("L1", true)], "L1")).toBeNull();
     expect(openChallenge([challenge("L1", false)], null)).toBeNull();
-  });
-});
-
-describe("weekLine", () => {
-  it("draws active, missed and future days", () => {
-    const days = [
-      { date: "2026-10-26", active: true, future: false },
-      { date: "2026-10-27", active: false, future: false },
-      { date: "2026-10-28", active: false, future: true },
-    ];
-    expect(weekLine(days)).toBe("■ □ ·");
   });
 });

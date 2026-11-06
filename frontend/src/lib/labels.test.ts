@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { oneDecimal, ordinal, plural, progressBar, relativeTime, weekRange } from "./labels";
+import { oneDecimal, ordinal, plural, relativeTime, weekRange } from "./labels";
 
 describe("ordinal", () => {
   it("writes 1er then 2e, 3e…", () => {
@@ -15,14 +15,6 @@ describe("weekRange", () => {
 
   it("names both months across a month, with 1er", () => {
     expect(weekRange("2026-10-26", "2026-11-01")).toBe("du 26 octobre au 1er novembre");
-  });
-});
-
-describe("progressBar", () => {
-  it("fills in proportion and caps at the target", () => {
-    expect(progressBar(5, 10, 10)).toBe("[#####-----]");
-    expect(progressBar(0, 10, 4)).toBe("[----]");
-    expect(progressBar(12, 10, 4)).toBe("[####]");
   });
 });
 

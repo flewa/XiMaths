@@ -1,169 +1,187 @@
 import Link from "next/link";
 
-import type { DailyChallenge, FeedItem, Me, Progress } from "@/lib/api";
-import { nextSkill, openChallenge, weekLine } from "@/lib/home";
+import type { DailyChallenge, Me, Progress } from "@/lib/api";
+import { nextSkill, openChallenge } from "@/lib/home";
 import { plural } from "@/lib/labels";
 
-const surface = "-mx-4 bg-surface-dark px-4 text-on-dark sm:mx-0 sm:px-8";
-const prompt = "rounded-sm bg-surface-dark-elevated px-3 py-2";
-const quickLinks = "flex flex-wrap gap-x-6 text-sm text-on-dark-mute [&>a]:inline-block [&>a]:py-1 [&>a:hover]:text-on-dark";
+import { primaryButtonClass, secondaryButtonClass } from "./Form";
+import { Icon, type IconName } from "./Icon";
 
-function composition(feed: FeedItem[]) {
-  const count = (reason: FeedItem["reason"]) => feed.filter((item) => item.reason === reason).length;
-  return `${plural(count("tendance"), "tendance")} · ${count("a_resoudre")} à résoudre · ${count("exploration")} à découvrir`;
+const DAY_LETTERS = ["L", "M", "M", "J", "V", "S", "D"];
+const DAY_NAMES = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
+
+/** La semaine en sept cases : pleine si active, cerclée pour aujourd'hui, pâle pour les jours à venir. */
+function WeekSquares({ days }: { days: Progress["days"] }) {
+  const today = days.findLastIndex((day) => !day.future);
+  const active = days.flatMap((day, index) => (day.active ? [DAY_NAMES[index]] : []));
+  return (
+    <span
+      role="img"
+      aria-label={active.length ? `Jours actifs : ${active.join(", ")}` : "Aucun jour actif cette semaine"}
+      className="flex gap-1.5"
+    >
+      {days.map((day, index) => (
+        <span
+          key={day.date}
+          className={`grid size-[22px] place-items-center rounded-md text-[10px] font-semibold ${
+            day.active
+              ? "bg-ink text-canvas"
+              : index === today
+                ? "text-ink ring-[1.5px] ring-mute ring-inset"
+                : "bg-surface-card text-stone"
+          }`}
+        >
+          {DAY_LETTERS[index]}
+        </span>
+      ))}
+    </span>
+  );
 }
 
-type Action = { marker: string; href: string; label: React.ReactNode; detail?: string };
+type Action = { icon: IconName; href: string; label: React.ReactNode; detail?: string; urgent?: boolean };
 
-function actionsFor(me: Me, progress: Progress | null, challenges: DailyChallenge[]): Action[] {
+function actionsFor(me: Me, progress: Progress | null): Action[] {
   const actions: Action[] = [];
   if (me.pending_reviews > 0) {
     actions.push({
-      marker: "[!]",
+      icon: "review",
       href: "/relectures",
-      label: plural(me.pending_reviews, "relecture à rendre", "relectures à rendre"),
+      label: `Rendre ${plural(me.pending_reviews, "relecture")}`,
       detail: "relance à 48 h",
-    });
-  }
-  const challenge = openChallenge(challenges, me.declared_level);
-  if (challenge) {
-    actions.push({
-      marker: "[⏱]",
-      href: "/defi",
-      label: `Défi du jour ${challenge.level} : ${challenge.exercise_title}`,
-      detail: `${challenge.minutes} min, jusqu'à minuit`,
+      urgent: true,
     });
   }
   const skill = progress ? nextSkill(progress.skills) : null;
   if (skill?.next) {
     actions.push({
-      marker: "[>]",
+      icon: "chart",
       href: `/exercices/${skill.next.id}`,
-      label: `Pour progresser en ${skill.topic.toLowerCase()} : ${skill.next.title}`,
-      detail: `difficulté\u00a0${skill.next.difficulty}`,
+      label: `Progresser en ${skill.topic.toLowerCase()} avec « ${skill.next.title} »`,
+      detail: `difficulté ${skill.next.difficulty}`,
     });
   }
   if (me.unread_notifications > 0) {
     actions.push({
-      marker: "[•]",
+      icon: "bell",
       href: "/notifications",
-      label: plural(me.unread_notifications, "notification non lue", "notifications non lues"),
+      label: `Lire ${plural(me.unread_notifications, "notification")}`,
     });
   }
   return actions;
 }
 
-/** Accueil d'un membre : sa semaine, puis ce qui l'attend, du plus pressé au moins pressé. */
-export function MemberHero({
-  me,
-  progress,
-  challenges,
-  level,
-  browseHref,
-}: {
-  me: Me;
-  progress: Progress | null;
-  challenges: DailyChallenge[];
-  level: string | undefined;
-  browseHref: string;
-}) {
-  const actions = actionsFor(me, progress, challenges);
+/** Le défi du jour, mis en page comme un énoncé de manuel : tête en gras, filet à gauche. */
+function ChallengeBlock({ challenge }: { challenge: DailyChallenge }) {
   return (
-    <section aria-labelledby="accroche" className={`${surface} py-8 sm:py-10`}>
-      <p className="text-sm text-on-dark-mute">
-        ximaths ~ {me.username} {level ? `--niveau ${level}` : "--tous-niveaux"}
+    <section aria-labelledby="defi" className="mt-10 rounded-r-xl border-l-2 border-accent bg-surface-soft px-5 py-5 sm:px-6">
+      <p id="defi" className="font-serif text-xl text-ink-deep">
+        <b className="font-bold">Défi du jour.</b>{" "}
+        <span className="ml-1 font-sans text-sm text-mute">
+          {challenge.level}, {challenge.minutes} minutes
+        </span>
       </p>
-      <h1 id="accroche" className="mt-2">
-        Bonjour {me.username}.
-      </h1>
-      {progress && (
-        <Link href="/progression" className={`${prompt} group mt-6 flex flex-wrap items-baseline gap-x-3`}>
-          <span className="text-on-dark-mute">│ semaine</span>
-          <span aria-hidden="true" className="tracking-widest">
-            {weekLine(progress.days)}
-          </span>
-          <span>
-            {progress.active_days}/{progress.goal_days} jours actifs
-            {progress.streak > 0 && (
-              <span className="text-on-dark-mute"> · série de {plural(progress.streak, "semaine")}</span>
-            )}
-          </span>
-          <span aria-hidden="true" className="text-on-dark-mute group-hover:text-on-dark">
-            →
-          </span>
+      <p className="mt-2 font-serif text-2xl text-ink-deep">{challenge.exercise_title}</p>
+      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+        <Link href="/defi" className={primaryButtonClass}>
+          <Icon name="timer" size={16} />
+          Commencer le défi
         </Link>
-      )}
-      <h2 className="sr-only">À faire</h2>
-      {actions.length > 0 ? (
-        <ul className="mt-4">
-          {actions.map((action) => (
-            <li key={action.href}>
-              <Link
-                href={action.href}
-                className="-mx-3 flex gap-3 rounded-sm px-3 py-1.5 hover:bg-surface-dark-elevated"
-              >
-                <span aria-hidden="true" className="shrink-0 text-on-dark-mute">
-                  {action.marker}
-                </span>
-                <span>
-                  {action.label}
-                  {action.detail && <span className="whitespace-nowrap text-on-dark-mute"> · {action.detail}</span>}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mt-4 text-on-dark-mute">[+] Rien ne t&apos;attend : choisis un exercice ci-dessous, ou publies-en un.</p>
-      )}
-      <p className={`mt-6 ${quickLinks}`}>
-        <Link href="/exercices/nouveau">[+] publier un exercice</Link>
-        <Link href={browseHref}>[&gt;] parcourir le catalogue</Link>
-        <Link href="/progression">[~] ma progression</Link>
-      </p>
+        <span className="text-sm text-mute">
+          Jusqu&apos;à {challenge.points_max} points, ouvert jusqu&apos;à minuit.
+        </span>
+      </div>
     </section>
   );
 }
 
-/** Accueil d'un visiteur : la promesse, une action claire, et ce que contient le fil. */
-export function VisitorHero({
-  feed,
-  level,
-  browseHref,
+/** Accueil d'un membre : sa semaine, le défi du jour, puis ce qui l'attend. */
+export function MemberHero({
+  me,
+  progress,
+  challenges,
 }: {
-  feed: FeedItem[];
-  level: string | undefined;
-  browseHref: string;
+  me: Me;
+  progress: Progress | null;
+  challenges: DailyChallenge[];
 }) {
+  const actions = actionsFor(me, progress);
+  const challenge = openChallenge(challenges, me.declared_level);
   return (
-    <section aria-labelledby="accroche" className={`${surface} py-10 sm:py-14`}>
-      <p className="text-sm text-on-dark-mute">ximaths ~ fil {level ? `--niveau ${level}` : "--tous-niveaux"}</p>
-      <h1 id="accroche" className="mt-3 max-w-[30ch]">
+    <>
+      <section aria-labelledby="accroche">
+        <h1 id="accroche">Bonjour, {me.username}.</h1>
+        {progress && (
+          <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 text-mute">
+            <WeekSquares days={progress.days} />
+            <p>
+              <strong className="font-medium text-ink">
+                {progress.active_days} {progress.active_days > 1 ? "jours" : "jour"} sur {progress.goal_days}
+              </strong>{" "}
+              cette semaine
+              {progress.streak > 0 && <>, série de {plural(progress.streak, "semaine")}</>}.{" "}
+              <Link href="/progression" className="underline decoration-stone underline-offset-4 hover:text-ink">
+                Ta progression
+              </Link>
+            </p>
+          </div>
+        )}
+      </section>
+
+      {challenge && <ChallengeBlock challenge={challenge} />}
+
+      <section aria-labelledby="a-faire" className="mt-12">
+        <h2 id="a-faire">À faire</h2>
+        {actions.length > 0 ? (
+          <ul className="mt-3">
+            {actions.map((action) => (
+              <li key={action.href}>
+                <Link
+                  href={action.href}
+                  className="-mx-3 flex items-center gap-3.5 rounded-lg px-3 py-2.5 hover:bg-hover"
+                >
+                  <Icon name={action.icon} className={action.urgent ? "text-accent-text" : "text-mute"} />
+                  <span className="min-w-0 flex-1">{action.label}</span>
+                  {action.detail && (
+                    <span className={`hidden whitespace-nowrap text-sm sm:inline ${action.urgent ? "text-accent-text" : "text-mute"}`}>
+                      {action.detail}
+                    </span>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-mute">
+            Rien ne t&apos;attend. Choisis un exercice ci-dessous, ou{" "}
+            <Link href="/exercices/nouveau" className="text-ink underline decoration-stone underline-offset-4">
+              publies-en un
+            </Link>
+            .
+          </p>
+        )}
+      </section>
+    </>
+  );
+}
+
+/** Accueil d'un visiteur : la promesse, et une action claire. */
+export function VisitorHero() {
+  return (
+    <section aria-labelledby="accroche">
+      <h1 id="accroche" className="max-w-[20ch]">
         Des maths du supérieur, résolues et relues par la communauté.
       </h1>
-      <p className="mt-4 max-w-[60ch] text-on-dark-mute">
+      <p className="mt-5 max-w-[58ch] text-lg text-body">
         De la L1 au M2 et en prépa : publie des exercices, propose tes solutions, et fais-les relire par trois
         pairs tirés au sort.
       </p>
-      <p className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
-        <Link
-          href="/inscription"
-          className="inline-block min-h-9 rounded-sm bg-on-dark px-5 py-1 font-medium leading-7 text-surface-dark"
-        >
+      <p className="mt-8 flex flex-wrap items-center gap-3">
+        <Link href="/inscription" className={primaryButtonClass}>
           Créer un compte
         </Link>
-        <Link href="/connexion" className="inline-block py-1 underline underline-offset-4">
+        <Link href="/connexion" className={secondaryButtonClass}>
           J&apos;ai déjà un compte
         </Link>
-      </p>
-      <p className={`mt-8 ${prompt}`}>
-        <span className="text-on-dark-mute">│ </span>
-        {feed.length === 0 ? "aucun exercice à ce niveau pour l'instant" : composition(feed)}
-      </p>
-      <p className={`mt-4 ${quickLinks}`}>
-        <Link href={browseHref}>[&gt;] parcourir le catalogue</Link>
-        <Link href="/defi">[⏱] défi du jour</Link>
-        <Link href="/classements">[#] classements</Link>
       </p>
     </section>
   );
@@ -171,35 +189,30 @@ export function VisitorHero({
 
 const STEPS = [
   {
-    title: "Choisis un exercice",
+    title: "Choisis un exercice.",
     text: "Un fil par niveau, de la L1 au M2 et en prépa, avec les exercices qui attendent leur première solution.",
   },
   {
-    title: "Rédige ta solution",
+    title: "Rédige ta solution.",
     text: "En Markdown et LaTeX, avec l'aperçu en direct, ou en photographiant ta copie manuscrite.",
   },
   {
-    title: "Trois pairs la relisent",
+    title: "Trois pairs la relisent.",
     text: "Validée, elle rapporte des points, des badges et une place au classement de la semaine.",
   },
 ];
 
 export function HowItWorks() {
   return (
-    <section aria-labelledby="comment" className="mt-10">
-      <h2 id="comment" className="sr-only">
-        Comment ça marche
-      </h2>
-      <ol className="grid border-y border-hairline sm:grid-cols-3">
+    <section aria-labelledby="comment" className="mt-14">
+      <h2 id="comment">Comment ça marche</h2>
+      <ol className="mt-5 grid gap-6 sm:grid-cols-3">
         {STEPS.map((step, index) => (
-          <li
-            key={step.title}
-            className="border-t border-hairline py-4 first:border-t-0 sm:border-l sm:border-t-0 sm:px-4 sm:first:border-l-0 sm:first:pl-0"
-          >
-            <p className="font-bold">
-              <span className="text-stone">[{index + 1}]</span> {step.title}
+          <li key={step.title}>
+            <p className="font-serif text-lg text-ink-deep">
+              <span className="text-accent-text">{index + 1}.</span> <b className="font-bold">{step.title}</b>
             </p>
-            <p className="mt-1 text-sm text-body">{step.text}</p>
+            <p className="mt-1.5 text-[15px] text-mute">{step.text}</p>
           </li>
         ))}
       </ol>

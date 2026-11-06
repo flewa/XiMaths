@@ -21,7 +21,7 @@ Dans l'application de bureau Claude Code, `.claude/launch.json` décrit les deux
 | Dossier ou fichier | Contenu |
 | --- | --- |
 | `backend/` | API Django 5.2 + Django Ninja. Apps : `accounts` (comptes, connexion Google, niveau de confiance), `catalog` (niveaux, chapitres), `content` (exercices, solutions, relectures, votes, tâches planifiées), `duplicates` (détection des doublons), `gamification` (ledger, barème, classements, badges, niveaux de confiance, séries et objectifs), `moderation` (signalements, anti-plagiat, sanctions, appels, questions de compréhension), `notifications`, `training` (chronométré et défi du jour) |
-| `frontend/` | Next.js 16 (App Router), React 19, Tailwind 4, Markdown + KaTeX rendus côté serveur, éditeur CodeMirror 6. Design décrit dans `frontend/DESIGN-opencode.ai.md`, avec un mode sombre |
+| `frontend/` | Next.js 16 (App Router), React 19, Tailwind 4, Markdown + KaTeX rendus côté serveur, éditeur CodeMirror 6. Design : barre latérale, titres dans la police des formules (Computer Modern, via KaTeX), un seul accent corail ; sombre par défaut, clair au choix (jetons dans `src/app/globals.css`) |
 | `dev.sh` | Lancement local en une commande : dépendances, base de démonstration, API et front |
 | `deploy/` | Mise en ligne sur un serveur (`install.sh`) et mises à jour (`update.sh`) |
 | `marketing/tiktok/` | Vidéos TikTok en Remotion : scripts, captures de l'application, voix off ElevenLabs ([mode d'emploi](marketing/tiktok/README.md)) |
@@ -135,7 +135,7 @@ uv run python manage.py scan_duplicates --reindex --all   # après un changement
 
 ## Interface
 
-- **Accueil d'un membre** : un terminal qui dit quoi faire, du plus pressé au moins pressé (relectures à rendre, défi du jour de son niveau, prochain exercice tiré de la carte de compétences, notifications non lues), avec la semaine en cours. Un visiteur voit la promesse, un bouton d'inscription et les trois étapes du site.
+- **Accueil d'un membre** : sa semaine en sept cases, le défi du jour de son niveau présenté comme un énoncé de manuel, puis ce qui l'attend (relectures à rendre, prochain exercice tiré de la carte de compétences, notifications non lues). Un visiteur voit la promesse, un bouton d'inscription et les trois étapes du site.
 - **Mobile et tablette** (sous 1 024 px) : barre d'onglets en bas d'écran, à portée du pouce (Fil, Parcourir, Publier, Défi, Moi), masquée pendant une session chronométrée ; en-tête réduit au logo, aux notifications et au menu.
 - **Accessibilité** : contrastes d'au moins 4,5:1 (marqueurs d'état, textes sur la surface sombre, indications des champs), anneau de focus de 2 px sur toutes les surfaces, lien « Aller au contenu », cibles tactiles d'au moins 24 px, onglets qui ramènent l'onglet actif dans la vue.
 

@@ -104,19 +104,13 @@ export function TrainingStart({
           </label>
         ))}
       </fieldset>
-      <label className="group flex cursor-pointer gap-2">
+      <label className="flex cursor-pointer gap-2.5">
         <input
           type="checkbox"
           checked={extraTime}
           onChange={(event) => setExtraTime(event.target.checked)}
-          className="sr-only"
+          className="shrink-0"
         />
-        <span aria-hidden="true" className="shrink-0 text-stone group-has-checked:hidden">
-          [ ]
-        </span>
-        <span aria-hidden="true" className="hidden shrink-0 font-bold group-has-checked:inline">
-          [x]
-        </span>
         <span>
           J&apos;ai un tiers-temps <span className="text-mute">· durée ×1,33, comme aux concours</span>
         </span>
@@ -278,7 +272,7 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
 
   return (
     <div>
-      <div className="sticky top-0 z-10 -mx-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 bg-surface-dark px-4 py-3 text-on-dark sm:mx-0">
+      <div className="sticky top-14 z-10 -mx-5 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 bg-surface-dark px-5 py-3 text-on-dark sm:mx-0 sm:rounded-xl lg:top-2">
         <p className="font-medium">
           <span className="text-on-dark-mute">chrono </span>
           {hidden ? (
@@ -286,7 +280,7 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
           ) : (
             <span className={`tabular-nums ${warning ? "text-warning" : ""}`}>{clock(remaining)}</span>
           )}
-          {session.status === "en_pause" && <span className="text-on-dark-mute"> [pause]</span>}
+          {session.status === "en_pause" && <span className="text-on-dark-mute"> (en pause)</span>}
         </p>
         <p className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
           <button type="button" onClick={() => setHidden(!hidden)} className="text-on-dark-mute hover:text-on-dark">
@@ -301,11 +295,11 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
               onClick={() => call("/pause")}
               className="text-on-dark-mute hover:text-on-dark disabled:opacity-50"
             >
-              [pause · {session.pauses_left} restante{session.pauses_left > 1 ? "s" : ""}]
+              Pause ({session.pauses_left} restante{session.pauses_left > 1 ? "s" : ""})
             </button>
           ) : (
             <button type="button" onClick={() => call("/resume")} className="text-on-dark underline">
-              [reprendre]
+              Reprendre
             </button>
           )}
         </p>
@@ -346,7 +340,7 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
       ) : (
         <>
           <section aria-label="Énoncé" className={`mt-6 ${panelClass("enonce")}`}>
-            <h2 className="border-b border-hairline pb-2 font-bold">Énoncé</h2>
+            <h2>Énoncé</h2>
             <MathMarkdown>{session.statement}</MathMarkdown>
             {ranked
               ? session.hints.map((hint, index) => (
@@ -363,13 +357,13 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
                 ))}
             {ranked && session.hints_opened < session.hint_count && (
               <button type="button" onClick={() => call("/hint")} className="mt-3 underline underline-offset-4">
-                [+] Ouvrir l&apos;indication {session.hints_opened + 1} · −10 % de bonus de rapidité
+                Ouvrir l&apos;indication {session.hints_opened + 1} · −10 % de bonus de rapidité
               </button>
             )}
           </section>
 
           <section aria-label="Solution" className={`mt-10 space-y-4 ${panelClass("solution")}`}>
-            <h2 className="border-b border-hairline pb-2 font-bold">Ta solution</h2>
+            <h2>Ta solution</h2>
             {storedDraft && !draft.trim() && (
               <button type="button" onClick={() => setDraft(storedDraft)} className="underline underline-offset-4">
                 [↺] Restaurer le brouillon gardé dans ce navigateur
@@ -413,7 +407,7 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
             </Field>
             {pasteBlocked && (
               <p role="status" className="text-sm text-mute">
-                [i] Collage depuis l&apos;extérieur désactivé pendant le défi.
+                Collage depuis l&apos;extérieur désactivé pendant le défi.
               </p>
             )}
             {session.has_final_answer && (
@@ -432,7 +426,7 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
               </Field>
             )}
             {ranked ? (
-              <p className="text-sm text-mute">[i] IA interdite pendant le défi : ta justification est relue par trois membres.</p>
+              <p className="text-sm text-mute">IA interdite pendant le défi : ta justification est relue par trois membres.</p>
             ) : (
               <fieldset className="space-y-2">
                 <legend className="font-medium">As-tu utilisé une IA ?</legend>
@@ -456,7 +450,7 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
           </section>
 
           <section aria-label="Aperçu" className={`mt-10 ${panelClass("apercu")}`}>
-            <h2 className="border-b border-hairline pb-2 font-bold">Aperçu</h2>
+            <h2>Aperçu</h2>
             {draft.trim() ? (
               <div className="border-l-2 border-hairline-strong bg-surface-soft px-4">
                 <MathMarkdown>{draft}</MathMarkdown>
@@ -504,8 +498,8 @@ function TrainingResult({ session }: { session: TrainingSession }) {
         <h1>{session.exercise_title}</h1>
         <p className="mt-4">
           {ranked
-            ? "[-] Défi abandonné. Ta tentative est consommée, sans autre pénalité."
-            : "[-] Session abandonnée. Rien n'a été envoyé."}
+            ? "Défi abandonné. Ta tentative est consommée, sans autre pénalité."
+            : "Session abandonnée. Rien n'a été envoyé."}
         </p>
         <p className="mt-6">
           <Link href={ranked ? "/defi" : `/exercices/${session.exercise_id}`} className="underline underline-offset-4">
@@ -519,12 +513,12 @@ function TrainingResult({ session }: { session: TrainingSession }) {
   const median = session.median_elapsed_s;
   const verdict =
     session.answer_correct === true
-      ? "[+] Réponse finale juste."
+      ? "Réponse finale juste."
       : session.answer_correct === false
-        ? "[x] Réponse finale différente de celle attendue."
+        ? "Réponse finale différente de celle attendue."
         : session.has_final_answer
-          ? "[-] Réponse finale absente ou illisible : rien à vérifier automatiquement."
-          : "[-] Cet exercice n'a pas de réponse finale à vérifier.";
+          ? "Réponse finale absente ou illisible : rien à vérifier automatiquement."
+          : "Cet exercice n'a pas de réponse finale à vérifier.";
 
   return (
     <div>
@@ -546,21 +540,21 @@ function TrainingResult({ session }: { session: TrainingSession }) {
         <li>{verdict}</li>
         <li>
           {session.solution_status
-            ? `[+] Ta justification est envoyée : ${SOLUTION_STATUS_LABELS[session.solution_status].toLowerCase()}. Trois membres la liront.`
-            : "[-] Justification trop courte : elle n'a pas été envoyée en relecture."}
+            ? `Ta justification est envoyée : ${SOLUTION_STATUS_LABELS[session.solution_status].toLowerCase()}. Trois membres la liront.`
+            : "Justification trop courte : elle n'a pas été envoyée en relecture."}
         </li>
         {ranked && <ChallengePoints session={session} />}
         <li className="text-mute">
-          [i] Sorties d&apos;onglet : {session.focus_losses}. Elles ne sont jamais pénalisées.
+          Sorties d&apos;onglet : {session.focus_losses}. Elles ne sont jamais pénalisées.
         </li>
       </ul>
 
       <section aria-labelledby="auto-evaluation" className="mt-12">
-        <h2 id="auto-evaluation" className="border-b border-hairline pb-2 font-bold">
+        <h2 id="auto-evaluation">
           Quelle difficulté, pour toi ?
         </h2>
         {rated ? (
-          <p className="mt-3">[+] Merci : tu as noté {rated} sur 5. Cela affine la difficulté de l&apos;exercice.</p>
+          <p className="mt-3">Merci : tu as noté {rated} sur 5. Cela affine la difficulté de l&apos;exercice.</p>
         ) : (
           <div className="mt-3 flex flex-wrap gap-2">
             {[1, 2, 3, 4, 5].map((value) => (
@@ -608,18 +602,18 @@ function ChallengePoints({ session }: { session: TrainingSession }) {
     <>
       <li>
         {session.answer_correct
-          ? `[+] +${session.answer_points} points pour la réponse juste${bonus}.`
-          : "[-] Pas de points pour la réponse : elle n'est pas reconnue comme juste."}
+          ? `+${session.answer_points} points pour la réponse juste${bonus}.`
+          : "Pas de points pour la réponse : elle n'est pas reconnue comme juste."}
       </li>
       {session.solution_status && (
         <li>
-          [~] +{session.justification_points} points de plus quand ta justification sera validée par les pairs.
+          +{session.justification_points} points de plus quand ta justification sera validée par les pairs.
         </li>
       )}
       {session.challenge_closes_at && (
         <li className="text-mute">
           {/* Fermeture à minuit : « mercredi 23:59 » plutôt que « jeudi 00:00 ». */}
-          [i] Les solutions des autres seront visibles à la fermeture du défi,{" "}
+          Les solutions des autres seront visibles à la fermeture du défi,{" "}
           {timeFormat.format(new Date(Date.parse(session.challenge_closes_at) - 60_000))}.
         </li>
       )}

@@ -8,3 +8,5 @@ export const SITE_DESCRIPTION =
 
 export type Theme = "system" | "light" | "dark";
 export const THEME_COOKIE = "theme";
+/** Sans choix dans les réglages, le site est sombre. */
+export const DEFAULT_THEME: Theme = "dark";

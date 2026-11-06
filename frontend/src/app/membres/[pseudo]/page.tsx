@@ -58,7 +58,7 @@ export default async function MemberPage({ params }: Props) {
       </dl>
 
       <section aria-labelledby="badges" className="mt-12 sm:mt-20">
-        <h2 id="badges" className="border-b border-hairline pb-2 font-bold">
+        <h2 id="badges">
           Badges
         </h2>
         {member.badges.length === 0 ? (
@@ -68,7 +68,7 @@ export default async function MemberPage({ params }: Props) {
             {member.badges.map((badge) => (
               <li key={badge.slug} className="border-b border-hairline py-3">
                 <p>
-                  <span className="font-bold">[x] {badge.name}</span>
+                  <span className="font-medium">{badge.name}</span>
                   <span className="text-sm text-mute"> · le {dateFormat.format(new Date(badge.awarded_at))}</span>
                 </p>
                 <p className="text-body">{badge.criterion}</p>

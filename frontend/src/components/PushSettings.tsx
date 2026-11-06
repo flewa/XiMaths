@@ -112,7 +112,7 @@ export function PushSettings({ publicKey }: { publicKey: string }) {
       )}
       {state === "on" && (
         <>
-          <p>[x] Activées sur cet appareil.</p>
+          <p>Activées sur cet appareil.</p>
           <button type="button" onClick={disable} disabled={pending} className={secondaryButtonClass}>
             {pending ? "Un instant…" : "Désactiver sur cet appareil"}
           </button>

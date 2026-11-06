@@ -41,7 +41,7 @@ export default async function TrainingRulesPage({ params }: Props) {
       <ul className="mt-6 space-y-2 text-body">
         {RULES.map((rule) => (
           <li key={rule} className="flex gap-2">
-            <span className="shrink-0 text-mute">[+]</span>
+            <span aria-hidden="true" className="mt-[0.6em] size-1.5 shrink-0 rounded-full bg-stone" />
             <span>{rule}</span>
           </li>
         ))}

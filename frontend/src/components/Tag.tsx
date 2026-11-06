@@ -1,14 +1,12 @@
-/**
- * Étiquette. `strong` : la puce sombre du design, pour ce qui doit ressortir ;
- * sinon le texte entre crochets, à la façon d'une page de manuel.
- */
+/** Étiquette. `strong` : corail, pour ce qui doit ressortir ; sinon discrète. */
 export function Tag({ children, strong = false }: { children: React.ReactNode; strong?: boolean }) {
-  if (strong) {
-    return (
-      <span className="inline-block rounded-sm bg-surface-dark px-2 text-sm leading-6 text-on-dark">
-        {children}
-      </span>
-    );
-  }
-  return <span className="text-mute">[{children}]</span>;
+  return (
+    <span
+      className={`inline-block whitespace-nowrap rounded-md px-1.5 text-[13px] font-medium leading-6 ${
+        strong ? "bg-accent-soft text-accent-text" : "bg-surface-card text-mute"
+      }`}
+    >
+      {children}
+    </span>
+  );
 }

@@ -75,7 +75,7 @@ export default async function ArbitrationsPage() {
       )}
       {questions && questions.length > 0 && (
         <section aria-labelledby="questions" className="mt-16">
-          <h2 id="questions" className="border-b border-hairline pb-2 font-bold">
+          <h2 id="questions">
             Questions de compréhension à évaluer
           </h2>
           <p className="mt-2 text-body">

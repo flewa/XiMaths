@@ -12,10 +12,10 @@ export const metadata: Metadata = { title: "Questions de compréhension" };
 const dateTime = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long", timeStyle: "short" });
 
 const OUTCOMES: Partial<Record<ComprehensionQuestion["status"], string>> = {
-  repondue: "[~] Réponse envoyée : un relecteur expérimenté l'évalue.",
-  reussie: "[+] Réponse validée : les points de ta solution sont accordés.",
-  insuffisante: "[-] Réponse jugée insuffisante : ta solution reste publiée, sans ses points de classement. Ce n'est pas une sanction.",
-  sans_reponse: "[-] Pas de réponse dans le délai : ta solution reste publiée, sans ses points de classement. Ce n'est pas une sanction.",
+  repondue: "Réponse envoyée : un relecteur expérimenté l'évalue.",
+  reussie: "Réponse validée : les points de ta solution sont accordés.",
+  insuffisante: "Réponse jugée insuffisante : ta solution reste publiée, sans ses points de classement. Ce n'est pas une sanction.",
+  sans_reponse: "Pas de réponse dans le délai : ta solution reste publiée, sans ses points de classement. Ce n'est pas une sanction.",
 };
 
 function QuestionCard({ question }: { question: ComprehensionQuestion }) {
@@ -65,15 +65,15 @@ export default async function QuestionsPage() {
       </p>
       <ul className="mt-6 space-y-2 text-body">
         <li className="flex gap-2">
-          <span className="shrink-0 text-mute">[+]</span>
+          <span aria-hidden="true" className="mt-[0.6em] size-1.5 shrink-0 rounded-full bg-stone" />
           <span>72 heures pour ouvrir la question, puis 5 minutes pour répondre, sans document.</span>
         </li>
         <li className="flex gap-2">
-          <span className="shrink-0 text-mute">[+]</span>
+          <span aria-hidden="true" className="mt-[0.6em] size-1.5 shrink-0 rounded-full bg-stone" />
           <span>Un relecteur expérimenté évalue ta réponse ; une décision humaine, toujours.</span>
         </li>
         <li className="flex gap-2">
-          <span className="shrink-0 text-mute">[+]</span>
+          <span aria-hidden="true" className="mt-[0.6em] size-1.5 shrink-0 rounded-full bg-stone" />
           <span>Sans réponse ou insuffisante : ta solution reste publiée, sans ses points de classement. Aucune sanction.</span>
         </li>
       </ul>

@@ -291,7 +291,7 @@ export function AppealForm({ type, id }: { type: DecisionType; id: number }) {
   if (!open) {
     return (
       <button type="button" onClick={() => setOpen(true)} className="mt-2 text-sm underline underline-offset-4">
-        [!] Faire appel
+        Faire appel
       </button>
     );
   }
@@ -343,7 +343,7 @@ export function ReviseSolution({ solutionId, body, validated }: { solutionId: nu
   if (!open) {
     return (
       <button type="button" onClick={() => setOpen(true)} className="mt-2 text-sm underline underline-offset-4">
-        [~] {validated ? "Modifier ma solution" : "Compléter ma solution"}
+        {validated ? "Modifier ma solution" : "Compléter ma solution"}
       </button>
     );
   }

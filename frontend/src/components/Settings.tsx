@@ -6,9 +6,9 @@ import { useState } from "react";
 import type { Level, Me } from "@/lib/api";
 import { apiPost } from "@/lib/client-api";
 import { dateFormat } from "@/lib/labels";
-import { THEME_COOKIE, type Theme } from "@/lib/site";
+import { DEFAULT_THEME, THEME_COOKIE, type Theme } from "@/lib/site";
 
-import { AsciiCheckbox, Field, FormMessage, SubmitButton, inputClass } from "./Form";
+import { Checkbox, Field, FormMessage, SubmitButton, inputClass } from "./Form";
 
 export function PreferencesForm({ me, levels }: { me: Me; levels: Level[] }) {
   const router = useRouter();
@@ -51,29 +51,29 @@ export function PreferencesForm({ me, levels }: { me: Me; levels: Level[] }) {
       </Field>
       <fieldset className="space-y-2">
         <legend className="font-medium">Entraînement et classements</legend>
-        <AsciiCheckbox checked={tiersTemps} onChange={setTiersTemps}>
+        <Checkbox checked={tiersTemps} onChange={setTiersTemps}>
           Tiers-temps <span className="text-mute">· durée ×1,33 dans tous les modes chronométrés</span>
-        </AsciiCheckbox>
-        <AsciiCheckbox checked={visible} onChange={setVisible}>
+        </Checkbox>
+        <Checkbox checked={visible} onChange={setVisible}>
           Apparaître dans les classements <span className="text-mute">· et montrer mes points sur mon profil</span>
-        </AsciiCheckbox>
+        </Checkbox>
       </fieldset>
       <fieldset className="space-y-2">
         <legend className="font-medium">Emails</legend>
-        <AsciiCheckbox checked={emails} onChange={setEmails}>
+        <Checkbox checked={emails} onChange={setEmails}>
           Ce qui me concerne directement{" "}
           <span className="text-mute">· retrait d&apos;un contenu, décision de modération, question à mon sujet</span>
-        </AsciiCheckbox>
-        <AsciiCheckbox checked={digest} onChange={setDigest}>
+        </Checkbox>
+        <Checkbox checked={digest} onChange={setDigest}>
           Résumé hebdomadaire <span className="text-mute">· un email le lundi, s&apos;il s&apos;est passé quelque chose</span>
-        </AsciiCheckbox>
+        </Checkbox>
         <p className="text-sm text-mute">Jamais d&apos;email entre 22 h et 8 h : ils partent à 8 h.</p>
       </fieldset>
       <fieldset className="space-y-2">
         <legend className="font-medium">Notifications</legend>
-        <AsciiCheckbox checked={challenge} onChange={setChallenge}>
+        <Checkbox checked={challenge} onChange={setChallenge}>
           Défi du jour <span className="text-mute">· une notification à son ouverture, dans mon niveau déclaré</span>
-        </AsciiCheckbox>
+        </Checkbox>
       </fieldset>
       <FormMessage error={result.error} success={result.success} />
       <SubmitButton pending={pending}>Enregistrer</SubmitButton>
@@ -82,14 +82,15 @@ export function PreferencesForm({ me, levels }: { me: Me; levels: Level[] }) {
 }
 
 const THEMES: { value: Theme; label: string }[] = [
-  { value: "system", label: "Comme le système" },
-  { value: "light", label: "Clair" },
   { value: "dark", label: "Sombre" },
+  { value: "light", label: "Clair" },
+  { value: "system", label: "Comme le système" },
 ];
 
 function saveThemeCookie(value: Theme) {
+  // Le sombre est le thème par défaut : pas besoin de cookie pour lui.
   document.cookie =
-    value === "system"
+    value === DEFAULT_THEME
       ? `${THEME_COOKIE}=; path=/; max-age=0; samesite=lax`
       : `${THEME_COOKIE}=${value}; path=/; max-age=31536000; samesite=lax`;
 }
@@ -148,7 +149,7 @@ export function AcademicEmailForm({ me }: { me: Me }) {
     <div className="space-y-4">
       {me.academic_verified_at ? (
         <p>
-          [x] Vérifiée le {dateFormat.format(new Date(me.academic_verified_at))}{" "}
+          Vérifiée le {dateFormat.format(new Date(me.academic_verified_at))}{" "}
           <span className="text-mute">· une adresse @{me.academic_domain}</span>
         </p>
       ) : (

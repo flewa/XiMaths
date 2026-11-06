@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import type { ReportTarget } from "@/lib/api";
 import { apiPost } from "@/lib/client-api";
+import { Icon } from "./Icon";
 
 import { Field, FormMessage, SubmitButton, inputClass } from "./Form";
 
@@ -62,9 +63,10 @@ export function ReportButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="text-sm text-mute hover:text-ink hover:underline"
+        className="inline-flex items-center gap-1.5 text-sm text-mute hover:text-ink"
       >
-        [!] signaler
+        <Icon name="flag" size={15} />
+        Signaler
       </button>
     );
   }
