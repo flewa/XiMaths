@@ -375,9 +375,9 @@ async function get<T>(path: string): Promise<T | null> {
 
 export type SitemapEntry = { id: number; updated_at: string };
 
-/** Données publiques, sans cookie : les mêmes pour tous, donc mises en cache une heure. */
+/** Données publiques, lues sans cookie de session. */
 async function getPublic<T>(path: string): Promise<T> {
-  const response = await fetch(`${API_URL}/api${path}`, { next: { revalidate: 3600 } });
+  const response = await fetch(`${API_URL}/api${path}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`API ${path} : HTTP ${response.status}`);
   return response.json();
 }
