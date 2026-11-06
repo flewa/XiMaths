@@ -5,6 +5,7 @@ cookie de session suffit, et chaque écriture porte l'en-tête X-CSRFToken.
 """
 
 import json
+import logging
 from datetime import datetime
 
 from django.conf import settings
@@ -41,6 +42,7 @@ from .services import (
 )
 
 router = Router(tags=["comptes"])
+logger = logging.getLogger(__name__)
 
 
 class MeOut(Schema):
@@ -194,7 +196,12 @@ def signup(request, payload: SignupIn):
     user.save()
 
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-    send_verification_email(user)
+    try:
+        send_verification_email(user)
+    except OSError as error:  # erreurs SMTP (SMTPException en hérite) et de connexion au relais
+        # Le compte existe déjà : un relais en panne ne doit pas faire échouer l'inscription.
+        # Le membre redemande l'email depuis son compte.
+        logger.error("Email de vérification non envoyé à l'inscription : %r", error)
     return 201, user
 
 
@@ -245,7 +252,11 @@ def verify_email_view(request, payload: TokenIn):
 def resend_verification(request):
     if request.auth.email_verified_at is not None:
         raise HttpError(409, "Ton adresse email est déjà vérifiée.")
-    send_verification_email(request.auth)
+    try:
+        send_verification_email(request.auth)
+    except OSError as error:
+        logger.error("Email de vérification non envoyé : %r", error)
+        raise HttpError(503, "L'email n'a pas pu partir. Réessaie dans quelques minutes.")
     return 204, None
 
 

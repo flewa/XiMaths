@@ -1,4 +1,6 @@
 import re
+from smtplib import SMTPAuthenticationError
+from unittest import mock
 
 from django.contrib.auth import get_user_model
 from django.core import mail
@@ -42,6 +44,27 @@ class AuthApiTests(TestCase):
         self.assertFalse(me["email_verified"])
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("/verifier-email?token=", mail.outbox[0].body)
+
+    def test_signup_succeeds_even_if_the_email_cannot_be_sent(self):
+        refused = SMTPAuthenticationError(535, b"Authentication failed")
+        with (
+            mock.patch("accounts.services.send_mail", side_effect=refused),
+            self.assertLogs("accounts.api", "ERROR"),
+        ):
+            self.assertEqual(self.signup().status_code, 201)
+
+        self.assertEqual(self.client.get("/api/auth/me").json()["username"], "lea")
+
+    def test_resend_says_when_the_email_cannot_be_sent(self):
+        self.signup()
+        with (
+            mock.patch("accounts.services.send_mail", side_effect=ConnectionRefusedError()),
+            self.assertLogs("accounts.api", "ERROR"),
+        ):
+            response = post(self.client, "/api/auth/resend-verification")
+
+        self.assertEqual(response.status_code, 503)
+        self.assertTrue(response.json()["detail"])
 
     def test_the_verification_link_verifies_the_email(self):
         self.signup()
