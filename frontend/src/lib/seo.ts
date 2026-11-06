@@ -36,6 +36,17 @@ const SUBSCRIPTS: Record<string, string> = {
  * \sum_{n \geq 1} \frac{1}{n^2}. Une approximation, qui n'a pas à être réversible. */
 export function latexToText(latex: string) {
   let text = latex
+    // Matrice : (0 0 1 ; 1 0 0 ; 0 1 0), lignes séparées par « ; ».
+    .replace(/\\begin\{[pbvBV]?matrix\}([\s\S]*?)\\end\{[pbvBV]?matrix\}/g, (_, body: string) =>
+      `(${body
+        .split("\\\\")
+        .map((row) => row.replace(/&/g, " ").replace(/\s+/g, " ").trim())
+        .filter(Boolean)
+        .join(" ; ")})`,
+    )
+    // Autres environnements (cases, aligned…) : leur contenu seul.
+    .replace(/\\(?:begin|end)\{[a-zA-Z*]+\}/g, " ")
+    .replace(/&/g, " ")
     .replace(/\\\\/g, " ")
     .replace(/\\[,;:! ]/g, " ")
     // Exposants d'un chiffre d'abord : n^2 devient n² avant d'entrer dans une fraction.

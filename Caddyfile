@@ -26,3 +26,10 @@
 		reverse_proxy frontend:3000
 	}
 }
+
+# www.{$SITE_DOMAIN} renvoie vers l'adresse sans www : une seule adresse par page pour les
+# moteurs de recherche. Il faut un enregistrement DNS pour www (A ou CNAME vers le serveur) ;
+# sans lui, Caddy ne peut pas obtenir le certificat de www et le signale dans ses journaux.
+www.{$SITE_DOMAIN} {
+	redir https://{$SITE_DOMAIN}{uri} permanent
+}

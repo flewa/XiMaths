@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-import type { Level } from "@/lib/api";
+import type { Level, Topic } from "@/lib/api";
+import { chapterPath, levelPath } from "@/lib/seo-pages";
 
 import { LogoutButton } from "./AccountControls";
 import { Icon, type IconName } from "./Icon";
@@ -113,7 +114,7 @@ function LevelGroup({
         {levels.map((level) => (
           <li key={level.code}>
             <Link
-              href={`/exercices?niveau=${level.code}`}
+              href={levelPath(level.code)}
               className={`${row} pl-7 text-mute hover:bg-hover hover:text-ink`}
             >
               <span className="grid h-5 min-w-7 place-items-center rounded px-1 text-[11px] font-semibold text-ink bg-selected">
@@ -195,9 +196,11 @@ export function Brand({ className = "" }: { className?: string }) {
 export function SidebarContent({
   account,
   levels,
+  topics,
 }: {
   account: NavAccount | null;
   levels: Level[];
+  topics: Topic[];
 }) {
   const pathname = usePathname();
   const declared = levels.find(
@@ -251,6 +254,30 @@ export function SidebarContent({
           levels={levels.filter((level) => level.track === "prepa")}
           open={declared?.track === "prepa"}
         />
+        {topics.length > 0 && (
+          <details className="plain group">
+            <summary className={`${row} text-mute hover:bg-hover hover:text-ink`}>
+              <Icon
+                name="chevron"
+                size={16}
+                className="-rotate-90 text-stone transition-transform group-open:rotate-0"
+              />
+              Chapitres
+            </summary>
+            <ul>
+              {topics.map((topic) => (
+                <li key={topic.slug}>
+                  <Link
+                    href={chapterPath(topic.slug)}
+                    className={`${row} pl-7 text-mute hover:bg-hover hover:text-ink`}
+                  >
+                    {topic.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
       </nav>
 
       <div className="mt-auto border-t border-hairline pt-3">
@@ -274,9 +301,11 @@ export function SidebarContent({
 export function MobileBar({
   account,
   levels,
+  topics,
 }: {
   account: NavAccount | null;
   levels: Level[];
+  topics: Topic[];
 }) {
   const pathname = usePathname();
   // Le tiroir reste ouvert sur la page où on l'a ouvert : changer de page le referme.
@@ -361,7 +390,7 @@ export function MobileBar({
             >
               <Icon name="close" size={18} />
             </button>
-            <SidebarContent account={account} levels={levels} />
+            <SidebarContent account={account} levels={levels} topics={topics} />
           </div>
         </>
       )}

@@ -9,9 +9,10 @@ import {
   SolutionForm,
   VoteButton,
 } from "@/components/ContributionForms";
-import { ApiUnavailable, Difficulty, LevelTags, License, logApiError } from "@/components/ExerciseMeta";
+import { ApiUnavailable, Difficulty, License, logApiError } from "@/components/ExerciseMeta";
 import { secondaryButtonClass } from "@/components/Form";
 import { Icon } from "@/components/Icon";
+import { JsonLd, breadcrumb } from "@/components/JsonLd";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { ReportButton } from "@/components/ReportButton";
 import { Tag } from "@/components/Tag";
@@ -19,15 +20,19 @@ import {
   fetchExercise,
   fetchMe,
   fetchMySolutions,
+  fetchTopics,
   fetchTranscriptionAvailable,
   nullOnError,
   type ExerciseDetail,
   type Me,
   type MySolution,
   type Solution,
+  type Topic,
 } from "@/lib/api";
 import { AI_USAGE_BADGES, SOLUTION_STATUS_LABELS, dateFormat } from "@/lib/labels";
 import { excerpt } from "@/lib/seo";
+import { chapterPath, levelPath, ofChapter } from "@/lib/seo-pages";
+import { SHARE_IMAGE, SITE_URL } from "@/lib/site";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -62,11 +67,39 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = excerpt(exercise.statement);
   // Un doublon fusionné reste lisible, mais l'adresse de référence est celle du canonique.
   const canonical = `/exercices/${exercise.merged_into ?? exercise.id}`;
+  // « Intégrales de Wallis : exercice d'analyse (L1, MPSI, PCSI) » : ce que l'élève tape.
+  const kind = exercise.topics.length > 0 ? `exercice ${ofChapter(exercise.topics[0])}` : "exercice de maths";
+  const title = `${exercise.title} : ${kind} (${exercise.primary_level})`;
   return {
-    title: exercise.title,
+    title,
     description,
     alternates: { canonical },
-    openGraph: { title: exercise.title, description, type: "article", url: canonical },
+    openGraph: { title: exercise.title, description, type: "article", url: canonical, images: [SHARE_IMAGE] },
+  };
+}
+
+/** Ressource pédagogique schema.org : niveaux, chapitres, licence, auteur. Google n'en tire
+ * plus de résultat enrichi pour les exercices depuis 2026, mais d'autres moteurs la lisent. */
+function exerciseData(exercise: ExerciseDetail, topics: Topic[]) {
+  const url = `${SITE_URL}/exercices/${exercise.id}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "LearningResource",
+    name: exercise.title,
+    description: excerpt(exercise.statement),
+    url,
+    inLanguage: "fr",
+    learningResourceType: "Exercice",
+    educationalLevel: exercise.levels,
+    about: exercise.topics.map((name) => {
+      const topic = topics.find((item) => item.name === name);
+      return { "@type": "Thing", name, ...(topic ? { url: `${SITE_URL}${chapterPath(topic.slug)}` } : {}) };
+    }),
+    isAccessibleForFree: true,
+    license: "https://creativecommons.org/licenses/by-sa/4.0/",
+    datePublished: exercise.published_at,
+    ...(exercise.author ? { author: { "@type": "Person", name: exercise.author } } : {}),
+    publisher: { "@type": "Organization", name: "XiMaths", url: SITE_URL },
   };
 }
 
@@ -74,10 +107,11 @@ export default async function ExercisePage({ params }: Props) {
   const { id } = await params;
   let exercise: ExerciseDetail | null;
   let me: Me | null;
+  let topics: Topic[];
   let mySolutions: MySolution[] = [];
   let transcription = false;
   try {
-    [exercise, me] = await Promise.all([fetchExercise(id), fetchMe()]);
+    [exercise, me, topics] = await Promise.all([fetchExercise(id), fetchMe(), fetchTopics()]);
     if (exercise && me) {
       [mySolutions, transcription] = await Promise.all([
         fetchMySolutions(exercise.id),
@@ -104,10 +138,37 @@ export default async function ExercisePage({ params }: Props) {
         ← Tous les exercices
       </Link>
       <h1 className="mt-3">{exercise.title}</h1>
+      <JsonLd data={exerciseData(exercise, topics)} />
+      <JsonLd
+        data={breadcrumb([
+          ["Accueil", "/"],
+          [exercise.primary_level, levelPath(exercise.primary_level)],
+          [exercise.title, `/exercices/${exercise.id}`],
+        ])}
+      />
       <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-body">
-        <LevelTags levels={exercise.levels} />
+        <span className="flex gap-1.5 font-medium">
+          {exercise.levels.map((code) => (
+            <Link key={code} href={levelPath(code)} className="text-ink hover:underline hover:underline-offset-4">
+              {code}
+            </Link>
+          ))}
+        </span>
         <Difficulty value={exercise.difficulty} withLabel />
-        {exercise.topics.length > 0 && <span>{exercise.topics.join(", ")}</span>}
+        {exercise.topics.length > 0 && (
+          <span className="flex gap-1.5">
+            {exercise.topics.map((name) => {
+              const topic = topics.find((item) => item.name === name);
+              return topic ? (
+                <Link key={name} href={chapterPath(topic.slug)} className="hover:text-ink hover:underline hover:underline-offset-4">
+                  {name}
+                </Link>
+              ) : (
+                <span key={name}>{name}</span>
+              );
+            })}
+          </span>
+        )}
         {exercise.author && (
           <Link href={`/membres/${encodeURIComponent(exercise.author)}`} className="hover:underline">
             par {exercise.author}

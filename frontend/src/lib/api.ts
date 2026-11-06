@@ -375,11 +375,21 @@ async function get<T>(path: string): Promise<T | null> {
 
 export type SitemapEntry = { id: number; updated_at: string };
 
-/** Exercices publiés, sans cookie : le plan du site est le même pour tous et se met en cache. */
-export async function fetchSitemap(): Promise<SitemapEntry[]> {
-  const response = await fetch(`${API_URL}/api/sitemap`, { next: { revalidate: 3600 } });
-  if (!response.ok) throw new Error(`API /sitemap : HTTP ${response.status}`);
+/** Données publiques, sans cookie : les mêmes pour tous, donc mises en cache une heure. */
+async function getPublic<T>(path: string): Promise<T> {
+  const response = await fetch(`${API_URL}/api${path}`, { next: { revalidate: 3600 } });
+  if (!response.ok) throw new Error(`API ${path} : HTTP ${response.status}`);
   return response.json();
+}
+
+/** Ce que liste le plan du site : exercices publiés, niveaux et chapitres. */
+export async function fetchSitemap() {
+  const [exercises, levels, topics] = await Promise.all([
+    getPublic<SitemapEntry[]>("/sitemap"),
+    getPublic<Level[]>("/levels"),
+    getPublic<Topic[]>("/topics"),
+  ]);
+  return { exercises, levels, topics };
 }
 
 export async function fetchLevels() {
@@ -390,9 +400,10 @@ export async function fetchTopics() {
   return (await get<Topic[]>("/topics")) ?? [];
 }
 
-export async function fetchExercises(level?: string, sort: ExerciseSort = "recent") {
+export async function fetchExercises(level?: string, sort: ExerciseSort = "recent", topic?: string) {
   const query = new URLSearchParams({ sort });
   if (level) query.set("level", level);
+  if (topic) query.set("topic", topic);
   return (await get<ExerciseSummary[]>(`/exercises?${query}`)) ?? [];
 }
 

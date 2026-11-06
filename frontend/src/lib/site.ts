@@ -8,5 +8,14 @@ export const SITE_DESCRIPTION =
 
 export type Theme = "system" | "light" | "dark";
 export const THEME_COOKIE = "theme";
+/** Image de partage (app/opengraph-image.png), à redonner aux pages qui définissent leur
+ * propre openGraph : celui-ci remplace celui de la mise en page, image comprise. */
+export const SHARE_IMAGE = {
+  url: "/opengraph-image.png",
+  width: 1200,
+  height: 630,
+  alt: "XiMaths : des maths du supérieur, résolues et relues par la communauté.",
+};
+
 /** Sans choix dans les réglages, le site est sombre. */
 export const DEFAULT_THEME: Theme = "dark";

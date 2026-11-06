@@ -4,8 +4,22 @@ import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { ExerciseList } from "@/components/ExerciseList";
 import { FilterChip, Tabs } from "@/components/FilterChip";
 import { fetchExercises, fetchLevels, type ExerciseSort } from "@/lib/api";
+import { levelPath } from "@/lib/seo-pages";
 
-export const metadata: Metadata = { title: "Parcourir les exercices" };
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ niveau?: string }>;
+}): Promise<Metadata> {
+  const { niveau } = await searchParams;
+  return {
+    title: "Parcourir les exercices",
+    description:
+      "Tous les exercices de maths du supérieur publiés sur XiMaths, de la L1 au M2 et en prépa : récents, populaires, ou sans solution validée.",
+    // Les variantes filtrées ou triées renvoient à une seule adresse : la page du niveau, ou le catalogue.
+    alternates: { canonical: niveau ? levelPath(niveau) : "/exercices" },
+  };
+}
 
 // Valeurs de ?tri= dans l'adresse, et tri correspondant de l'API.
 const SORTS: { value: string; sort: ExerciseSort; label: string }[] = [

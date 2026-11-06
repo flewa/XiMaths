@@ -197,7 +197,11 @@ Depuis la fiche d'un exercice : 15, 30, 45 ou 60 minutes, ou le temps conseillé
 
 ## Référencement
 
-`/sitemap.xml` (pages publiques et exercices publiés, régénéré toutes les heures), `/robots.txt` (pages personnelles exclues), et sur chaque exercice une description tirée de l'énoncé, une adresse canonique (celle du canonique pour un doublon fusionné) et les balises OpenGraph.
+- **Pages d'entrée** par niveau (`/niveaux/mpsi`) et par chapitre (`/chapitres/algebre-lineaire`) : ce que tapent les élèves (« exercices MPSI », « exercices de probabilités »), avec un texte d'introduction propre à chacune (`src/lib/seo-pages.ts`). La barre latérale, les exercices et les pages d'entrée se lient entre eux.
+- **Balises** : sur chaque page publique, un titre parlant (« Intégrales de Wallis : exercice d'analyse (MPSI) »), une description tirée de l'énoncé (formules et matrices en texte lisible), une adresse canonique (le catalogue filtré renvoie à la page du niveau, un doublon fusionné à son canonique), l'image de partage `app/opengraph-image.png`. Pages personnelles, publication, chronomètre et profils en `noindex`.
+- **Données structurées** : nom du site et logo (WebSite, Organization) sur l'accueil, fil d'Ariane (BreadcrumbList) sur les pages d'entrée et les exercices, ressource pédagogique (LearningResource) sur chaque exercice. Google a arrêté en 2026 les résultats enrichis « exercices » : il n'y a pas de balisage qui les rende.
+- **`/sitemap.xml`** (pages fixes, pages d'entrée et exercices publiés, régénéré toutes les heures) et **`/robots.txt`**. `www.` renvoie vers l'adresse sans `www` (Caddy).
+- **À faire une fois en ligne** : déclarer le domaine dans Google Search Console (propriété de type domaine, vérifiée par un enregistrement TXT chez le registraire), y soumettre `https://<domaine>/sitemap.xml`, puis importer le site dans Bing Webmaster Tools depuis Search Console.
 
 ## Tâches planifiées
 
