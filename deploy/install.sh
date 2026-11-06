@@ -105,7 +105,7 @@ done
 curl -fsS -o /dev/null "https://$domain/api/health" \
   || fail "Le site ne répond pas en HTTPS. Regarde : ${COMPOSE[*]} logs caddy backend"
 echo "En ligne : https://$domain"
-# Le stock d'exercices de la rédaction (content/editorial.py), avec ses défis du jour.
+# Le stock d'exercices de la rédaction (content/editorial/), avec ses défis du jour.
 "${COMPOSE[@]}" exec -T backend python manage.py import_exercises
 
 say "[5/6] Compte d'administration (modération : https://$domain/admin/)"

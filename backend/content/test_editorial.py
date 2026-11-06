@@ -38,8 +38,9 @@ class EditorialExercisesTests(TestCase):
         self.assertEqual(Exercise.objects.filter(status=Exercise.Status.PUBLISHED).count(), len(EXERCISES))
         templates = sum("challenge" in spec for spec in EXERCISES)
         self.assertEqual(ChallengeTemplate.objects.count(), templates)
-        # Un défi du jour s'ouvre dans chaque niveau qui a reçu un gabarit.
-        self.assertEqual(Challenge.objects.count(), templates)
+        # Un défi du jour, un seul, s'ouvre dans chaque niveau qui a reçu un gabarit.
+        levels = {spec["primary_level"] for spec in EXERCISES if "challenge" in spec}
+        self.assertEqual(Challenge.objects.count(), len(levels))
 
         self.assertIn(f"Déjà là : {len(EXERCISES)}.", run())
         self.assertEqual(Exercise.objects.count(), len(EXERCISES))
