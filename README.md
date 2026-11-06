@@ -224,9 +224,9 @@ cd /opt/ximaths
 ./deploy/install.sh
 ```
 
-Le script installe Docker s'il manque, écrit `.env.prod` (secrets tirés au hasard, questions pour le domaine et Brevo), vérifie que le domaine pointe vers le serveur, construit et démarre le site, crée le compte d'administration et programme une sauvegarde de la base chaque nuit dans `/var/backups/ximaths` (14 jours gardés). Le site est alors en ligne en HTTPS ; la modération se fait sur `/admin/`.
+Le script installe Docker s'il manque, écrit `.env.prod` (secrets tirés au hasard, questions pour le domaine et Brevo), vérifie que le domaine pointe vers le serveur, construit et démarre le site, publie le stock d'exercices de la rédaction (`content/editorial.py`, sous le compte « XiMaths »), crée le compte d'administration et programme une sauvegarde de la base chaque nuit dans `/var/backups/ximaths` (14 jours gardés). Le site est alors en ligne en HTTPS ; la modération se fait sur `/admin/`.
 
-Mise à jour après un changement du code (sauvegarde, `git pull`, reconstruction, migrations) :
+Mise à jour après un changement du code (sauvegarde, `git pull`, reconstruction, migrations, exercices ajoutés à la rédaction) :
 
 ```bash
 cd /opt/ximaths && ./deploy/update.sh

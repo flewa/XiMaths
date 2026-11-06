@@ -412,7 +412,7 @@ def reject_forbidden_latex(fields):
             )
 
 
-def _draft_fields(payload):
+def draft_fields(payload):
     """Valide un brouillon. Renvoie ses champs, ses niveaux et ses chapitres."""
     hints = [hint.strip() for hint in payload.hints if hint.strip()]
     reject_forbidden_latex(
@@ -451,7 +451,7 @@ def _draft_fields(payload):
 def create_exercise(request, payload: ExerciseIn):
     """Crée un brouillon. La publication est une étape à part, qui vérifie les doublons."""
     user = contributor(request)
-    fields, levels, topics = _draft_fields(payload)
+    fields, levels, topics = draft_fields(payload)
     exercise = Exercise.objects.create(author=user, **fields)
     exercise.levels.set(levels)
     exercise.topics.set(topics)
@@ -465,7 +465,7 @@ def update_draft(request, exercise_id: int, payload: ExerciseIn):
     exercise = get_object_or_404(
         Exercise, pk=exercise_id, author=user, status=Exercise.Status.DRAFT
     )
-    fields, levels, topics = _draft_fields(payload)
+    fields, levels, topics = draft_fields(payload)
     for name, value in fields.items():
         setattr(exercise, name, value)
     exercise.save()
