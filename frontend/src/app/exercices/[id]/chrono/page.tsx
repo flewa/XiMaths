@@ -7,7 +7,7 @@ import { FormMessage } from "@/components/Form";
 import { TrainingStart } from "@/components/Training";
 import { fetchExercise, fetchMe, fetchTrainingOptions } from "@/lib/api";
 
-export const metadata: Metadata = { title: "Entraînement chronométré" };
+export const metadata: Metadata = { title: "Entraînement chronométré", robots: { index: false } };
 
 type Props = { params: Promise<{ id: string }> };
 

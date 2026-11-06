@@ -1,11 +1,32 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { ExerciseList } from "@/components/ExerciseList";
 import { HowItWorks, MemberHero, VisitorHero } from "@/components/HomeHero";
+import { JsonLd } from "@/components/JsonLd";
 import { LevelPicker } from "@/components/LevelPicker";
 import { fetchDailyChallenges, fetchFeed, fetchLevels, fetchMe, fetchProgress } from "@/lib/api";
+import { SITE_URL } from "@/lib/site";
+
+export const metadata: Metadata = {
+  title: { absolute: "XiMaths · Exercices de maths du supérieur, de la L1 au M2 et en prépa" },
+  // Le fil filtré par niveau (?niveau=) reste la même page pour un moteur de recherche.
+  alternates: { canonical: "/" },
+};
+
+// Nom du site et logo dans les résultats de recherche.
+const SITE_DATA = [
+  { "@context": "https://schema.org", "@type": "WebSite", name: "XiMaths", url: `${SITE_URL}/`, inLanguage: "fr" },
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "XiMaths",
+    url: `${SITE_URL}/`,
+    logo: `${SITE_URL}/icons/icon-512.png`,
+  },
+];
 
 // Valeur de ?niveau= pour le fil de tous les niveaux.
 const ALL_LEVELS = "tous";
@@ -37,6 +58,7 @@ export default async function Home({
 
   return (
     <>
+      <JsonLd data={SITE_DATA} />
       {me ? (
         <MemberHero me={me} progress={progress} challenges={challenges} />
       ) : (

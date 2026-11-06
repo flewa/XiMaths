@@ -200,11 +200,16 @@ def at_level(exercises, level):
 
 @router.get("/exercises", response=list[ExerciseSummary])
 def list_exercises(
-    request, level: str | None = None, sort: Literal["recent", "popular", "unsolved"] = "recent"
+    request,
+    level: str | None = None,
+    topic: str | None = None,
+    sort: Literal["recent", "popular", "unsolved"] = "recent",
 ):
     """Exercices publiés : les plus récents, les plus populaires (score P), ou ceux
-    qui attendent encore une solution validée."""
+    qui attendent encore une solution validée. `topic` : slug d'un chapitre."""
     exercises = at_level(published_exercises(), level)
+    if topic:
+        exercises = exercises.filter(topics__slug=topic).distinct()
     if sort == "unsolved":
         return exercises.filter(validated_solutions=0)
     if sort == "popular":

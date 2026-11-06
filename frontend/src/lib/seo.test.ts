@@ -27,6 +27,10 @@ describe("latexToText", () => {
     expect(latexToText("\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1")).toBe("lim (x → 0) (sin x)/x = 1");
   });
 
+  it("writes a matrix row by row", () => {
+    expect(latexToText("M = \\begin{pmatrix} 0 & 1 \\\\ 1 & 0 \\end{pmatrix}")).toBe("M = (0 1 ; 1 0)");
+  });
+
   it("feeds the description of an exercise", () => {
     expect(excerpt("Montrer que la série $\\displaystyle\\sum_{n \\geq 1} \\frac{1}{n^2}$ converge.")).toBe(
       "Montrer que la série ∑ (n ≥ 1) 1/n² converge.",

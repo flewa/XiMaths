@@ -10,7 +10,8 @@ type Props = { params: Promise<{ pseudo: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { pseudo } = await params;
-  return { title: decodeURIComponent(pseudo) };
+  // Un profil est public, mais n'a rien à faire dans les résultats de recherche.
+  return { title: decodeURIComponent(pseudo), robots: { index: false } };
 }
 
 export default async function MemberPage({ params }: Props) {

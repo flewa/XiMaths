@@ -7,7 +7,7 @@ import "katex/dist/katex.min.css";
 import { VerifyBanner } from "@/components/AccountControls";
 import { BottomNav } from "@/components/BottomNav";
 import { MobileBar, SidebarContent, type NavAccount } from "@/components/SidebarNav";
-import { fetchLevels, fetchMe, nullOnError } from "@/lib/api";
+import { fetchLevels, fetchMe, fetchTopics, nullOnError } from "@/lib/api";
 import { DEFAULT_THEME, SITE_DESCRIPTION, SITE_URL, THEME_COOKIE, type Theme } from "@/lib/site";
 
 import "./globals.css";
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   title: { default: "XiMaths", template: "%s · XiMaths" },
   description: SITE_DESCRIPTION,
   openGraph: { siteName: "XiMaths", locale: "fr_FR", type: "website", description: SITE_DESCRIPTION },
-  twitter: { card: "summary" },
+  twitter: { card: "summary_large_image" },
   // Installée sur l'écran d'accueil d'un iPhone, la PWA s'ouvre sans la barre de Safari.
   appleWebApp: { capable: true, title: "XiMaths", statusBarStyle: "default" },
 };
@@ -47,7 +47,11 @@ export default async function RootLayout({
 }>) {
   // Thème choisi dans les réglages ; sans choix, le sombre.
   const theme = ((await cookies()).get(THEME_COOKIE)?.value ?? DEFAULT_THEME) as Theme;
-  const [me, levels] = await Promise.all([fetchMe().catch(nullOnError), fetchLevels().catch(() => [])]);
+  const [me, levels, topics] = await Promise.all([
+    fetchMe().catch(nullOnError),
+    fetchLevels().catch(() => []),
+    fetchTopics().catch(() => []),
+  ]);
   const account: NavAccount | null = me && {
     username: me.username,
     points: me.points,
@@ -68,9 +72,9 @@ export default async function RootLayout({
         {/* La colonne de la barre latérale garde sa teinte jusqu'en bas, même sur une page longue. */}
         <div className="min-h-screen lg:grid lg:grid-cols-[252px_minmax(0,1fr)] lg:bg-[linear-gradient(90deg,var(--sidebar)_252px,var(--canvas)_252px)]">
           <aside aria-label="Barre latérale" className="sticky top-0 hidden h-screen overflow-y-auto bg-sidebar lg:block">
-            <SidebarContent account={account} levels={levels} />
+            <SidebarContent account={account} levels={levels} topics={topics} />
           </aside>
-          <MobileBar account={account} levels={levels} />
+          <MobileBar account={account} levels={levels} topics={topics} />
           <div className="min-w-0">
             {me && !me.email_verified && <VerifyBanner email={me.email} />}
             <main

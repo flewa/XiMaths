@@ -6,7 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.test import TestCase
 from django.utils import timezone
 
-from catalog.models import Level
+from catalog.models import Level, Topic
 from gamification.services import balance
 
 from .models import Exercise, Review, Solution
@@ -194,6 +194,14 @@ class ApiTests(ContentTestCase):
         [item] = response.json()
         self.assertEqual(item["validated_solutions"], 1)
         self.assertEqual(item["primary_level"], "L1")
+
+    def test_exercise_list_filters_by_chapter(self):
+        algebra = self.make_exercise()
+        algebra.topics.set(Topic.objects.filter(slug="algebre"))
+
+        response = self.client.get("/api/exercises", {"topic": "algebre"})
+
+        self.assertEqual([item["id"] for item in response.json()], [algebra.pk])
 
     def test_exercise_detail_hides_drafts_and_unvalidated_solutions(self):
         self.publish()

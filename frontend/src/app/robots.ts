@@ -9,6 +9,7 @@ const PRIVATE = [
   "/decisions",
   "/desabonnement",
   "/entrainement",
+  "/exercices/nouveau",
   "/mot-de-passe",
   "/notifications",
   "/progression",
