@@ -1,4 +1,4 @@
-"""Publie les exercices de la rédaction (content/editorial.py) sous le compte « XiMaths ».
+"""Publie les exercices de la rédaction (content/editorial/, un fichier par lot) sous le compte « XiMaths ».
 
 Chaque exercice passe par la même validation qu'un exercice proposé sur le site (schéma
 de l'API, commandes LaTeX interdites, niveaux et chapitres connus), puis par la détection
