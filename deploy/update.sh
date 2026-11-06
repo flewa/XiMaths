@@ -17,5 +17,7 @@ git pull --ff-only
 # Sans buildx, Compose construit avec son propre moteur (voir install.sh).
 docker buildx version >/dev/null 2>&1 || export COMPOSE_BAKE=false
 docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+# Exercices ajoutés à la rédaction depuis la dernière fois ; les autres ne bougent pas.
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python manage.py import_exercises
 docker image prune -f >/dev/null
 echo "À jour."
