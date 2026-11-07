@@ -1,4 +1,5 @@
-# Production : Caddy (HTTPS), PostgreSQL, Redis, l'API, le planificateur et le front.
+# Production : Caddy (HTTPS), PostgreSQL, Redis, l'API, le planificateur, le front et la
+# mesure d'audience (Umami).
 #   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 # Caddy est la seule porte d'entrée (ports 80 et 443) : /api, /admin et /static vont
 # à l'API, le reste au front (voir Caddyfile). Le DNS de SITE_DOMAIN doit pointer ici.
@@ -77,6 +78,8 @@ services:
     restart: unless-stopped
     environment:
       API_URL: http://backend:8000
+      # Site déclaré dans Umami (deploy/statistiques.sh) : vide, pas de mesure d'audience.
+      UMAMI_WEBSITE_ID: ${UMAMI_WEBSITE_ID:-}
     depends_on:
       - backend
 
@@ -97,6 +100,40 @@ services:
     depends_on:
       - frontend
       - backend
+
+  # Mesure d'audience : Umami, sur ce serveur, sans cookie. Tableau de bord sur
+  # https://stats.<SITE_DOMAIN> ; les pages lui envoient les visites par /mesure/ (Caddyfile).
+  # Mise en route une fois : sudo ./deploy/statistiques.sh
+  umami:
+    image: ghcr.io/umami-software/umami:3.4.1
+    restart: unless-stopped
+    environment:
+      # Sa propre base, « umami », dans le même PostgreSQL. Faute d'APP_SECRET, Umami tire
+      # sa clé de cette adresse, qui contient le mot de passe de la base.
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/umami
+      # L'adresse du visiteur, posée par Caddy (les autres en-têtes viennent du navigateur).
+      CLIENT_IP_HEADER: x-forwarded-for
+      DISABLE_TELEMETRY: "1"
+    depends_on:
+      umami-db:
+        condition: service_completed_successfully
+
+  # Crée la base d'Umami si elle manque, puis s'arrête.
+  umami-db:
+    image: pgvector/pgvector:pg16
+    restart: "no"
+    environment:
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+    command:
+      - sh
+      - -c
+      - psql -Atc "SELECT 1 FROM pg_database WHERE datname = 'umami'" | grep -q 1 || psql -c "CREATE DATABASE umami"
+    depends_on:
+      db:
+        condition: service_healthy
 
   # Embeddings bge-m3, facultatifs : --profile embeddings, et EMBEDDINGS_URL=http://embeddings
   # dans .env.prod. Sans eux, la détection de doublons s'appuie sur MinHash seul.

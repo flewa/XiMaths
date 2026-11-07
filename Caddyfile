@@ -22,6 +22,14 @@
 		reverse_proxy backend:8000
 	}
 
+	# Mesure d'audience : le script d'Umami et l'envoi des visites passent par le site même,
+	# rien d'autre (son tableau de bord est sur stats., plus bas).
+	@mesure path /mesure/script.js /mesure/api/send
+	handle @mesure {
+		uri strip_prefix /mesure
+		reverse_proxy umami:3000
+	}
+
 	handle {
 		reverse_proxy frontend:3000
 	}
@@ -32,4 +40,20 @@
 # sans lui, Caddy ne peut pas obtenir le certificat de www et le signale dans ses journaux.
 www.{$SITE_DOMAIN} {
 	redir https://{$SITE_DOMAIN}{uri} permanent
+}
+
+# Tableau de bord de la mesure d'audience (Umami), réservé à son compte admin : voir
+# deploy/statistiques.sh. Il faut un enregistrement DNS pour stats, comme pour www.
+stats.{$SITE_DOMAIN} {
+	encode zstd gzip
+	header {
+		?X-Content-Type-Options nosniff
+		?X-Frame-Options DENY
+		?Referrer-Policy same-origin
+		?Strict-Transport-Security "max-age={$HSTS_SECONDS:0}; includeSubDomains"
+		X-Robots-Tag "noindex, nofollow"
+		-Server
+		-X-Powered-By
+	}
+	reverse_proxy umami:3000
 }

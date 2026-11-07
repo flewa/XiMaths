@@ -5,6 +5,7 @@ import Link from "next/link";
 import "katex/dist/katex.min.css";
 
 import { VerifyBanner } from "@/components/AccountControls";
+import { AudienceTracker } from "@/components/Audience";
 import { BottomNav } from "@/components/BottomNav";
 import { MobileBar, SidebarContent, type NavAccount } from "@/components/SidebarNav";
 import { fetchLevels, fetchMe, fetchTopics, nullOnError } from "@/lib/api";
@@ -62,6 +63,9 @@ export default async function RootLayout({
     unreadNotifications: me.unread_notifications,
     declaredLevel: me.declared_level,
   };
+  // Site déclaré dans Umami (deploy/statistiques.sh), lu au démarrage du serveur : sans lui,
+  // aucune mesure d'audience.
+  const audience = process.env.UMAMI_WEBSITE_ID;
   return (
     <html lang="fr" data-theme={theme}>
       {/* Sous 1024 px, la barre d'onglets du bas recouvrirait la fin de la page : on lui fait de la place. */}
@@ -114,6 +118,7 @@ export default async function RootLayout({
           </div>
         </div>
         <BottomNav signedIn={me !== null} />
+        {audience && <AudienceTracker websiteId={audience} domain={new URL(SITE_URL).hostname} />}
       </body>
     </html>
   );
