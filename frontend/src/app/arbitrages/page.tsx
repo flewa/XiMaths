@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { ArbitrationButtons } from "@/components/ContributionForms";
 import { EvaluateQuestion } from "@/components/Questions";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
+import { CopyPhotoList } from "@/components/CopyPhotos";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { Tag } from "@/components/Tag";
 import { fetchArbitrations, fetchMe, fetchQuestionsToEvaluate } from "@/lib/api";
@@ -55,7 +56,8 @@ export default async function ArbitrationsPage() {
                 <p className="mt-2 flex items-center gap-3 font-bold">
                   Solution {aiBadge && <Tag>{aiBadge}</Tag>}
                 </p>
-                <MathMarkdown>{item.solution_body}</MathMarkdown>
+                <CopyPhotoList photos={item.solution_photos} />
+                {item.solution_body && <MathMarkdown>{item.solution_body}</MathMarkdown>}
               </div>
               <ul className="mt-4 space-y-2">
                 {item.reviews.map((review, index) => (
@@ -87,7 +89,8 @@ export default async function ArbitrationsPage() {
               <p className="text-sm font-medium">{item.exercise_title}</p>
               <MathMarkdown>{item.statement}</MathMarkdown>
               <div className="mt-4 border-l-2 border-hairline-strong bg-surface-soft px-4 py-1">
-                <MathMarkdown>{item.solution_body}</MathMarkdown>
+                <CopyPhotoList photos={item.solution_photos} />
+                {item.solution_body && <MathMarkdown>{item.solution_body}</MathMarkdown>}
               </div>
               <p className="mt-4 font-medium">Question : {item.question}</p>
               {item.expected_points.length > 0 && (

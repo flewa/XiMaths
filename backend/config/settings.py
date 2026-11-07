@@ -166,6 +166,9 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+# Photos de copies jointes aux solutions : servies par l'API, qui vérifie qui les regarde
+# (content/photos.py), jamais directement. En production, un volume Docker.
+MEDIA_ROOT = Path(os.environ.get("MEDIA_ROOT", BASE_DIR / "media"))
 # En développement, runserver sert les fichiers statiques : le dossier de collectstatic n'existe pas.
 WHITENOISE_AUTOREFRESH = DEBUG
 if DEBUG:

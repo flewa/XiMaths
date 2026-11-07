@@ -19,6 +19,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from content.photos import purge as purge_photos
 from content.services import review_deadlines
 from gamification.rankings import Week
 from gamification.streaks import close_week
@@ -49,6 +50,7 @@ HOURLY = {
     "emails retenus pendant les heures calmes": lambda now: send_pending_emails(now=now),
     "notifications push retenues": lambda now: send_pending_pushes(now=now),
     "résumés hebdomadaires": weekly_digests,
+    "photos de copie jamais jointes à une solution": lambda now: purge_photos(now=now),
 }
 
 NIGHTLY = {

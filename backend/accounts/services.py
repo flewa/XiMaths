@@ -113,6 +113,7 @@ def set_password(user, password):
 
 def export_user_data(user):
     """Toutes les données d'un compte, dans un format lisible et réutilisable."""
+    from content import photos
     from content.models import Exercise, Review, Solution, Vote
     from gamification.models import Goal, PointTransaction, UserBadge, WeeklyStreak
     from moderation.models import ComprehensionQuestion, Report
@@ -153,6 +154,7 @@ def export_user_data(user):
                 "id": s.pk,
                 "exercice": s.exercise_id,
                 "texte": s.body,
+                "photos": [photo["url"] for photo in photos.described(s)],
                 "usage_ia": s.ai_usage,
                 "statut": s.status,
                 "publiee": dates(s.published_at),

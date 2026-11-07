@@ -29,6 +29,7 @@ from moderation.integrity import NEUTRAL_QUESTION, check_solution
 from notifications.models import Notification
 from notifications.services import notify
 
+from . import photos
 from .models import Exercise, Review, Solution, Vote
 
 Kind = Notification.Kind
@@ -489,14 +490,19 @@ def volunteer_review(solution, user):
 
 
 @transaction.atomic
-def revise_solution(solution, body, *, rng=None, now=None):
+@transaction.atomic
+def revise_solution(solution, body, *, upload=None, rng=None, now=None):
     """Révision par l'auteur. Une solution à compléter repart en relecture ; une
-    solution validée aussi, si plus de 20 % du texte change."""
+    solution validée aussi, si plus de 20 % du texte change ou si de nouvelles photos
+    de la copie (`upload`) remplacent les précédentes."""
     if solution.status not in (Solution.Status.NEEDS_WORK, Solution.Status.VALIDATED):
         raise RuleError("Seule une solution à compléter ou validée se révise.")
     body = body.strip()
     ratio = difflib.SequenceMatcher(None, solution.body, body).ratio()
     solution.body = body
+    if upload is not None:
+        photos.attach(upload, solution)
+        ratio = 0.0
     if solution.status == Solution.Status.VALIDATED and ratio >= REVISION_THRESHOLD:
         solution.save(update_fields=["body", "updated_at"])
         return solution, False

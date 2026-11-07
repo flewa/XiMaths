@@ -6,6 +6,7 @@ courtes se ressemblent légitimement), la solution est mise en vérification et
 l'auteur reçoit une question neutre. Un modérateur tranche ; rien n'est automatique.
 """
 
+from content import photos
 from content.models import Exercise, Solution
 from duplicates.minhash import signature, similarity
 from duplicates.normalize import normalize
@@ -23,9 +24,12 @@ NEUTRAL_QUESTION = (
 
 
 def fingerprint(solution):
+    # Avec des photos de copie, un texte court n'est qu'une note (« voir les photos ») :
+    # deux notes semblables ne sont pas du plagiat. Signature vide, rien à comparer.
+    text = "" if photos.is_note(solution) else solution.body
     print_, _ = SolutionPrint.objects.update_or_create(
         solution=solution,
-        defaults={"signature": signature(normalize(solution.body).alpha), "length": len(solution.body)},
+        defaults={"signature": signature(normalize(text).alpha), "length": len(text)},
     )
     return print_
 

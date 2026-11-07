@@ -7,6 +7,7 @@ import type { ComprehensionQuestion } from "@/lib/api";
 import { apiPost } from "@/lib/client-api";
 
 import { Field, FormMessage, SubmitButton, inputClass, primaryButtonClass, secondaryButtonClass } from "./Form";
+import { CopyPhotoList } from "./CopyPhotos";
 import { MathMarkdown } from "./MathMarkdown";
 import { clock } from "./Training";
 
@@ -88,6 +89,7 @@ export function AnswerQuestion({ question }: { question: ComprehensionQuestion }
       <details className="plain border-t border-hairline pt-3">
         <summary className="cursor-pointer text-sm text-mute">Revoir l&apos;énoncé et ma solution</summary>
         {question.statement && <MathMarkdown>{question.statement}</MathMarkdown>}
+        <CopyPhotoList photos={question.solution_photos} />
         {question.solution_body && (
           <div className="border-l-2 border-hairline-strong bg-surface-soft px-4">
             <MathMarkdown>{question.solution_body}</MathMarkdown>

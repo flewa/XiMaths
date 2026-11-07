@@ -21,6 +21,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from config import llm
+from content import photos
 from content.models import Solution
 from gamification.scoring import validated_solution_points
 from notifications.models import Notification
@@ -187,13 +188,26 @@ def _statement(solution):
     return solution.variant_statement or solution.exercise.statement
 
 
+def _solution_blocks(solution, before, after=""):
+    """La solution pour Claude : son texte, et les photos de la copie s'il y en a."""
+    pictures = photos.llm_blocks(solution)
+    if not pictures:
+        return f"{before}{solution.body}{after}"
+    note = f"{solution.body}\n\n" if solution.body.strip() else ""
+    return [
+        {"type": "text", "text": f"{before}{note}(Copie manuscrite de l'étudiant, en {len(pictures)} photo(s) :)"},
+        *pictures,
+        {"type": "text", "text": after or "(Fin de la copie.)"},
+    ]
+
+
 def write_with_llm(question):
     """Rédige la question avec Claude. Renvoie True si elle est prête."""
     solution = question.solution
     answer = llm.ask_json(
         llm.COMPREHENSION_MODEL,
         system=QUESTION_SYSTEM,
-        prompt=f"Énoncé :\n\n{_statement(solution)}\n\n---\n\nSolution de l'étudiant :\n\n{solution.body}",
+        prompt=_solution_blocks(solution, f"Énoncé :\n\n{_statement(solution)}\n\n---\n\nSolution de l'étudiant :\n\n"),
         schema=QUESTION_SCHEMA,
         effort="medium",
     )
@@ -212,10 +226,11 @@ def preassess_with_llm(question):
     answer = llm.ask_json(
         llm.COMPREHENSION_MODEL,
         system=ASSESSMENT_SYSTEM,
-        prompt=(
-            f"Énoncé :\n\n{_statement(solution)}\n\n---\n\nSolution de l'étudiant :\n\n{solution.body}\n\n"
-            f"---\n\nQuestion posée : {question.question}\n\nÉléments attendus :\n{expected}\n\n"
-            f"---\n\nRéponse de l'étudiant, écrite en cinq minutes :\n\n{question.answer}"
+        prompt=_solution_blocks(
+            solution,
+            f"Énoncé :\n\n{_statement(solution)}\n\n---\n\nSolution de l'étudiant :\n\n",
+            f"\n\n---\n\nQuestion posée : {question.question}\n\nÉléments attendus :\n{expected}\n\n"
+            f"---\n\nRéponse de l'étudiant, écrite en cinq minutes :\n\n{question.answer}",
         ),
         schema=ASSESSMENT_SCHEMA,
         effort="high",

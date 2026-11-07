@@ -17,6 +17,9 @@ x-backend: &backend
     DJANGO_BEHIND_HTTPS_PROXY: "1"
     # Un seul proxy devant l'API : Caddy, qui transmet l'adresse du visiteur.
     NINJA_NUM_PROXIES: "1"
+  # Photos des copies jointes aux solutions (sauvegardées chaque nuit avec la base).
+  volumes:
+    - media:/app/media
   depends_on:
     db:
       condition: service_healthy
@@ -107,6 +110,7 @@ services:
 
 volumes:
   pgdata:
+  media:
   tei-data:
   caddy-data:
   caddy-config:
