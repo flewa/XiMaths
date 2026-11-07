@@ -26,6 +26,10 @@ fi
 # Exercices ajoutés à la rédaction depuis la dernière fois ; les autres ne bougent pas.
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python manage.py import_exercises
 docker image prune -f >/dev/null
+# Mesure d'audience pas encore en route : on la lance, une fois (voir deploy/statistiques.sh).
+if ! grep -q '^UMAMI_WEBSITE_ID=.' .env.prod; then
+  ./deploy/statistiques.sh || echo "[!] Mesure d'audience pas en route : relance sudo ./deploy/statistiques.sh"
+fi
 # La sauvegarde nocturne passe par deploy/sauvegarde.sh, qui garde aussi les photos des copies.
 cat > /etc/cron.daily/ximaths-sauvegarde <<EOF
 #!/bin/sh

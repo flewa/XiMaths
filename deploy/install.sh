@@ -6,7 +6,8 @@
 #
 # Le script installe Docker s'il manque, écrit .env.prod (secrets tirés au hasard, questions
 # pour le domaine et l'envoi des emails), construit et démarre le site, crée le compte
-# d'administration et programme une sauvegarde quotidienne de la base. On peut le relancer :
+# d'administration, met en route la mesure d'audience et programme une sauvegarde quotidienne
+# de la base. On peut le relancer :
 # il garde le .env.prod existant.
 set -euo pipefail
 
@@ -107,6 +108,8 @@ curl -fsS -o /dev/null "https://$domain/api/health" \
 echo "En ligne : https://$domain"
 # Le stock d'exercices de la rédaction (content/editorial/), avec ses défis du jour.
 "${COMPOSE[@]}" exec -T backend python manage.py import_exercises
+# La mesure d'audience : compte admin d'Umami sécurisé, site déclaré.
+./deploy/statistiques.sh
 
 say "[5/6] Compte d'administration (modération : https://$domain/admin/)"
 if "${COMPOSE[@]}" exec -T backend python manage.py shell -c \

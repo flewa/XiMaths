@@ -23,10 +23,10 @@ Dans l'application de bureau Claude Code, `.claude/launch.json` décrit les deux
 | `backend/` | API Django 5.2 + Django Ninja. Apps : `accounts` (comptes, connexion Google, niveau de confiance), `catalog` (niveaux, chapitres), `content` (exercices, solutions, relectures, votes, tâches planifiées), `duplicates` (détection des doublons), `gamification` (ledger, barème, classements, badges, niveaux de confiance, séries et objectifs), `moderation` (signalements, anti-plagiat, sanctions, appels, questions de compréhension), `notifications`, `training` (chronométré et défi du jour) |
 | `frontend/` | Next.js 16 (App Router), React 19, Tailwind 4, Markdown + KaTeX rendus côté serveur, éditeur CodeMirror 6. Design : barre latérale, titres dans la police des formules (Computer Modern, via KaTeX), un seul accent corail ; sombre par défaut, clair au choix (jetons dans `src/app/globals.css`) |
 | `dev.sh` | Lancement local en une commande : dépendances, base de démonstration, API et front |
-| `deploy/` | Mise en ligne sur un serveur (`install.sh`) et mises à jour (`update.sh`) |
+| `deploy/` | Mise en ligne sur un serveur (`install.sh`), mises à jour (`update.sh`), sauvegarde (`sauvegarde.sh`) et mesure d'audience (`statistiques.sh`) |
 | `marketing/tiktok/` | Vidéos TikTok en Remotion : scripts, captures de l'application, voix off ElevenLabs ([mode d'emploi](marketing/tiktok/README.md)) |
 | `docker-compose.yml` | Développement : PostgreSQL 16 avec pgvector, Redis, et bge-m3 servi par Text Embeddings Inference |
-| `docker-compose.prod.yml`, `Caddyfile` | Production : Caddy (HTTPS), PostgreSQL, Redis, l'API, le planificateur et le front |
+| `docker-compose.prod.yml`, `Caddyfile` | Production : Caddy (HTTPS), PostgreSQL, Redis, l'API, le planificateur, le front et la mesure d'audience (Umami) |
 | `.github/workflows/ci.yml` | Intégration continue : tests du backend, typage, lint, tests et construction du front |
 
 ## Prérequis
@@ -253,6 +253,22 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend t
 
 Avant d'ouvrir au public : compléter les mentions légales (éditeur et hébergeur du site) et, dans la page Confidentialité, le responsable des données et les sous-traitants ; puis retirer l'avertissement « Version de travail » des pages Conditions et Confidentialité.
 
+### Mesure d'audience
+
+[Umami](https://umami.is/) compte les visites : sur ce serveur, sans cookie, sans lien avec les comptes, les robots écartés. Le tableau de bord (visiteurs du jour, de la semaine, en ce moment, pages vues, provenances, appareils, pays) est sur `https://stats.<SITE_DOMAIN>`. Il faut pour lui un enregistrement DNS `stats` (A vers le serveur), comme pour `www`.
+
+`install.sh` le met en route ; sur un serveur déjà installé, `update.sh` le fait à sa première passe, ou à la main :
+
+```bash
+sudo ./deploy/statistiques.sh
+```
+
+Le script remplace le mot de passe de départ du compte `admin` d'Umami (« umami », connu de tous) par un mot de passe tiré au hasard, gardé dans `.env.prod` (`sudo grep UMAMI_ADMIN_PASSWORD .env.prod`), déclare le site dans Umami et passe son identifiant au front (`UMAMI_WEBSITE_ID`) ; il ne refait que ce qui manque. Langue du tableau de bord : Profil › Langue.
+
+- Les pages chargent le script et envoient les visites par `/mesure/` sur le site même (Caddyfile) ; seuls ces deux chemins mènent à Umami. Avant chaque envoi, `src/lib/audience.ts` retire de l'adresse les jetons (paramètres sauf `utm_…`, page `/photos/<jeton>`).
+- « Do Not Track » est respecté, et la page Confidentialité permet de ne plus compter un appareil.
+- La sauvegarde de nuit garde aussi la base `umami` (`audience-AAAA-MM-JJ.sql.gz`) et efface les visites de plus de 25 mois.
+
 ### Fonctionnement
 
 À la main, sans le script :
@@ -266,6 +282,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 - Les migrations tournent une fois avant l'API et le planificateur. Les niveaux et chapitres sont créés par les migrations : une base neuve est utilisable sans données de démonstration.
 - HSTS (`DJANGO_HSTS_SECONDS`), cookies sécurisés ; Redis pour le cache et la limitation de débit ; Sentry si `SENTRY_DSN` est défini.
 - Embeddings : `--profile embeddings`, et `EMBEDDINGS_URL=http://embeddings` dans `.env.prod`.
+- Umami a sa propre base, `umami`, dans le même PostgreSQL (créée par le service `umami-db`).
 
 ## Tests
 

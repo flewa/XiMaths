@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AudienceOptOut } from "@/components/Audience";
 import { Bullets, DraftNotice, ProseSection } from "@/components/Prose";
 
 export const metadata: Metadata = {
   title: "Confidentialité",
-  description: "Données collectées par XiMaths, finalités, durées de conservation et droits.",
+  description: "Données collectées par XiMaths, mesure d'audience, finalités, durées de conservation et droits.",
 };
 
 export default function PrivacyPage() {
@@ -46,10 +47,24 @@ export default function PrivacyPage() {
         <p>Pas de publicité, pas de revente de données, pas de traceur tiers.</p>
       </ProseSection>
 
+      <ProseSection title="Mesure d'audience">
+        <p>
+          Pour savoir combien de personnes utilisent XiMaths et quelles pages servent, nous comptons les visites
+          avec Umami, installé sur notre propre serveur : rien ne part chez un tiers, et il ne pose aucun cookie.
+          Pour chaque page vue : son adresse (sans les jetons qu&apos;elle peut contenir), le site d&apos;où tu
+          viens, l&apos;appareil (type, système, taille d&apos;écran), le navigateur, la langue, et la ville ou le
+          pays déduits de ton adresse IP. Celle-ci n&apos;est pas enregistrée : avec ton navigateur, elle sert à
+          calculer un identifiant chiffré, renouvelé chaque mois, qui compte les visiteurs sans les reconnaître
+          d&apos;un mois à l&apos;autre. Ces mesures ne sont pas reliées à ton compte. Si ton navigateur demande à
+          ne pas être suivi (« Do Not Track »), rien n&apos;est compté.
+        </p>
+        <AudienceOptOut />
+      </ProseSection>
+
       <ProseSection title="Cookies">
         <p>
           Seulement ceux nécessaires au service : la session, la protection contre la falsification de
-          requêtes (CSRF) et ton choix de thème. Aucun ne demande ton consentement, et il n&apos;y a pas
+          requêtes (CSRF) et ton choix de thème. La mesure d&apos;audience n&apos;en pose pas. Aucun ne demande ton consentement, et il n&apos;y a pas
           de bandeau.
         </p>
       </ProseSection>
@@ -63,6 +78,7 @@ export default function PrivacyPage() {
             "Abonnements push : jusqu'à ce que tu les désactives, ou que ton navigateur les révoque.",
             "Signaux d'intégrité (plagiat, collages) : jusqu'à la décision de modération, puis effacés au plus tard après 1 an.",
             "Questions de compréhension : tant que le compte existe ; elles sont effacées avec lui.",
+            "Mesure d'audience : 25 mois, puis effacée.",
           ]}
         />
       </ProseSection>
