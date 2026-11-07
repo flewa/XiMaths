@@ -210,10 +210,35 @@ export function ExerciseForm({
         <fieldset className="space-y-2">
           <legend className="font-medium">Chapitres</legend>
           <div className="flex flex-wrap gap-2">
-            {topics.map((topic) => (
-              <Chip key={topic.slug} name="topics" value={topic.slug} label={topic.name} />
-            ))}
+            {topics
+              .filter((topic) => topic.parent === null)
+              .map((topic) => (
+                <Chip key={topic.slug} name="topics" value={topic.slug} label={topic.name} />
+              ))}
           </div>
+          <details className="pt-1">
+            <summary className="cursor-pointer text-sm text-mute hover:text-ink">
+              Préciser la notion (facultatif) : l&apos;exercice apparaîtra aussi sur sa page
+            </summary>
+            <div className="mt-3 space-y-3">
+              {topics
+                .filter((chapter) => chapter.parent === null)
+                .map((chapter) => {
+                  const notions = topics.filter((topic) => topic.parent === chapter.slug);
+                  if (notions.length === 0) return null;
+                  return (
+                    <div key={chapter.slug}>
+                      <p className="mb-1.5 text-sm text-mute">{chapter.name}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {notions.map((topic) => (
+                          <Chip key={topic.slug} name="topics" value={topic.slug} label={topic.name} />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </details>
         </fieldset>
 
         <fieldset className="space-y-2">

@@ -27,7 +27,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "L1",
         "levels": PREMIERE_ANNEE,
-        "topics": ["algebre"],
+        "topics": ["algebre", "nombres-complexes"],
     },
     {
         "title": "Équation du second degré à coefficients complexes",
@@ -40,7 +40,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "L1",
         "levels": PREMIERE_ANNEE,
-        "topics": ["algebre"],
+        "topics": ["algebre", "nombres-complexes", "polynomes"],
     },
     {
         "title": "Méthode de Héron pour approcher racine de 2",
@@ -62,7 +62,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "L1",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "suites-numeriques"],
     },
     {
         "title": "Borne supérieure de l'ensemble des 1/n − 1/m",
@@ -78,10 +78,11 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "L1",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "nombres-reels"],
     },
     {
-        "title": "Intégrale de x·e^(2x) par intégration par parties",
+        "title": "Intégrale de x e²ˣ par intégration par parties",
+        "former_titles": ["Intégrale de x·e^(2x) par intégration par parties"],
         "statement": r"Calculer $\displaystyle\int_0^1 x\,e^{2x}\,\mathrm{d}x$.",
         "hints": [
             r"Intégrer par parties en dérivant $x$ et en intégrant $e^{2x}$.",
@@ -91,7 +92,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "L1",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "calcul-integral"],
         "challenge": {
             "statement": r"Calculer $\displaystyle\int_0^1 x\,e^{{{a}}x}\,\mathrm{d}x$.",
             "parameters": {"a": [1, 2, 3, 4]},
@@ -114,7 +115,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "L1",
         "levels": PREMIERE_ANNEE,
-        "topics": ["algebre"],
+        "topics": ["algebre", "polynomes"],
     },
     {
         "title": "Dérivée n-ième par la formule de Leibniz",
@@ -129,7 +130,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "L1",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "derivation"],
     },
     {
         "title": "Équation diophantienne 21x + 15y = 6",
@@ -141,7 +142,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "L1",
         "levels": ["L1", "MPSI", "MP2I"],
-        "topics": ["arithmetique"],
+        "topics": ["arithmetique", "divisibilite-pgcd"],
     },
     {
         "title": "Point fixe d'une fonction continue de [0, 1] dans lui-même",
@@ -157,7 +158,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "L1",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "limites-continuite"],
     },
     # ------------------------------------------------------------------ MPSI
     {
@@ -175,7 +176,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "MPSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "nombres-complexes", "calcul-integral"],
     },
     {
         "title": "Somme arctan x + arctan(1/x)",
@@ -191,7 +192,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "MPSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "fonctions-usuelles", "derivation"],
     },
     {
         "title": "Calcul de arctan(1/2) + arctan(1/3)",
@@ -204,7 +205,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "MPSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "fonctions-usuelles"],
     },
     {
         "title": "Équation ch x = 2 et fonctions hyperboliques",
@@ -219,7 +220,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "MPSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "fonctions-usuelles"],
         "challenge": {
             "statement": r"Donner la solution positive de l'équation $\operatorname{ch} x = {{a}}$.",
             "parameters": {"a": [2, 3, 4, 5]},
@@ -227,7 +228,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Un nombre pseudo-premier : 2^340 modulo 341",
+        "title": "Un nombre pseudo-premier : 2³⁴⁰ modulo 341",
+        "former_titles": ["Un nombre pseudo-premier : 2^340 modulo 341"],
         "statement": (
             r"1. Montrer que $341$ n'est pas premier."
             "\n"
@@ -242,7 +244,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "MPSI",
         "levels": ["L1", "MPSI", "MP2I", "L2", "MP"],
-        "topics": ["arithmetique"],
+        "topics": ["arithmetique", "congruences"],
     },
     {
         "title": "Limite de 1/sin² x − 1/x² en 0",
@@ -255,7 +257,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "MPSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "limites-continuite", "developpements-limites"],
     },
     {
         "title": "Développement limité de ln(1 + sin x) à l'ordre 3",
@@ -271,7 +273,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "MPSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "developpements-limites"],
     },
     # ------------------------------------------------------------------ MP2I
     {
@@ -292,7 +294,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "MP2I",
         "levels": PREMIERE_ANNEE,
-        "topics": ["algebre"],
+        "topics": ["algebre", "ensembles-applications"],
     },
     {
         "title": "Relation d'équivalence x − y entier",
@@ -310,7 +312,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "MP2I",
         "levels": ["L1", "MPSI", "MP2I"],
-        "topics": ["algebre"],
+        "topics": ["algebre", "ensembles-applications"],
     },
     {
         "title": "Nombre de chemins monotones dans une grille",
@@ -326,7 +328,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "MP2I",
         "levels": PREMIERE_ANNEE,
-        "topics": ["algebre"],
+        "topics": ["algebre", "denombrement"],
     },
     {
         "title": "Générateurs du groupe Z/12Z",
@@ -341,10 +343,11 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "MP2I",
         "levels": ["L1", "MPSI", "MP2I", "L2", "MP"],
-        "topics": ["arithmetique"],
+        "topics": ["arithmetique", "groupes-anneaux", "congruences"],
     },
     {
-        "title": "Dernier chiffre de 7^2026",
+        "title": "Dernier chiffre de 7²⁰²⁶",
+        "former_titles": ["Dernier chiffre de 7^2026"],
         "statement": r"Quel est le chiffre des unités de $7^{2026}$ ?",
         "hints": [
             r"Calculer les puissances successives de $7$ modulo $10$.",
@@ -354,7 +357,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "MP2I",
         "levels": ["L1", "MPSI", "MP2I"],
-        "topics": ["arithmetique"],
+        "topics": ["arithmetique", "congruences"],
     },
     {
         "title": "Nombre d'anagrammes du mot MISSISSIPPI",
@@ -370,7 +373,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "MP2I",
         "levels": PREMIERE_ANNEE,
-        "topics": ["algebre"],
+        "topics": ["algebre", "denombrement"],
     },
     # ------------------------------------------------------------------ PCSI
     {
@@ -386,7 +389,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PCSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "equations-differentielles"],
         "challenge": {
             "statement": (
                 r"Résoudre $y' + {{a}}xy = {{a}}x$ avec $y(0) = 0$, puis calculer $y(1)$."
@@ -411,7 +414,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PCSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["probabilites"],
+        "topics": ["probabilites", "probabilites-conditionnelles"],
     },
     {
         "title": "Intégrale de 1/(x² + x + 1) sur [0, 1]",
@@ -424,7 +427,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PCSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "calcul-integral"],
     },
     {
         "title": "Encadrement de ln(1 + x) par les accroissements finis",
@@ -440,7 +443,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PCSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "derivation"],
     },
     {
         "title": "Somme des k fois k parmi n",
@@ -453,7 +456,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PCSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["algebre"],
+        "topics": ["algebre", "sommes-recurrence", "denombrement"],
     },
     {
         "title": "Somme télescopique de 1/(k(k+1)(k+2))",
@@ -468,10 +471,11 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PCSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["algebre"],
+        "topics": ["algebre", "sommes-recurrence"],
     },
     {
-        "title": "Vitesse de convergence de (1 + 1/n)^n vers e",
+        "title": "Vitesse de convergence de (1 + 1/n)ⁿ vers e",
+        "former_titles": ["Vitesse de convergence de (1 + 1/n)^n vers e"],
         "statement": (
             r"Déterminer $\displaystyle\lim_{n \to +\infty} n\left(e - \left(1 + \frac{1}{n}\right)^n\right)$."
         ),
@@ -483,7 +487,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PCSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "developpements-limites", "suites-numeriques"],
     },
     # ------------------------------------------------------------------ PTSI
     {
@@ -499,7 +503,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PTSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "equations-differentielles"],
     },
     {
         "title": "Équation différentielle y'' + y = cos x : la résonance",
@@ -514,7 +518,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PTSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "equations-differentielles"],
         "challenge": {
             "statement": (
                 r"Résoudre $y'' + {{a}}^2 y = \cos({{a}}x)$ avec $y(0) = y'(0) = 0$, "
@@ -538,7 +542,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PTSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["algebre-lineaire"],
+        "topics": ["algebre-lineaire", "applications-lineaires"],
     },
     {
         "title": "Rang d'une matrice selon un paramètre",
@@ -554,7 +558,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PTSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["algebre-lineaire"],
+        "topics": ["algebre-lineaire", "applications-lineaires", "determinants"],
     },
     {
         "title": "Puissance n-ième d'une matrice par la formule du binôme",
@@ -570,7 +574,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PTSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["algebre-lineaire"],
+        "topics": ["algebre-lineaire", "calcul-matriciel"],
     },
     {
         "title": "Nature et aire de la conique x² + xy + y² = 1",
@@ -586,7 +590,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PTSI",
         "levels": ["L1", "MPSI", "PCSI", "PTSI"],
-        "topics": ["geometrie"],
+        "topics": ["geometrie", "courbes-coniques"],
     },
     {
         "title": "Intégrale de 1/(x² − 1) par décomposition en éléments simples",
@@ -599,7 +603,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PTSI",
         "levels": PREMIERE_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "calcul-integral"],
     },
     {
         "title": "Longueur de l'astroïde",
@@ -616,7 +620,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PTSI",
         "levels": ["L1", "MPSI", "PCSI", "PTSI", "PT"],
-        "topics": ["geometrie"],
+        "topics": ["geometrie", "courbes-coniques"],
     },
     # ------------------------------------------------------------------ L2
     {
@@ -630,7 +634,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "L2",
         "levels": ["L1", "L2", "MPSI", "MP2I", "MP", "PC", "PSI", "PT"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "series-numeriques"],
         "challenge": {
             "statement": r"Calculer $\displaystyle\sum_{n=0}^{+\infty} \frac{n + {{a}}}{n!}$.",
             "parameters": {"a": [1, 2, 3, 4, 5]},
@@ -638,7 +642,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Convergence simple mais non uniforme de n x e^(−nx)",
+        "title": "Convergence simple mais non uniforme de nx e⁻ⁿˣ",
+        "former_titles": ["Convergence simple mais non uniforme de n x e^(−nx)"],
         "statement": (
             r"Pour $n \geq 1$ et $x \geq 0$, on pose $f_n(x) = n x e^{-nx}$."
             "\n\n"
@@ -656,7 +661,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "L2",
         "levels": DEUXIEME_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "suites-series-fonctions"],
     },
     {
         "title": "Somme des 1/n² par une série de Fourier",
@@ -677,10 +682,11 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "L2",
         "levels": ["L2", "L3", "PSI", "PT"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "series-de-fourier", "series-numeriques"],
     },
     {
-        "title": "Série de Leibniz : somme des (−1)^n/(2n + 1)",
+        "title": "Série de Leibniz : somme des (−1)ⁿ/(2n + 1)",
+        "former_titles": ["Série de Leibniz : somme des (−1)^n/(2n + 1)"],
         "statement": (
             r"1. Pour $N \geq 0$, montrer que $\displaystyle\sum_{n=0}^{N} \frac{(-1)^n}{2n+1} = \int_0^1 \frac{1 - (-t^2)^{N+1}}{1 + t^2}\,\mathrm{d}t$."
             "\n"
@@ -694,7 +700,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "L2",
         "levels": DEUXIEME_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "series-numeriques"],
     },
     {
         "title": "Fonction Gamma : relation fonctionnelle et Γ(5/2)",
@@ -715,7 +721,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "L2",
         "levels": ["L2", "L3", "MP", "PSI"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "integrales-generalisees"],
     },
     {
         "title": "Un groupe d'ordre premier est cyclique",
@@ -730,11 +736,12 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "L2",
         "levels": ["L2", "L3", "MP", "MP2I", "MPSI"],
-        "topics": ["algebre"],
+        "topics": ["algebre", "groupes-anneaux"],
     },
     # ------------------------------------------------------------------ MP
     {
-        "title": "Série de terme général ln(1 + (−1)^n/√n)",
+        "title": "Série de terme général ln(1 + (−1)ⁿ/√n)",
+        "former_titles": ["Série de terme général ln(1 + (−1)^n/√n)"],
         "statement": (
             r"Étudier la nature de la série de terme général $u_n = \ln\left(1 + \dfrac{(-1)^n}{\sqrt{n}}\right)$, $n \geq 2$."
             "\n\n"
@@ -748,10 +755,11 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "MP",
         "levels": ["L2", "MP", "PC", "PSI", "PT"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "series-numeriques", "developpements-limites"],
     },
     {
-        "title": "Somme de la série entière de terme général x^n/(n(n+1))",
+        "title": "Somme de la série entière de terme général xⁿ/(n(n + 1))",
+        "former_titles": ["Somme de la série entière de terme général x^n/(n(n+1))"],
         "statement": (
             r"1. Déterminer le rayon de convergence de $\displaystyle\sum_{n \geq 1} \frac{x^n}{n(n+1)}$."
             "\n"
@@ -767,7 +775,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "MP",
         "levels": DEUXIEME_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "series-entieres"],
     },
     {
         "title": "Intégrale à paramètre et arctangente",
@@ -788,7 +796,7 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "MP",
         "levels": ["L2", "L3", "MP", "PSI"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "integrales-a-parametre"],
     },
     {
         "title": "Deux normes non équivalentes sur R[X]",
@@ -806,7 +814,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "MP",
         "levels": ["L2", "L3", "MP"],
-        "topics": ["topologie"],
+        "topics": ["topologie", "espaces-vectoriels-normes"],
     },
     {
         "title": "La distance à un fermé est atteinte en dimension finie",
@@ -822,7 +830,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "MP",
         "levels": ["L2", "L3", "MP", "PSI"],
-        "topics": ["topologie"],
+        "topics": ["topologie", "espaces-vectoriels-normes"],
     },
     {
         "title": "Nombre moyen de lancers pour obtenir deux 6 consécutifs",
@@ -838,7 +846,7 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "MP",
         "levels": ["L2", "MP", "PC", "PSI", "PT"],
-        "topics": ["probabilites"],
+        "topics": ["probabilites", "variables-aleatoires-discretes", "probabilites-conditionnelles"],
     },
     {
         "title": "Nombre d'inversibles de Z/360Z",
@@ -853,7 +861,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "MP",
         "levels": ["L2", "L3", "MP", "MP2I"],
-        "topics": ["arithmetique"],
+        "topics": ["arithmetique", "congruences", "groupes-anneaux"],
         "challenge": {
             "statement": (
                 r"Combien l'anneau $\Z/2^{{{a}}} 3^{{{b}}}\Z$ compte-t-il d'éléments inversibles ?"
@@ -882,7 +890,7 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "MP",
         "levels": ["L2", "MP", "MPSI", "MP2I", "PSI"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "suites-numeriques", "developpements-limites"],
     },
     # ------------------------------------------------------------------ PC
     {
@@ -902,7 +910,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PC",
         "levels": DEUXIEME_ANNEE,
-        "topics": ["algebre-lineaire"],
+        "topics": ["algebre-lineaire", "reduction"],
     },
     {
         "title": "Problème du collectionneur : compléter une collection de 6 images",
@@ -918,7 +926,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PC",
         "levels": ["L2", "MP", "PC", "PSI", "PT"],
-        "topics": ["probabilites"],
+        "topics": ["probabilites", "variables-aleatoires-discretes"],
     },
     {
         "title": "Covariance nulle sans indépendance",
@@ -936,7 +944,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PC",
         "levels": ["L2", "MP", "PC", "PSI", "PT"],
-        "topics": ["probabilites"],
+        "topics": ["probabilites", "variables-aleatoires-discretes"],
     },
     {
         "title": "Intégrale de 1/(1 + x³) sur [0, +∞[",
@@ -949,7 +957,7 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "PC",
         "levels": ["L2", "MP", "PC", "PSI", "PT"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "integrales-generalisees"],
     },
     {
         "title": "Diagonalisation d'une matrice 3×3 avec une valeur propre double",
@@ -968,7 +976,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PC",
         "levels": DEUXIEME_ANNEE,
-        "topics": ["algebre-lineaire"],
+        "topics": ["algebre-lineaire", "reduction"],
     },
     # ------------------------------------------------------------------ PSI
     {
@@ -987,7 +995,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PSI",
         "levels": DEUXIEME_ANNEE,
-        "topics": ["algebre-lineaire"],
+        "topics": ["algebre-lineaire", "reduction"],
     },
     {
         "title": "Rayon de convergence d'une série entière lacunaire",
@@ -1002,7 +1010,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PSI",
         "levels": DEUXIEME_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "series-entieres"],
         "challenge": {
             "statement": (
                 r"Déterminer le rayon de convergence de $\displaystyle\sum_{n \geq 0} \frac{n^2 + 1}{{{a}}^n} x^{2n}$."
@@ -1029,7 +1037,7 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "PSI",
         "levels": ["L2", "L3", "MP", "PSI", "PC"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "integrales-a-parametre", "integrales-generalisees"],
     },
     {
         "title": "Somme de trois dés et fonction génératrice",
@@ -1045,7 +1053,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PSI",
         "levels": ["L2", "MP", "PC", "PSI", "PT"],
-        "topics": ["probabilites"],
+        "topics": ["probabilites", "variables-aleatoires-discretes"],
     },
     {
         "title": "Matrices symétriques et antisymétriques sont orthogonales",
@@ -1064,7 +1072,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PSI",
         "levels": DEUXIEME_ANNEE,
-        "topics": ["algebre-lineaire"],
+        "topics": ["algebre-lineaire", "espaces-euclidiens"],
     },
     {
         "title": "Équation d'Euler x²y'' + xy' − y = 0",
@@ -1080,7 +1088,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PSI",
         "levels": DEUXIEME_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "equations-differentielles"],
     },
     # ------------------------------------------------------------------ PT
     {
@@ -1097,7 +1105,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PT",
         "levels": DEUXIEME_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "equations-differentielles", "reduction"],
     },
     {
         "title": "Extremums de f(x, y) = x³ + y³ − 3xy",
@@ -1119,7 +1127,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PT",
         "levels": DEUXIEME_ANNEE,
-        "topics": ["analyse"],
+        "topics": ["analyse", "fonctions-plusieurs-variables"],
     },
     {
         "title": "Aire d'une ellipse par la formule de Green-Riemann",
@@ -1135,7 +1143,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PT",
         "levels": ["L2", "PT", "PSI", "PC"],
-        "topics": ["geometrie"],
+        "topics": ["geometrie", "courbes-coniques"],
         "challenge": {
             "statement": (
                 r"Calculer l'aire du domaine limité par l'ellipse $\dfrac{x^2}{{{a}}^2} + \dfrac{y^2}{{{b}}^2} = 1$."
@@ -1160,7 +1168,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PT",
         "levels": ["L2", "MP", "PC", "PSI", "PT"],
-        "topics": ["probabilites"],
+        "topics": ["probabilites", "variables-aleatoires-discretes", "probabilites-conditionnelles"],
     },
     {
         "title": "Espérance et variance d'une loi binomiale par la fonction génératrice",
@@ -1179,7 +1187,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PT",
         "levels": ["L2", "MP", "PC", "PSI", "PT"],
-        "topics": ["probabilites"],
+        "topics": ["probabilites", "variables-aleatoires-discretes"],
     },
     {
         "title": "Maximum d'une forme quadratique sur le cercle unité",
@@ -1197,11 +1205,12 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PT",
         "levels": DEUXIEME_ANNEE,
-        "topics": ["algebre-lineaire"],
+        "topics": ["algebre-lineaire", "espaces-euclidiens", "reduction"],
     },
     # ------------------------------------------------------------------ L3
     {
-        "title": "Convergence dominée : limite de l'intégrale de (1 − x/n)^n e^(x/2)",
+        "title": "Convergence dominée : limite de l'intégrale de (1 − x/n)ⁿ exp(x/2)",
+        "former_titles": ["Convergence dominée : limite de l'intégrale de (1 − x/n)^n e^(x/2)"],
         "statement": (
             r"Déterminer $\displaystyle\lim_{n \to +\infty} \int_0^n \left(1 - \frac{x}{n}\right)^n e^{x/2}\,\mathrm{d}x$."
         ),
@@ -1213,7 +1222,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "L3",
         "levels": ["L3", "M1", "MP", "PSI"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "integration-lebesgue"],
     },
     {
         "title": "Intégrale de ln x/(1 + x) sur [0, 1]",
@@ -1230,7 +1239,7 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "L3",
         "levels": ["L2", "L3", "MP", "PSI"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "integration-lebesgue", "series-numeriques"],
     },
     {
         "title": "Éléments d'ordre 2 du groupe symétrique S4",
@@ -1245,7 +1254,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "L3",
         "levels": ["L2", "L3", "MP", "MP2I"],
-        "topics": ["algebre"],
+        "topics": ["algebre", "groupes-anneaux"],
     },
     {
         "title": "Transformée de Fourier de la gaussienne par une équation différentielle",
@@ -1264,7 +1273,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "L3",
         "levels": ["L3", "M1"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "integrales-a-parametre"],
     },
     # ------------------------------------------------------------------ M1
     {
@@ -1282,7 +1291,7 @@ EXERCISES = [
         "difficulty": 4,
         "primary_level": "M1",
         "levels": ["L3", "M1"],
-        "topics": ["topologie"],
+        "topics": ["topologie", "espaces-metriques"],
     },
     {
         "title": "L'opérateur de Volterra n'a aucune valeur propre",
@@ -1301,7 +1310,7 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "M1",
         "levels": ["L3", "M1"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "analyse-fonctionnelle"],
     },
     {
         "title": "Minimum de n variables uniformes : convergence en loi",
@@ -1321,7 +1330,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "M1",
         "levels": ["L3", "M1"],
-        "topics": ["probabilites"],
+        "topics": ["probabilites", "theoremes-limites"],
     },
     {
         "title": "Processus de Poisson : nombre d'arrivées sur un intervalle",
@@ -1342,7 +1351,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "M1",
         "levels": ["L3", "M1"],
-        "topics": ["probabilites"],
+        "topics": ["probabilites", "marches-aleatoires"],
     },
     # ------------------------------------------------------------------ M2
     {
@@ -1359,7 +1368,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "M2",
         "levels": ["L3", "M1", "M2"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "analyse-fonctionnelle"],
     },
     {
         "title": "Inégalité de Poincaré sur ]0, 1[ et sa constante optimale",
@@ -1380,6 +1389,6 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "M2",
         "levels": ["L3", "M1", "M2"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "analyse-fonctionnelle", "series-de-fourier"],
     },
 ]

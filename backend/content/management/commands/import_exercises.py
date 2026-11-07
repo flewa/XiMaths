@@ -3,7 +3,9 @@
 Chaque exercice passe par la même validation qu'un exercice proposé sur le site (schéma
 de l'API, commandes LaTeX interdites, niveaux et chapitres connus), puis par la détection
 de doublons : un exercice trop proche d'un exercice déjà publié est laissé de côté et
-signalé. La commande peut être relancée : ce que la rédaction a déjà publié n'est pas recréé.
+signalé. La commande peut être relancée : ce que la rédaction a déjà publié n'est pas recréé,
+mais prend son titre actuel (retrouvé par `former_titles` s'il a changé) et ses chapitres et
+notions.
 
     python manage.py import_exercises --dry-run   # vérifie tout, n'écrit rien
     python manage.py import_exercises
@@ -52,6 +54,10 @@ def problems(specs):
     titles = [spec["title"] for spec in specs]
     for title in {title for title in titles if titles.count(title) > 1}:
         found.append(f"« {title} » apparaît deux fois.")
+    for spec in specs:
+        for former in spec.get("former_titles", []):
+            if former in titles or sum(former in other.get("former_titles", []) for other in specs) > 1:
+                found.append(f"« {spec['title']} » : l'ancien titre « {former} » sert déjà ailleurs.")
     for spec in specs:
         title = spec["title"]
         try:
@@ -104,10 +110,13 @@ class Command(BaseCommand):
             return
 
         author = editorial_account()
-        published, already, set_aside = 0, 0, []
+        published, already, updated, set_aside = 0, 0, 0, []
         for spec in EXERCISES:
-            if Exercise.objects.filter(author=author, title=spec["title"]).exists():
+            titles = [spec["title"], *spec.get("former_titles", [])]
+            existing = Exercise.objects.filter(author=author, title__in=titles).first()
+            if existing is not None:
                 already += 1
+                updated += self.refresh(existing, spec)
                 continue
             try:
                 with transaction.atomic():
@@ -126,6 +135,21 @@ class Command(BaseCommand):
 
         # Les défis du jour des niveaux qui viennent de recevoir un gabarit.
         open_challenges()
-        self.stdout.write(f"Publiés : {published}. Déjà là : {already}.")
+        self.stdout.write(f"Publiés : {published}. Déjà là : {already}. Mis à jour : {updated}.")
         for line in set_aside:
             self.stdout.write(f"Laissé de côté : {line}")
+
+    @staticmethod
+    def refresh(exercise, spec):
+        """Titre et chapitres (notions comprises) d'un exercice déjà publié, d'après la
+        rédaction. Le reste (énoncé, indications, niveaux) ne bouge pas. 1 s'il a changé."""
+        fields, _, topics = draft_fields(payload(spec))
+        changed = False
+        if exercise.title != fields["title"]:
+            exercise.title = fields["title"]
+            exercise.save(update_fields=["title"])
+            changed = True
+        if set(exercise.topics.all()) != set(topics):
+            exercise.topics.set(topics)
+            changed = True
+        return int(changed)

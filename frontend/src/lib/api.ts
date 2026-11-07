@@ -20,9 +20,14 @@ export type Level = {
   year: number;
 };
 
+/** Chapitre (parent null) ou notion, rangée sous son chapitre. */
 export type Topic = {
   name: string;
   slug: string;
+  /** Slug du chapitre d'une notion ; null pour un chapitre. */
+  parent: string | null;
+  /** Exercices publiés. */
+  exercises: number;
 };
 
 export type ExerciseSummary = {
@@ -31,7 +36,10 @@ export type ExerciseSummary = {
   difficulty: number;
   primary_level: string;
   levels: string[];
+  /** Noms des chapitres. */
   topics: string[];
+  /** Noms des notions (sous-chapitres). */
+  notions: string[];
   validated_solutions: number;
   votes: number;
   published_at: string;
@@ -421,6 +429,11 @@ export function fetchFeed(level?: string) {
 
 export function fetchExercise(id: string) {
   return get<ExerciseDetail>(`/exercises/${encodeURIComponent(id)}`);
+}
+
+/** Exercices proches : même notion, puis même chapitre. */
+export async function fetchRelated(id: number) {
+  return (await get<ExerciseSummary[]>(`/exercises/${id}/related`)) ?? [];
 }
 
 /** Le visiteur connecté, ou null. */

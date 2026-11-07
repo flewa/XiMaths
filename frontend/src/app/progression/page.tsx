@@ -9,6 +9,7 @@ import { DeleteGoalButton, GoalForm, VacationForm, WeeklyGoalForm } from "@/comp
 import { Tag } from "@/components/Tag";
 import { type ContributorLevel, type Skill, type WeekStatus, fetchProgress, fetchTopics } from "@/lib/api";
 import { dateFormat, oneDecimal, weekRange } from "@/lib/labels";
+import { chaptersOf } from "@/lib/seo-pages";
 
 export const metadata: Metadata = { title: "Ma progression" };
 
@@ -216,7 +217,7 @@ export default async function ProgressPage() {
           </ul>
         )}
         <div className="mt-6 border-t border-hairline pt-6">
-          <GoalForm topics={topics} />
+          <GoalForm topics={chaptersOf(topics)} />
         </div>
       </section>
 

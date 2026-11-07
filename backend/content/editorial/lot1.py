@@ -3,7 +3,8 @@
 EXERCISES = [
     # ------------------------------------------------------------------ L1
     {
-        "title": "Une limite usuelle",
+        "title": "Limite de sin(3x)/(2x) en 0",
+        "former_titles": ["Une limite usuelle"],
         "statement": r"Déterminer $\displaystyle\lim_{x \to 0} \frac{\sin(3x)}{2x}$.",
         "hints": [
             r"Faire apparaître le quotient $\dfrac{\sin(3x)}{3x}$.",
@@ -13,7 +14,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "L1",
         "levels": ["L1", "MPSI", "MP2I", "PCSI", "PTSI"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "limites-continuite"],
         "challenge": {
             "statement": r"Déterminer $\displaystyle\lim_{x \to 0} \frac{\sin({{a}}x)}{{{b}}x}$.",
             "parameters": {"a": [2, 3, 5, 7], "b": [2, 3, 4, 6]},
@@ -21,7 +22,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Somme des cubes",
+        "title": "Somme des cubes des n premiers entiers, par récurrence",
+        "former_titles": ["Somme des cubes"],
         "statement": (
             r"Montrer que pour tout entier $n \geq 1$,"
             "\n\n"
@@ -34,10 +36,11 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "L1",
         "levels": ["L1", "MPSI", "MP2I", "PCSI", "PTSI"],
-        "topics": ["algebre"],
+        "topics": ["algebre", "sommes-recurrence"],
     },
     {
-        "title": "Composée injective",
+        "title": "Injectivité d'une composée g∘f",
+        "former_titles": ["Composée injective"],
         "statement": (
             r"Soit $f : E \to F$ et $g : F \to G$ deux applications."
             "\n\n"
@@ -52,10 +55,11 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "L1",
         "levels": ["L1", "MPSI", "MP2I", "PCSI"],
-        "topics": ["algebre"],
+        "topics": ["algebre", "ensembles-applications"],
     },
     {
-        "title": "Fonctions additives sur les rationnels",
+        "title": "Équation fonctionnelle de Cauchy f(x + y) = f(x) + f(y) sur les rationnels",
+        "former_titles": ["Fonctions additives sur les rationnels"],
         "statement": (
             r"Soit $f : \R \to \R$ telle que $f(x + y) = f(x) + f(y)$ pour tous réels $x$ et $y$."
             "\n\n"
@@ -68,10 +72,11 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "L1",
         "levels": ["L1", "MPSI", "MP2I"],
-        "topics": ["analyse", "algebre"],
+        "topics": ["analyse", "algebre", "nombres-reels"],
     },
     {
-        "title": "Partie entière du double",
+        "title": "Partie entière : ⌊2x⌋ = ⌊x⌋ + ⌊x + 1/2⌋",
+        "former_titles": ["Partie entière du double"],
         "statement": (
             r"On note $\lfloor x \rfloor$ la partie entière du réel $x$. Montrer que pour tout réel $x$,"
             "\n\n"
@@ -84,10 +89,11 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "L1",
         "levels": ["L1", "MPSI", "MP2I", "PCSI", "PTSI"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "nombres-reels", "fonctions-usuelles"],
     },
     {
-        "title": "Sous-groupes de Z",
+        "title": "Les sous-groupes de Z sont les nZ",
+        "former_titles": ["Sous-groupes de Z"],
         "statement": (
             r"Montrer que tout sous-groupe $H$ du groupe $(\Z, +)$ est de la forme $n\Z$"
             r" pour un unique entier $n \geq 0$."
@@ -99,11 +105,12 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "L1",
         "levels": ["L1", "L2", "MPSI", "MP2I"],
-        "topics": ["algebre", "arithmetique"],
+        "topics": ["algebre", "arithmetique", "groupes-anneaux", "divisibilite-pgcd"],
     },
     # ------------------------------------------------------------------ L2
     {
-        "title": "Une série dérivée",
+        "title": "Somme de la série de terme général n/2ⁿ",
+        "former_titles": ["Une série dérivée"],
         "statement": r"Justifier la convergence de la série $\displaystyle\sum_{n \geq 1} \frac{n}{2^n}$ et calculer sa somme.",
         "hints": [
             r"Pour $|x| < 1$, dériver terme à terme $\displaystyle\sum_{n \geq 0} x^n = \frac{1}{1-x}$.",
@@ -113,7 +120,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "L2",
         "levels": ["L2", "MP", "PSI", "PC", "PT"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "series-numeriques", "series-entieres"],
         "challenge": {
             "statement": r"Calculer la somme de la série $\displaystyle\sum_{n \geq 1} \frac{n}{{{b}}^n}$.",
             "parameters": {"b": [2, 3, 4, 5, 7]},
@@ -121,7 +128,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "La dérivation sur les polynômes",
+        "title": "Noyau, image et rang de la dérivation sur Rₙ[X]",
+        "former_titles": ["La dérivation sur les polynômes"],
         "statement": (
             r"Soit $n \geq 1$ et $E = \R_n[X]$ l'espace des polynômes réels de degré au plus $n$."
             r" On note $D : E \to E$ l'application $P \mapsto P'$."
@@ -136,10 +144,11 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "L2",
         "levels": ["L1", "L2", "MPSI", "MP2I", "PCSI"],
-        "topics": ["algebre-lineaire"],
+        "topics": ["algebre-lineaire", "applications-lineaires", "polynomes"],
     },
     {
-        "title": "Convergence uniforme de x puissance n",
+        "title": "Convergence simple mais non uniforme de xⁿ sur [0, 1]",
+        "former_titles": ["Convergence uniforme de x puissance n"],
         "statement": (
             r"Pour $n \in \N$ et $x \in [0, 1]$, on pose $f_n(x) = x^n$."
             "\n\n"
@@ -156,10 +165,11 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "L2",
         "levels": ["L2", "MP", "PSI", "PC"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "suites-series-fonctions"],
     },
     {
-        "title": "Puissances d'une matrice de rang un augmentée",
+        "title": "Puissances de la matrice I + J, J remplie de 1",
+        "former_titles": ["Puissances d'une matrice de rang un augmentée"],
         "statement": (
             r"On pose $J$ la matrice de $\mathcal{M}_3(\R)$ dont tous les coefficients valent $1$,"
             r" et $A = I_3 + J$."
@@ -177,11 +187,12 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "L2",
         "levels": ["L1", "L2", "MPSI", "MP", "PSI"],
-        "topics": ["algebre-lineaire"],
+        "topics": ["algebre-lineaire", "calcul-matriciel"],
     },
     # ------------------------------------------------------------------ L3
     {
-        "title": "Transformée de Laplace d'un sinus",
+        "title": "Intégrale de e⁻²ˣ sin(3x) sur [0, +∞[ : transformée de Laplace",
+        "former_titles": ["Transformée de Laplace d'un sinus"],
         "statement": (
             r"Justifier la convergence de l'intégrale $\displaystyle\int_0^{+\infty} e^{-2x} \sin(3x)\,dx$,"
             " puis calculer sa valeur."
@@ -194,7 +205,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "L3",
         "levels": ["L2", "L3", "MP", "PSI"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "integrales-generalisees"],
         "challenge": {
             "statement": r"Calculer $\displaystyle\int_0^{+\infty} e^{-{{a}}x} \sin({{b}}x)\,dx$.",
             "parameters": {"a": [1, 2, 3, 4], "b": [1, 2, 3, 5]},
@@ -202,7 +213,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "La boule unité de l'espace des suites de carré sommable",
+        "title": "La boule unité de ℓ² n'est pas compacte",
+        "former_titles": ["La boule unité de l'espace des suites de carré sommable"],
         "statement": (
             r"On note $\ell^2$ l'espace des suites réelles $u = (u_n)_{n \in \N}$ telles que"
             r" $\sum u_n^2 < +\infty$, muni de la norme $\|u\|_2 = \left(\sum_{n} u_n^2\right)^{1/2}$."
@@ -216,10 +228,11 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "L3",
         "levels": ["L3", "M1"],
-        "topics": ["topologie"],
+        "topics": ["topologie", "espaces-vectoriels-normes"],
     },
     {
-        "title": "Les rationnels ne sont pas un G-delta",
+        "title": "Q n'est pas un G-delta de R (théorème de Baire)",
+        "former_titles": ["Les rationnels ne sont pas un G-delta"],
         "statement": (
             r"Montrer que $\Q$ n'est pas une intersection dénombrable d'ouverts de $\R$."
         ),
@@ -230,10 +243,11 @@ EXERCISES = [
         "difficulty": 4,
         "primary_level": "L3",
         "levels": ["L3", "M1"],
-        "topics": ["topologie"],
+        "topics": ["topologie", "espaces-metriques"],
     },
     {
-        "title": "L'ensemble triadique de Cantor",
+        "title": "Ensemble triadique de Cantor : compact, de mesure nulle, non dénombrable",
+        "former_titles": ["L'ensemble triadique de Cantor"],
         "statement": (
             r"On pose $K_0 = [0, 1]$ et, pour $n \in \N$, on obtient $K_{n+1}$ en retirant de chacun"
             r" des segments de $K_n$ son tiers central ouvert. On note $K = \bigcap_{n} K_n$."
@@ -250,11 +264,12 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "L3",
         "levels": ["L3", "M1"],
-        "topics": ["topologie", "analyse"],
+        "topics": ["topologie", "analyse", "espaces-metriques", "integration-lebesgue"],
     },
     # ------------------------------------------------------------------ M1
     {
-        "title": "Une intégrale par les résidus",
+        "title": "Intégrale de 1/(x² + 4)² par le théorème des résidus",
+        "former_titles": ["Une intégrale par les résidus"],
         "statement": r"Calculer $\displaystyle\int_{-\infty}^{+\infty} \frac{dx}{(x^2 + 4)^2}$ à l'aide du théorème des résidus.",
         "hints": [
             r"Intégrer $f(z) = \dfrac{1}{(z^2 + 4)^2}$ sur le bord du demi-disque supérieur de rayon $R$, puis faire tendre $R$ vers $+\infty$.",
@@ -264,7 +279,7 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "M1",
         "levels": ["L3", "M1"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "integrales-generalisees"],
         "challenge": {
             "statement": r"Calculer $\displaystyle\int_{-\infty}^{+\infty} \frac{dx}{(x^2 + {{a}}^2)^2}$.",
             "parameters": {"a": [1, 2, 3, 4, 5]},
@@ -272,7 +287,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Lemme de Riemann-Lebesgue",
+        "title": "Lemme de Riemann-Lebesgue pour une fonction intégrable",
+        "former_titles": ["Lemme de Riemann-Lebesgue"],
         "statement": (
             r"Soit $f \in L^1(\R)$. Montrer que"
             "\n\n"
@@ -285,10 +301,11 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "M1",
         "levels": ["L3", "M1"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "integration-lebesgue"],
     },
     {
-        "title": "Un idéal maximal de Z[X]",
+        "title": "Idéaux premiers et maximaux de Z[X] : (X) et (2, X)",
+        "former_titles": ["Un idéal maximal de Z[X]"],
         "statement": (
             r"Dans l'anneau $\Z[X]$ :"
             "\n\n"
@@ -303,7 +320,7 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "M1",
         "levels": ["L3", "M1"],
-        "topics": ["algebre"],
+        "topics": ["algebre", "groupes-anneaux", "polynomes"],
     },
     {
         "title": "Loi forte des grands nombres avec un moment d'ordre 4",
@@ -322,11 +339,12 @@ EXERCISES = [
         "difficulty": 4,
         "primary_level": "M1",
         "levels": ["M1"],
-        "topics": ["probabilites"],
+        "topics": ["probabilites", "theoremes-limites"],
     },
     # ------------------------------------------------------------------ M2
     {
-        "title": "Temps de sortie d'une marche aléatoire",
+        "title": "Temps de sortie moyen d'une marche aléatoire simple",
+        "former_titles": ["Temps de sortie d'une marche aléatoire"],
         "statement": (
             r"Soit $(S_n)_{n \geq 0}$ la marche aléatoire simple symétrique sur $\Z$ issue de $S_0 = 2$ :"
             r" ses pas valent $+1$ ou $-1$ avec probabilité $\frac{1}{2}$, indépendamment."
@@ -342,7 +360,7 @@ EXERCISES = [
         "difficulty": 4,
         "primary_level": "M2",
         "levels": ["M1", "M2"],
-        "topics": ["probabilites"],
+        "topics": ["probabilites", "marches-aleatoires"],
         "challenge": {
             "statement": (
                 r"La marche aléatoire simple symétrique sur $\Z$ part de ${{a}}$. Calculer l'espérance du temps"
@@ -353,7 +371,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Injection de Sobolev en dimension un",
+        "title": "Injection de Sobolev en dimension 1 : H¹ et fonctions höldériennes",
+        "former_titles": ["Injection de Sobolev en dimension un"],
         "statement": (
             r"Soit $u \in C^1([0, 1])$. Montrer que pour tous $x, y \in [0, 1]$,"
             "\n\n"
@@ -369,10 +388,11 @@ EXERCISES = [
         "difficulty": 4,
         "primary_level": "M2",
         "levels": ["M1", "M2"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "analyse-fonctionnelle"],
     },
     {
-        "title": "Problème de Dirichlet par Lax-Milgram",
+        "title": "Problème de Dirichlet −u'' + u = f par le théorème de Lax-Milgram",
+        "former_titles": ["Problème de Dirichlet par Lax-Milgram"],
         "statement": (
             r"Soit $f \in L^2(0, 1)$. On cherche $u \in H^1_0(0, 1)$ telle que $-u'' + u = f$ au sens faible :"
             "\n\n"
@@ -387,10 +407,11 @@ EXERCISES = [
         "difficulty": 4,
         "primary_level": "M2",
         "levels": ["M1", "M2"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "analyse-fonctionnelle"],
     },
     {
-        "title": "Moment d'ordre 4 du mouvement brownien",
+        "title": "Moment d'ordre 4 du mouvement brownien par la formule d'Itô",
+        "former_titles": ["Moment d'ordre 4 du mouvement brownien"],
         "statement": (
             r"Soit $(B_t)_{t \geq 0}$ un mouvement brownien standard. À l'aide de la formule d'Itô appliquée"
             r" à $x \mapsto x^4$, calculer $E[B_t^4]$ pour $t \geq 0$."
@@ -403,10 +424,11 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "M2",
         "levels": ["M2"],
-        "topics": ["probabilites"],
+        "topics": ["probabilites", "marches-aleatoires"],
     },
     {
-        "title": "Ruine du joueur, cas équitable",
+        "title": "Ruine du joueur : probabilité de ruine dans le cas équitable",
+        "former_titles": ["Ruine du joueur, cas équitable"],
         "statement": (
             r"Un joueur possède $3$ euros. À chaque partie, il gagne ou perd $1$ euro avec probabilité"
             r" $\frac{1}{2}$, indépendamment des parties précédentes. Il s'arrête dès qu'il est ruiné"
@@ -422,18 +444,19 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "M2",
         "levels": ["L3", "M1", "M2"],
-        "topics": ["probabilites"],
+        "topics": ["probabilites", "marches-aleatoires", "probabilites-conditionnelles"],
     },
     # ------------------------------------------------------------------ MPSI
     {
-        "title": "Somme binomiale",
+        "title": "Formule du binôme : somme des k parmi 5 fois 2ᵏ",
+        "former_titles": ["Somme binomiale"],
         "statement": r"Calculer $\displaystyle\sum_{k=0}^{5} \binom{5}{k}\, 2^k$.",
         "hints": [r"Reconnaître le développement de $(1 + x)^5$ par la formule du binôme."],
         "final_answer": "243",
         "difficulty": 1,
         "primary_level": "MPSI",
         "levels": ["L1", "MPSI", "MP2I", "PCSI", "PTSI"],
-        "topics": ["algebre"],
+        "topics": ["algebre", "sommes-recurrence", "denombrement"],
         "challenge": {
             "statement": r"Calculer $\displaystyle\sum_{k=0}^{{{a}}} \binom{{{a}}}{k}\, {{b}}^k$.",
             "parameters": {"a": [3, 4, 5, 6], "b": [2, 3, 4]},
@@ -441,7 +464,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Produit autour des racines de l'unité",
+        "title": "Racines n-ièmes de l'unité : somme, et produit des 1 − ωᵏ",
+        "former_titles": ["Produit autour des racines de l'unité"],
         "statement": (
             r"Soit $n \geq 2$ et $\omega = e^{2i\pi/n}$."
             "\n\n"
@@ -457,10 +481,11 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "MPSI",
         "levels": ["L1", "MPSI", "MP2I", "PCSI"],
-        "topics": ["algebre"],
+        "topics": ["algebre", "nombres-complexes", "polynomes"],
     },
     {
-        "title": "Racines carrées emboîtées",
+        "title": "Suite récurrente u(n+1) = √(2 + u(n)) : convergence et limite",
+        "former_titles": ["Racines carrées emboîtées"],
         "statement": (
             r"On définit la suite $(u_n)$ par $u_0 = 0$ et $u_{n+1} = \sqrt{2 + u_n}$ pour tout $n \in \N$."
             "\n\n"
@@ -474,10 +499,11 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "MPSI",
         "levels": ["L1", "MPSI", "MP2I", "PCSI", "PTSI"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "suites-numeriques"],
     },
     {
-        "title": "Intégrales de Wallis",
+        "title": "Intégrales de Wallis : relation de récurrence et valeur de W4",
+        "former_titles": ["Intégrales de Wallis"],
         "statement": (
             r"Pour $n \in \N$, on pose $W_n = \displaystyle\int_0^{\pi/2} \sin^n t\,dt$."
             "\n\n"
@@ -493,11 +519,12 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "MPSI",
         "levels": ["L1", "MPSI", "PCSI", "PTSI"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "calcul-integral"],
     },
     # ------------------------------------------------------------------ MP2I
     {
-        "title": "Nombre de diviseurs",
+        "title": "Nombre de diviseurs positifs de 144",
+        "former_titles": ["Nombre de diviseurs"],
         "statement": r"Combien l'entier $144$ admet-il de diviseurs positifs ?",
         "hints": [
             r"$144 = 2^4 \times 3^2$.",
@@ -507,7 +534,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "MP2I",
         "levels": ["L1", "MPSI", "MP2I"],
-        "topics": ["arithmetique"],
+        "topics": ["arithmetique", "divisibilite-pgcd"],
         "challenge": {
             "statement": r"Combien l'entier $2^{{{a}}} \times 3^{{{b}}}$ admet-il de diviseurs positifs ?",
             "parameters": {"a": [2, 3, 4, 5, 6], "b": [1, 2, 3, 4]},
@@ -515,7 +542,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Algorithme d'Euclide et relation de Bézout",
+        "title": "PGCD de 120 et 84 par l'algorithme d'Euclide, et relation de Bézout",
+        "former_titles": ["Algorithme d'Euclide et relation de Bézout"],
         "statement": (
             r"1. Calculer $d = \operatorname{pgcd}(120, 84)$ par l'algorithme d'Euclide."
             "\n"
@@ -526,10 +554,11 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "MP2I",
         "levels": ["L1", "MPSI", "MP2I"],
-        "topics": ["arithmetique"],
+        "topics": ["arithmetique", "divisibilite-pgcd"],
     },
     {
-        "title": "Une puissance modulo 7",
+        "title": "Reste de 3¹⁰⁰ modulo 7",
+        "former_titles": ["Une puissance modulo 7"],
         "statement": r"Déterminer le reste de la division euclidienne de $3^{100}$ par $7$.",
         "hints": [
             r"D'après le petit théorème de Fermat, $3^6 \equiv 1 \pmod 7$.",
@@ -539,10 +568,11 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "MP2I",
         "levels": ["L1", "MPSI", "MP2I"],
-        "topics": ["arithmetique"],
+        "topics": ["arithmetique", "congruences"],
     },
     {
-        "title": "Surjections vers un ensemble à deux éléments",
+        "title": "Nombre de surjections de {1, …, n} sur {1, 2}",
+        "former_titles": ["Surjections vers un ensemble à deux éléments"],
         "statement": (
             r"Soit $n \geq 1$. Combien y a-t-il de surjections de $\{1, \dots, n\}$ sur $\{1, 2\}$ ?"
             r" Donner la valeur pour $n = 4$."
@@ -555,18 +585,19 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "MP2I",
         "levels": ["L1", "MPSI", "MP2I", "PCSI"],
-        "topics": ["algebre"],
+        "topics": ["algebre", "denombrement", "ensembles-applications"],
     },
     # ------------------------------------------------------------------ PCSI
     {
-        "title": "Module d'une puissance",
+        "title": "Module du nombre complexe (1 + i√3)⁵",
+        "former_titles": ["Module d'une puissance"],
         "statement": r"Calculer le module du nombre complexe $(1 + i\sqrt{3})^5$.",
         "hints": [r"Le module d'un produit est le produit des modules : calculer $|1 + i\sqrt{3}|$."],
         "final_answer": "32",
         "difficulty": 1,
         "primary_level": "PCSI",
         "levels": ["L1", "MPSI", "PCSI", "PTSI"],
-        "topics": ["algebre"],
+        "topics": ["algebre", "nombres-complexes"],
         "challenge": {
             "statement": r"Calculer le module du nombre complexe $(1 + i\sqrt{3})^{{{a}}}$.",
             "parameters": {"a": [3, 4, 5, 6, 7, 8]},
@@ -574,7 +605,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Équation différentielle du second ordre",
+        "title": "Équation différentielle y'' − 3y' + 2y = 0 avec conditions initiales",
+        "former_titles": ["Équation différentielle du second ordre"],
         "statement": (
             r"Déterminer la solution $y$ de l'équation $y'' - 3y' + 2y = 0$ vérifiant $y(0) = 1$ et $y'(0) = 0$,"
             r" puis calculer $y(1)$."
@@ -587,10 +619,11 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PCSI",
         "levels": ["L1", "MPSI", "PCSI", "PTSI"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "equations-differentielles"],
     },
     {
-        "title": "Développement limité de la tangente",
+        "title": "Développement limité de tan x à l'ordre 5",
+        "former_titles": ["Développement limité de la tangente"],
         "statement": (
             r"Déterminer le développement limité à l'ordre $5$ en $0$ de la fonction tangente."
             r" Quel est le coefficient de $x^5$ ?"
@@ -603,10 +636,11 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PCSI",
         "levels": ["L1", "MPSI", "PCSI", "PTSI"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "developpements-limites"],
     },
     {
-        "title": "Aire entre deux courbes",
+        "title": "Aire entre les courbes y = x² et y = √x",
+        "former_titles": ["Aire entre deux courbes"],
         "statement": r"Calculer l'aire du domaine compris entre les courbes d'équations $y = x^2$ et $y = \sqrt{x}$.",
         "hints": [
             r"Les courbes se coupent en $x = 0$ et $x = 1$, et $\sqrt{x} \geq x^2$ sur $[0, 1]$.",
@@ -616,11 +650,12 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PCSI",
         "levels": ["L1", "PCSI", "PTSI"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "calcul-integral"],
     },
     # ------------------------------------------------------------------ PTSI
     {
-        "title": "Distance d'un point à une droite",
+        "title": "Distance du point A(1, 2) à la droite 3x + 4y = 0",
+        "former_titles": ["Distance d'un point à une droite"],
         "statement": (
             r"Dans un repère orthonormé du plan, calculer la distance du point $A(1, 2)$ à la droite"
             r" d'équation $3x + 4y = 0$."
@@ -633,7 +668,7 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PTSI",
         "levels": ["L1", "MPSI", "PCSI", "PTSI"],
-        "topics": ["geometrie"],
+        "topics": ["geometrie", "geometrie-plan-espace"],
         "challenge": {
             "statement": (
                 r"Dans un repère orthonormé du plan, calculer la distance du point $A({{a}}, {{b}})$ à la droite"
@@ -644,7 +679,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Aire d'un triangle de l'espace",
+        "title": "Aire d'un triangle de l'espace par le produit vectoriel",
+        "former_titles": ["Aire d'un triangle de l'espace"],
         "statement": (
             r"Dans un repère orthonormé de l'espace, on considère les points $A(1, 0, 0)$, $B(0, 2, 0)$"
             r" et $C(0, 0, 3)$. Calculer l'aire du triangle $ABC$."
@@ -654,10 +690,11 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PTSI",
         "levels": ["L1", "MPSI", "PCSI", "PTSI"],
-        "topics": ["geometrie"],
+        "topics": ["geometrie", "geometrie-plan-espace"],
     },
     {
-        "title": "Axe et angle d'une rotation",
+        "title": "Axe et angle d'une rotation de R³ donnée par sa matrice",
+        "former_titles": ["Axe et angle d'une rotation"],
         "statement": (
             r"Soit $f$ l'endomorphisme de $\R^3$ canoniquement associé à la matrice"
             "\n\n"
@@ -675,7 +712,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PTSI",
         "levels": ["L1", "L2", "MPSI", "PCSI", "PTSI"],
-        "topics": ["algebre-lineaire", "geometrie"],
+        "topics": ["algebre-lineaire", "geometrie", "geometrie-plan-espace", "espaces-euclidiens"],
     },
     {
         "title": "Longueur d'une arche de cycloïde",
@@ -690,11 +727,12 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PTSI",
         "levels": ["MPSI", "PCSI", "PTSI", "PT"],
-        "topics": ["geometrie", "analyse"],
+        "topics": ["geometrie", "analyse", "courbes-coniques"],
     },
     # ------------------------------------------------------------------ MP
     {
-        "title": "Déterminant à diagonale constante",
+        "title": "Déterminant d'une matrice à diagonale constante",
+        "former_titles": ["Déterminant à diagonale constante"],
         "statement": (
             r"Calculer le déterminant de la matrice de $\mathcal{M}_4(\R)$ dont les coefficients diagonaux"
             r" valent $3$ et tous les autres valent $1$."
@@ -707,7 +745,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "MP",
         "levels": ["L2", "MP", "PSI", "PC"],
-        "topics": ["algebre-lineaire"],
+        "topics": ["algebre-lineaire", "determinants"],
         "challenge": {
             "statement": (
                 r"Calculer le déterminant de la matrice de $\mathcal{M}_{{{b}}}(\R)$ dont les coefficients diagonaux"
@@ -718,7 +756,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Inverse par un polynôme annulateur",
+        "title": "Inverse d'une matrice par un polynôme annulateur",
+        "former_titles": ["Inverse par un polynôme annulateur"],
         "statement": (
             r"Soit $A \in \mathcal{M}_n(\R)$ telle que $A^2 - 3A + 2I_n = 0$."
             "\n\n"
@@ -733,10 +772,11 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "MP",
         "levels": ["L2", "MP", "PSI", "PC"],
-        "topics": ["algebre-lineaire"],
+        "topics": ["algebre-lineaire", "calcul-matriciel", "reduction"],
     },
     {
-        "title": "Une série entière à coefficients polynomiaux",
+        "title": "Rayon et somme de la série entière de terme général n² xⁿ",
+        "former_titles": ["Une série entière à coefficients polynomiaux"],
         "statement": (
             r"1. Déterminer le rayon de convergence $R$ de la série entière $\displaystyle\sum_{n \geq 1} n^2 x^n$,"
             r" puis calculer sa somme sur $]-R, R[$."
@@ -751,10 +791,11 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "MP",
         "levels": ["L2", "MP", "PSI", "PC"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "series-entieres"],
     },
     {
-        "title": "Intégrale de Dirichlet",
+        "title": "Intégrale de Dirichlet : convergence et valeur de l'intégrale de sin x / x",
+        "former_titles": ["Intégrale de Dirichlet"],
         "statement": (
             r"1. Montrer que l'intégrale $\displaystyle\int_0^{+\infty} \frac{\sin x}{x}\,dx$ converge,"
             " mais pas absolument."
@@ -772,10 +813,11 @@ EXERCISES = [
         "difficulty": 4,
         "primary_level": "MP",
         "levels": ["L3", "MP"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "integrales-generalisees", "integrales-a-parametre"],
     },
     {
-        "title": "Meilleure approximation affine dans L2",
+        "title": "Meilleure approximation affine de x² dans L², par projection orthogonale",
+        "former_titles": ["Meilleure approximation affine dans L2"],
         "statement": (
             r"On munit $C([0, 1])$ du produit scalaire $\langle f, g \rangle = \displaystyle\int_0^1 f g$."
             "\n\n"
@@ -789,18 +831,19 @@ EXERCISES = [
         "difficulty": 3,
         "primary_level": "MP",
         "levels": ["L2", "L3", "MP", "PSI"],
-        "topics": ["algebre-lineaire"],
+        "topics": ["algebre-lineaire", "espaces-euclidiens"],
     },
     # ------------------------------------------------------------------ PC
     {
-        "title": "Équation différentielle linéaire du premier ordre",
+        "title": "Équation différentielle y' + 2y = 0 avec condition initiale",
+        "former_titles": ["Équation différentielle linéaire du premier ordre"],
         "statement": r"Déterminer la solution $y$ de $y' + 2y = 0$ telle que $y(0) = 3$, puis calculer $y(1)$.",
         "hints": [r"Les solutions sont les fonctions $x \mapsto C e^{-2x}$."],
         "final_answer": "3*exp(-2)",
         "difficulty": 1,
         "primary_level": "PC",
         "levels": ["L1", "PCSI", "PC", "PSI", "PT"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "equations-differentielles"],
         "challenge": {
             "statement": (
                 r"Soit $y$ la solution de $y' + {{a}}\,y = 0$ telle que $y(0) = {{b}}$. Calculer $y(1)$."
@@ -810,7 +853,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Trace d'une puissance d'une matrice symétrique",
+        "title": "Diagonalisation d'une matrice symétrique et trace de A¹⁰",
+        "former_titles": ["Trace d'une puissance d'une matrice symétrique"],
         "statement": (
             r"Soit $A = \begin{pmatrix} 1 & 2 \\ 2 & 1 \end{pmatrix}$."
             "\n\n"
@@ -826,10 +870,11 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PC",
         "levels": ["L2", "MP", "PC", "PSI", "PT"],
-        "topics": ["algebre-lineaire"],
+        "topics": ["algebre-lineaire", "reduction", "espaces-euclidiens"],
     },
     {
-        "title": "Intégrale double en coordonnées polaires",
+        "title": "Intégrale double de exp(−x² − y²) sur le disque unité, en coordonnées polaires",
+        "former_titles": ["Intégrale double en coordonnées polaires"],
         "statement": r"Calculer $\displaystyle\iint_{x^2 + y^2 \leq 1} e^{-(x^2 + y^2)}\,dx\,dy$.",
         "hints": [
             r"Passer en coordonnées polaires : $dx\,dy = r\,dr\,d\theta$.",
@@ -839,10 +884,11 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PC",
         "levels": ["L2", "MP", "PC", "PSI", "PT"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "fonctions-plusieurs-variables", "calcul-integral"],
     },
     {
-        "title": "Minimum d'une fonction de deux variables",
+        "title": "Minimum de f(x, y) = x² + xy + y² − 3x",
+        "former_titles": ["Minimum d'une fonction de deux variables"],
         "statement": (
             r"Soit $f : \R^2 \to \R$ définie par $f(x, y) = x^2 + xy + y^2 - 3x$."
             "\n\n"
@@ -856,11 +902,12 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PC",
         "levels": ["L2", "MP", "PC", "PSI", "PT"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "fonctions-plusieurs-variables"],
     },
     # ------------------------------------------------------------------ PSI
     {
-        "title": "Moment d'ordre 2 d'une loi géométrique",
+        "title": "Moment d'ordre 2 d'une loi géométrique : calcul de E(X²)",
+        "former_titles": ["Moment d'ordre 2 d'une loi géométrique"],
         "statement": (
             r"Soit $X$ une variable aléatoire suivant la loi géométrique de paramètre $p = \frac{1}{4}$ :"
             r" $P(X = k) = p(1 - p)^{k-1}$ pour $k \geq 1$. Calculer $E[X^2]$."
@@ -873,7 +920,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PSI",
         "levels": ["L2", "MP", "PC", "PSI", "PT"],
-        "topics": ["probabilites"],
+        "topics": ["probabilites", "variables-aleatoires-discretes"],
         "challenge": {
             "statement": (
                 r"Soit $X$ une variable aléatoire suivant la loi géométrique de paramètre $p = \frac{1}{{{a}}}$."
@@ -896,10 +943,11 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PSI",
         "levels": ["L2", "MP", "PC", "PSI", "PT"],
-        "topics": ["probabilites"],
+        "topics": ["probabilites", "variables-aleatoires-discretes"],
     },
     {
-        "title": "Combien de lancers pour estimer une proportion",
+        "title": "Inégalité de Bienaymé-Tchebychev : combien de lancers pour estimer une proportion",
+        "former_titles": ["Combien de lancers pour estimer une proportion"],
         "statement": (
             r"On lance $n$ fois une pièce équilibrée et on note $F_n$ la fréquence des piles obtenus."
             "\n\n"
@@ -914,10 +962,11 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PSI",
         "levels": ["L2", "MP", "PC", "PSI", "PT"],
-        "topics": ["probabilites"],
+        "topics": ["probabilites", "theoremes-limites"],
     },
     {
-        "title": "Commutant d'une matrice diagonale",
+        "title": "Commutant d'une matrice diagonale à coefficients distincts",
+        "former_titles": ["Commutant d'une matrice diagonale"],
         "statement": (
             r"Soit $D = \operatorname{diag}(\lambda_1, \dots, \lambda_n)$ une matrice diagonale de $\mathcal{M}_n(\R)$"
             r" dont les coefficients diagonaux sont deux à deux distincts."
@@ -930,11 +979,12 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PSI",
         "levels": ["L2", "MP", "PSI", "PC"],
-        "topics": ["algebre-lineaire"],
+        "topics": ["algebre-lineaire", "calcul-matriciel", "reduction"],
     },
     # ------------------------------------------------------------------ PT
     {
-        "title": "Une intégrale avec un logarithme",
+        "title": "Intégrale de x² ln x sur ]0, 1]",
+        "former_titles": ["Une intégrale avec un logarithme"],
         "statement": (
             r"Justifier la convergence de l'intégrale $\displaystyle\int_0^1 x^2 \ln x\,dx$ et calculer sa valeur."
         ),
@@ -946,7 +996,7 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PT",
         "levels": ["L2", "PC", "PSI", "PT"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "integrales-generalisees"],
         "challenge": {
             "statement": r"Calculer $\displaystyle\int_0^1 x^{{{a}}} \ln x\,dx$.",
             "parameters": {"a": [1, 2, 3, 4, 5]},
@@ -966,10 +1016,11 @@ EXERCISES = [
         "difficulty": 2,
         "primary_level": "PT",
         "levels": ["L2", "PTSI", "PT"],
-        "topics": ["geometrie"],
+        "topics": ["geometrie", "courbes-coniques"],
     },
     {
-        "title": "Plan tangent à une sphère",
+        "title": "Équation du plan tangent à une sphère en un point",
+        "former_titles": ["Plan tangent à une sphère"],
         "statement": (
             r"Soit $S$ la sphère d'équation $x^2 + y^2 + z^2 = 9$ dans un repère orthonormé."
             "\n\n"
@@ -982,10 +1033,11 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PT",
         "levels": ["L2", "PTSI", "PC", "PT"],
-        "topics": ["geometrie"],
+        "topics": ["geometrie", "geometrie-plan-espace"],
     },
     {
-        "title": "Équation différentielle avec second membre",
+        "title": "Équation différentielle y' + y = x e⁻ˣ",
+        "former_titles": ["Équation différentielle avec second membre"],
         "statement": (
             r"Déterminer la solution $y$ de l'équation $y' + y = x e^{-x}$ telle que $y(0) = 1$, puis calculer $y(1)$."
         ),
@@ -997,6 +1049,6 @@ EXERCISES = [
         "difficulty": 1,
         "primary_level": "PT",
         "levels": ["L1", "PCSI", "PTSI", "PC", "PT"],
-        "topics": ["analyse"],
+        "topics": ["analyse", "equations-differentielles"],
     },
 ]

@@ -53,7 +53,14 @@ export default async function LevelPage({ params }: Props) {
   const { level, exercises, topics } = data;
   // Les chapitres présents à ce niveau, dans l'ordre du catalogue.
   const present = new Set(exercises.flatMap((exercise) => exercise.topics));
-  const chapters = topics.filter((topic) => present.has(topic.name));
+  const chapters = topics.filter((topic) => topic.parent === null && present.has(topic.name));
+  const notionCount = new Map<string, number>();
+  for (const name of exercises.flatMap((exercise) => exercise.notions)) {
+    notionCount.set(name, (notionCount.get(name) ?? 0) + 1);
+  }
+  const notions = topics
+    .filter((topic) => topic.parent !== null && notionCount.has(topic.name))
+    .sort((a, b) => notionCount.get(b.name)! - notionCount.get(a.name)! || a.name.localeCompare(b.name, "fr"));
   const browse = `/exercices?niveau=${level.code}`;
 
   return (
@@ -78,6 +85,21 @@ export default async function LevelPage({ params }: Props) {
               className="rounded-full bg-surface-card px-3 py-1 text-ink hover:bg-surface-dark-elevated"
             >
               {topic.name}
+            </Link>
+          ))}
+        </p>
+      )}
+
+      {notions.length > 0 && (
+        <p className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+          <span className="mr-1 text-mute">Par notion :</span>
+          {notions.map((topic) => (
+            <Link
+              key={topic.slug}
+              href={chapterPath(topic.slug)}
+              className="rounded-full bg-surface-card px-3 py-1 text-ink hover:bg-surface-dark-elevated"
+            >
+              {topic.name} <span className="text-mute">{notionCount.get(topic.name)}</span>
             </Link>
           ))}
         </p>

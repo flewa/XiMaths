@@ -135,7 +135,8 @@ class ProgressApiTests(SkillsMapTests):
         analysis = next(entry for entry in data["skills"] if entry["slug"] == "analyse")
         self.assertEqual(analysis["mastery"], 0.6)
         self.assertEqual(analysis["next"], {"id": suggestion.pk, "title": suggestion.title, "difficulty": 1})
-        self.assertEqual(len(data["skills"]), Topic.objects.count())
+        # Les chapitres seuls, pas les notions qui les détaillent.
+        self.assertEqual(len(data["skills"]), Topic.objects.filter(parent=None).count())
 
     def test_the_public_level_hides_with_the_points(self):
         PointTransaction.objects.create(
