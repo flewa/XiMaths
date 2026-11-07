@@ -8,7 +8,7 @@ import { HowItWorks, MemberHero, VisitorHero } from "@/components/HomeHero";
 import { JsonLd } from "@/components/JsonLd";
 import { LevelPicker } from "@/components/LevelPicker";
 import { fetchDailyChallenges, fetchFeed, fetchLevels, fetchMe, fetchProgress } from "@/lib/api";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, SOCIAL_PROFILES } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: { absolute: "XiMaths · Exercices de maths du supérieur, de la L1 au M2 et en prépa" },
@@ -25,6 +25,7 @@ const SITE_DATA = [
     name: "XiMaths",
     url: `${SITE_URL}/`,
     logo: `${SITE_URL}/icons/icon-512.png`,
+    sameAs: SOCIAL_PROFILES.map((profile) => profile.url),
   },
 ];
 
