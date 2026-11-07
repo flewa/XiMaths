@@ -18,7 +18,8 @@ RUN uv sync --frozen --no-dev --group prod
 COPY . .
 RUN DJANGO_DEBUG=0 DJANGO_SECRET_KEY=collectstatic-only python manage.py collectstatic --noinput
 
-RUN useradd --create-home --uid 1000 app && chown -R app /app
+# /app/media : le volume des photos de copies, initialisé avec ce dossier et son propriétaire.
+RUN useradd --create-home --uid 1000 app && mkdir -p /app/media && chown -R app /app
 USER app
 
 EXPOSE 8000

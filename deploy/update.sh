@@ -26,4 +26,11 @@ fi
 # Exercices ajoutés à la rédaction depuis la dernière fois ; les autres ne bougent pas.
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python manage.py import_exercises
 docker image prune -f >/dev/null
+# La sauvegarde nocturne passe par deploy/sauvegarde.sh, qui garde aussi les photos des copies.
+cat > /etc/cron.daily/ximaths-sauvegarde <<EOF
+#!/bin/sh
+# Sauvegarde nocturne de XiMaths (installée par deploy/update.sh) : voir deploy/sauvegarde.sh.
+exec "$(pwd)/deploy/sauvegarde.sh"
+EOF
+chmod 755 /etc/cron.daily/ximaths-sauvegarde
 echo "À jour."

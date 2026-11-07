@@ -15,6 +15,7 @@ dependencies = [
     "redis>=5.2,<7",
     "anthropic>=1.0",
     "pywebpush>=2.0,<3",
+    "pillow>=12,<14",
 ]
 
 [tool.uv]

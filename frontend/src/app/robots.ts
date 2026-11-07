@@ -12,6 +12,7 @@ const PRIVATE = [
   "/exercices/nouveau",
   "/mot-de-passe",
   "/notifications",
+  "/photos/",
   "/progression",
   "/questions",
   "/reglages",

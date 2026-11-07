@@ -116,19 +116,11 @@ else
   "${COMPOSE[@]}" exec backend python manage.py createsuperuser
 fi
 
-say "[6/6] Sauvegarde quotidienne de la base"
-root=$(pwd)
+say "[6/6] Sauvegarde quotidienne de la base et des photos"
 cat > /etc/cron.daily/ximaths-sauvegarde <<EOF
 #!/bin/sh
-# Copie de la base chaque nuit, gardée 14 jours (installée par deploy/install.sh).
-set -e
-# Les copies contiennent des données personnelles : root seulement.
-umask 077
-mkdir -p -m 700 /var/backups/ximaths
-cd "$root"
-docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T db \\
-  sh -c 'pg_dump -U "\$POSTGRES_USER" "\$POSTGRES_DB"' | gzip > "/var/backups/ximaths/ximaths-\$(date +%F).sql.gz"
-find /var/backups/ximaths -name 'ximaths-*.sql.gz' -mtime +14 -delete
+# Sauvegarde nocturne de XiMaths (installée par deploy/install.sh) : voir deploy/sauvegarde.sh.
+exec "$(pwd)/deploy/sauvegarde.sh"
 EOF
 chmod 755 /etc/cron.daily/ximaths-sauvegarde
 echo "Chaque nuit dans /var/backups/ximaths (14 jours gardés). Pense à en copier une hors du serveur de temps en temps."

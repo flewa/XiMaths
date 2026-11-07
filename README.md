@@ -114,7 +114,9 @@ Clés VAPID : `uv run python manage.py generate_vapid_keys`, à copier dans `.en
 
 ## Photo de copie
 
-Une solution écrite à la main se photographie depuis la fiche de l'exercice (mode libre). Le navigateur réduit la photo (2 576 px au plus grand côté, en JPEG), Claude Opus 5.5 la transcrit en Markdown et LaTeX sans rien corriger ni compléter (`[illisible]` là où il ne peut pas lire), et la transcription s'ajoute à l'éditeur : l'auteur la relit avant d'envoyer. La photo n'est pas conservée. La transcription compte comme une mise en forme par IA (points pleins), cochée d'office et modifiable. JPEG, PNG ou WebP, 5 Mo au plus, 10 photos par heure et 30 par jour. Sans `ANTHROPIC_API_KEY`, le bouton n'apparaît pas.
+Une solution peut aussi être sa copie manuscrite, en photos, sans rien taper : sur l'ordinateur, « Depuis mon téléphone » affiche un QR code ; le téléphone qui le scanne ouvre `/photos/<jeton>` et y photographie les pages, sans se connecter (le jeton suffit, 30 minutes, prolongeables). Les photos apparaissent sur l'ordinateur au fur et à mesure, et partent en relecture avec la solution ; le texte devient facultatif. Sur un téléphone, on ajoute les photos directement. Trois pages au plus, 10 Mo chacune ; le serveur les redresse, les réduit à 2 000 px et les réencode en JPEG, ce qui efface leurs métadonnées. Elles sont servies par l'API, qui vérifie qui les demande (`content/photos.py`) : l'auteur, ses relecteurs, les arbitres et les évaluateurs de sa question de compréhension, les modérateurs, puis tout le monde une fois la solution validée. Une photo jamais jointe est effacée au bout d'un jour. Les photos sont dans le volume Docker `media`, sauvegardé chaque nuit avec la base.
+
+La transcription en LaTeX reste proposée : une solution écrite à la main se photographie depuis la fiche de l'exercice (mode libre). Le navigateur réduit la photo (2 576 px au plus grand côté, en JPEG), Claude Opus 5.5 la transcrit en Markdown et LaTeX sans rien corriger ni compléter (`[illisible]` là où il ne peut pas lire), et la transcription s'ajoute à l'éditeur : l'auteur la relit avant d'envoyer. La photo n'est pas conservée. La transcription compte comme une mise en forme par IA (points pleins), cochée d'office et modifiable. JPEG, PNG ou WebP, 5 Mo au plus, 10 photos par heure et 30 par jour. Sans `ANTHROPIC_API_KEY`, le bouton n'apparaît pas.
 
 ## Détection des doublons
 
@@ -228,7 +230,7 @@ cd /opt/ximaths
 ./deploy/install.sh
 ```
 
-Le script installe Docker s'il manque, écrit `.env.prod` (secrets tirés au hasard, questions pour le domaine et Brevo), vérifie que le domaine pointe vers le serveur, construit et démarre le site, publie le stock d'exercices de la rédaction (`backend/content/editorial/`, un fichier par lot, sous le compte « XiMaths »), crée le compte d'administration et programme une sauvegarde de la base chaque nuit dans `/var/backups/ximaths` (14 jours gardés). Le site est alors en ligne en HTTPS ; la modération se fait sur `/admin/`.
+Le script installe Docker s'il manque, écrit `.env.prod` (secrets tirés au hasard, questions pour le domaine et Brevo), vérifie que le domaine pointe vers le serveur, construit et démarre le site, publie le stock d'exercices de la rédaction (`backend/content/editorial/`, un fichier par lot, sous le compte « XiMaths »), crée le compte d'administration et programme une sauvegarde chaque nuit de la base et des photos de copies (`deploy/sauvegarde.sh`, dans `/var/backups/ximaths`, 14 jours gardés). Le site est alors en ligne en HTTPS ; la modération se fait sur `/admin/`.
 
 Mise à jour après un changement du code (sauvegarde, `git pull`, reconstruction, migrations, exercices ajoutés à la rédaction) :
 
@@ -240,6 +242,12 @@ Restaurer une sauvegarde :
 
 ```bash
 gunzip -c /var/backups/ximaths/ximaths-AAAA-MM-JJ.sql.gz | docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T db psql -U ximaths ximaths
+```
+
+Et les photos des copies, du même jour :
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend tar -C /app/media -xzf - < /var/backups/ximaths/photos-AAAA-MM-JJ.tar.gz
 ```
 
 Avant d'ouvrir au public : compléter les mentions légales (éditeur et hébergeur du site) et, dans la page Confidentialité, le responsable des données et les sous-traitants ; puis retirer l'avertissement « Version de travail » des pages Conditions et Confidentialité.

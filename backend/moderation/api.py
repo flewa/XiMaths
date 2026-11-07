@@ -13,6 +13,8 @@ from pydantic import Field
 
 from accounts.permissions import contributor, is_moderator
 from config.throttles import AuthRouteThrottle
+from content import photos
+from content.api import PhotoOut
 from content.models import Exercise, Solution
 
 from . import comprehension
@@ -240,6 +242,7 @@ class QuestionOut(Schema):
     answer_until: datetime | None
     statement: str | None
     solution_body: str | None
+    solution_photos: list[PhotoOut]
     question: str | None
     answer: str
     evaluation_note: str
@@ -258,6 +261,7 @@ def _question_out(question):
         "answer_until": answer_deadline(question),
         "statement": (solution.variant_statement or solution.exercise.statement) if shown else None,
         "solution_body": solution.body if shown else None,
+        "solution_photos": photos.described(solution) if shown else [],
         "question": question.question if shown else None,
         "answer": question.answer,
         "evaluation_note": question.evaluation_note,
@@ -302,6 +306,7 @@ class QuestionToEvaluateOut(Schema):
     exercise_title: str
     statement: str
     solution_body: str
+    solution_photos: list[PhotoOut]
     question: str
     expected_points: list[str]
     answer: str
@@ -324,6 +329,7 @@ def questions_to_evaluate(request):
             "exercise_title": question.solution.exercise.title,
             "statement": question.solution.variant_statement or question.solution.exercise.statement,
             "solution_body": question.solution.body,
+            "solution_photos": photos.described(question.solution),
             "question": question.question,
             "expected_points": question.expected_points,
             "answer": question.answer,

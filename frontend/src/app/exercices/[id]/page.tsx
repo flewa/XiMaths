@@ -9,6 +9,7 @@ import {
   SolutionForm,
   VoteButton,
 } from "@/components/ContributionForms";
+import { CopyPhotoList } from "@/components/CopyPhotos";
 import { ApiUnavailable, Difficulty, License, logApiError } from "@/components/ExerciseMeta";
 import { secondaryButtonClass } from "@/components/Form";
 import { Icon } from "@/components/Icon";
@@ -224,7 +225,7 @@ export default async function ExercisePage({ params }: Props) {
         ) : (
           <>
             {mySolutions.map((solution) => (
-              <MySolutionCard key={solution.id} solution={solution} />
+              <MySolutionCard key={solution.id} solution={solution} exerciseId={exercise.id} />
             ))}
             {!pending && (
               <>
@@ -316,7 +317,8 @@ function SolutionCard({ solution, me, canRecommend }: { solution: Solution; me: 
           <MathMarkdown>{solution.variant_statement}</MathMarkdown>
         </div>
       )}
-      <MathMarkdown>{solution.body}</MathMarkdown>
+      <CopyPhotoList photos={solution.photos} />
+      {solution.body && <MathMarkdown>{solution.body}</MathMarkdown>}
       <div className="mb-1 flex flex-wrap justify-end gap-x-6">
         {canRecommend && solution.author !== me?.username && <RecommendButton solutionId={solution.id} />}
         <Report me={me} author={solution.author} target="solution" targetId={solution.id} />
@@ -325,7 +327,7 @@ function SolutionCard({ solution, me, canRecommend }: { solution: Solution; me: 
   );
 }
 
-function MySolutionCard({ solution }: { solution: MySolution }) {
+function MySolutionCard({ solution, exerciseId }: { solution: MySolution; exerciseId: number }) {
   return (
     <article className="mt-3 border border-hairline px-4 py-3">
       <p className="flex flex-wrap items-center gap-x-4 text-sm">
@@ -338,7 +340,8 @@ function MySolutionCard({ solution }: { solution: MySolution }) {
       </p>
       <details className="mt-2">
         <summary className="text-sm text-mute">Relire ma solution</summary>
-        <MathMarkdown>{solution.body}</MathMarkdown>
+        <CopyPhotoList photos={solution.photos} compact />
+        {solution.body && <MathMarkdown>{solution.body}</MathMarkdown>}
       </details>
       {solution.integrity_question && solution.integrity_signal_id && (
         <div className="mt-3 border-l-2 border-hairline-strong pl-3">
@@ -360,7 +363,13 @@ function MySolutionCard({ solution }: { solution: MySolution }) {
         </div>
       )}
       {(solution.status === "needs_work" || solution.status === "validated") && (
-        <ReviseSolution solutionId={solution.id} body={solution.body} validated={solution.status === "validated"} />
+        <ReviseSolution
+          solutionId={solution.id}
+          exerciseId={exerciseId}
+          body={solution.body}
+          hasPhotos={solution.photos.length > 0}
+          validated={solution.status === "validated"}
+        />
       )}
     </article>
   );

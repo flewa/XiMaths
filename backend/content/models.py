@@ -1,7 +1,11 @@
+import uuid
+
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 TEXT_MAX_LENGTH = 20_000
 # Nombre de notes de difficulté à partir duquel l'estimation remplace la déclaration.
@@ -165,6 +169,57 @@ class Solution(models.Model):
 
     def __str__(self):
         return f"Solution {self.pk} de « {self.exercise} »"
+
+
+class PhotoUpload(models.Model):
+    """Envoi de photos de copie, souvent depuis un téléphone : le QR code affiché sur
+    l'ordinateur porte le jeton, qui suffit pour déposer des photos pendant un temps
+    limité, sans se connecter sur le téléphone (voir content/photos.py)."""
+
+    token = models.CharField(max_length=64, unique=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="photo_uploads"
+    )
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name="+")
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(help_text="Fin du dépôt de photos ; elles restent un jour à joindre.")
+
+    def __str__(self):
+        return f"Envoi de photos de {self.user} pour « {self.exercise} »"
+
+
+def _photo_path(photo, filename):
+    # Nom tiré au hasard : rien du nom d'origine ni de l'auteur.
+    return f"copies/{uuid.uuid4().hex}.jpg"
+
+
+class SolutionPhoto(models.Model):
+    """Photo d'une page de copie manuscrite : déposée dans un envoi, puis jointe à la
+    solution quand l'auteur l'envoie en relecture. Réencodée en JPEG, sans métadonnées."""
+
+    upload = models.ForeignKey(
+        PhotoUpload, null=True, blank=True, on_delete=models.SET_NULL, related_name="photos"
+    )
+    solution = models.ForeignKey(
+        Solution, null=True, blank=True, on_delete=models.CASCADE, related_name="photos"
+    )
+    image = models.FileField(upload_to=_photo_path)
+    width = models.PositiveIntegerField()
+    height = models.PositiveIntegerField()
+    position = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["position", "pk"]
+
+    def __str__(self):
+        return f"Photo {self.pk} ({self.width}×{self.height})"
+
+
+@receiver(post_delete, sender=SolutionPhoto)
+def _delete_photo_file(sender, instance, **kwargs):
+    # Le fichier part avec la ligne : purge des envois expirés, révision, solution supprimée.
+    instance.image.delete(save=False)
 
 
 class Review(models.Model):

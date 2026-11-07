@@ -45,6 +45,18 @@ const PATHS = {
     </>
   ),
   check: <path d="m5 10.5 3.25 3.25L15 7" />,
+  camera: (
+    <>
+      <path d="M3.5 7h3l1.5-2h4l1.5 2h3v8.5h-13z" />
+      <circle cx="10" cy="11" r="2.75" />
+    </>
+  ),
+  phone: (
+    <>
+      <rect x="6" y="2.5" width="8" height="15" rx="1.75" />
+      <path d="M9.25 14.75h1.5" />
+    </>
+  ),
 } as const;
 
 export type IconName = keyof typeof PATHS;

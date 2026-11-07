@@ -5,8 +5,9 @@ import random
 from datetime import datetime
 from typing import Literal
 
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import Count, F, Q
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from ninja import File, Router, Schema
@@ -20,7 +21,7 @@ from accounts.permissions import contributor, is_moderator
 from catalog.models import Level, Topic
 from config import llm
 from config.errors import RuleError
-from config.throttles import AuthRouteThrottle
+from config.throttles import AnonRouteThrottle, AuthRouteThrottle
 from duplicates.models import DuplicatePair
 from duplicates.services import (
     DuplicateSuspected,
@@ -31,10 +32,10 @@ from duplicates.services import (
 )
 from moderation.integrity import NEUTRAL_QUESTION
 
-from . import transcription
+from . import photos, transcription
 from .feed import FEED_LABELS, build_feed, compute_scores, record_impressions
 from .latex import forbidden_commands
-from .models import TEXT_MAX_LENGTH, Exercise, Review, Solution, Vote
+from .models import TEXT_MAX_LENGTH, Exercise, Review, Solution, SolutionPhoto, Vote
 from .services import (
     cast_vote,
     current_reviews,
@@ -92,10 +93,20 @@ class ExerciseSummary(Schema):
         return [topic.name for topic in obj.topics.all()]
 
 
+class PhotoOut(Schema):
+    """Photo d'une page de copie : l'adresse vérifie qui la demande."""
+
+    id: int
+    url: str
+    width: int
+    height: int
+
+
 class SolutionOut(Schema):
     id: int
     author: str | None
     body: str
+    photos: list[PhotoOut]
     # Solution d'un défi paramétré : l'énoncé avec les paramètres de l'auteur.
     variant_statement: str
     ai_usage: str
@@ -106,6 +117,10 @@ class SolutionOut(Schema):
     @staticmethod
     def resolve_author(obj):
         return obj.author.username if obj.author else None
+
+    @staticmethod
+    def resolve_photos(obj):
+        return photos.described(obj)
 
     @staticmethod
     def resolve_votes(obj):
@@ -151,6 +166,7 @@ class ExerciseDetail(ExerciseSummary):
             # Les solutions d'un défi restent cachées jusqu'à la fermeture de sa fenêtre.
             .exclude(timed_session__challenge__closes_at__gt=timezone.now())
             .select_related("author")
+            .prefetch_related("photos")
             .annotate(vote_count=Count("votes"))
             # La solution recommandée par l'auteur de l'exercice en premier.
             .order_by(F("recommended_at").desc(nulls_last=True), "-validated_at")
@@ -308,14 +324,40 @@ class DuplicateCheckOut(Schema):
     candidates: list[SimilarExerciseOut]
 
 
+# Sans photo, une rédaction d'au moins 20 caractères ; avec des photos, le texte est facultatif.
+SOLUTION_MIN_LENGTH = 20
+
+
 class SolutionIn(Schema):
-    body: str = Field(min_length=20, max_length=TEXT_MAX_LENGTH)
+    body: str = Field(default="", max_length=TEXT_MAX_LENGTH)
     ai_usage: Literal["aucune", "relecture", "aide_idee", "generee"] = "aucune"
+    # Jeton de l'envoi de photos (QR code), si la copie est jointe en photos.
+    photo_upload: str | None = Field(default=None, max_length=64)
+
+
+def solution_text(body, has_photos):
+    body = body.strip()
+    if not has_photos and len(body) < SOLUTION_MIN_LENGTH:
+        raise HttpError(422, "Rédige au moins 20 caractères, ou joins des photos de ta copie.")
+    reject_forbidden_latex([("la solution", body)])
+    return body
+
+
+def pending_upload(user, exercise, token):
+    """L'envoi de photos `token`, s'il contient des photos ; None sans jeton."""
+    if not token:
+        return None
+    try:
+        upload = photos.upload_for(user, exercise, token)
+    except RuleError as error:
+        raise HttpError(422, str(error))
+    return upload if photos.pending(upload).exists() else None
 
 
 class MySolutionOut(Schema):
     id: int
     body: str
+    photos: list[PhotoOut]
     ai_usage: str
     status: str
     published_at: datetime | None
@@ -325,6 +367,10 @@ class MySolutionOut(Schema):
     integrity_signal_id: int | None
     integrity_question: str | None
     integrity_answer: str | None
+
+    @staticmethod
+    def resolve_photos(obj):
+        return photos.described(obj)
 
     @staticmethod
     def _open_signal(obj):
@@ -370,11 +416,16 @@ class ReviewTaskOut(Schema):
     exercise_statement: str
     primary_level: str
     solution_body: str
+    solution_photos: list[PhotoOut]
     ai_usage: str
 
     @staticmethod
     def resolve_exercise_id(obj):
         return obj.solution.exercise_id
+
+    @staticmethod
+    def resolve_solution_photos(obj):
+        return photos.described(obj.solution)
 
     @staticmethod
     def resolve_exercise_title(obj):
@@ -547,11 +598,14 @@ def propose_solution(request, exercise_id: int, payload: SolutionIn):
         status__in=[Solution.Status.HELD, Solution.Status.UNDER_REVIEW, Solution.Status.CONTESTED],
     ).exists():
         raise HttpError(409, "Tu as déjà une solution en cours d'évaluation sur cet exercice.")
-    reject_forbidden_latex([("la solution", payload.body)])
-    solution = Solution.objects.create(
-        exercise=exercise, author=user, body=payload.body.strip(), ai_usage=payload.ai_usage
-    )
-    publish_solution(solution)
+    upload = pending_upload(user, exercise, payload.photo_upload)
+    body = solution_text(payload.body, upload is not None)
+    with transaction.atomic():
+        solution = Solution.objects.create(exercise=exercise, author=user, body=body, ai_usage=payload.ai_usage)
+        # Les photos d'abord : la détection de plagiat traite alors le texte comme une note.
+        if upload is not None:
+            photos.attach(upload, solution)
+        publish_solution(solution)
     return 201, solution
 
 
@@ -586,6 +640,122 @@ def transcribe_photo(request, exercise_id: int, photo: File[UploadedFile]):
         raise HttpError(422, str(error))
 
 
+# ---------------------------------------------------------------- photos de copie (QR code)
+
+
+class PhotoUploadOut(Schema):
+    """Envoi de photos : ce que montrent l'ordinateur (QR code, photos reçues) et le
+    téléphone (exercice, place restante)."""
+
+    token: str
+    exercise_id: int
+    exercise_title: str
+    expires_at: datetime
+    open: bool
+    max_photos: int
+    photos: list[PhotoOut]
+
+
+def _upload_out(upload):
+    return {
+        "token": upload.token,
+        "exercise_id": upload.exercise_id,
+        "exercise_title": upload.exercise.title,
+        "expires_at": upload.expires_at,
+        "open": photos.is_open(upload),
+        "max_photos": photos.MAX_PHOTOS,
+        "photos": [
+            {"id": photo.pk, "url": photos.upload_photo_url(upload, photo), "width": photo.width, "height": photo.height}
+            for photo in photos.pending(upload)
+        ],
+    }
+
+
+def _live_upload(token):
+    return get_object_or_404(photos.live_uploads().select_related("exercise"), token=token)
+
+
+def _image(photo):
+    response = FileResponse(photo.image.open("rb"), content_type="image/jpeg")
+    # Une copie n'a rien à faire dans un cache partagé ; le navigateur la garde une heure.
+    response["Cache-Control"] = "private, max-age=3600"
+    return response
+
+
+@router.post(
+    "/exercises/{int:exercise_id}/photo-uploads",
+    response={201: PhotoUploadOut},
+    auth=django_auth,
+    throttle=[AuthRouteThrottle("envoi-photos", "30/h")],
+)
+def open_photo_upload(request, exercise_id: int):
+    """Ouvre un envoi de photos : son jeton, dans le QR code, ouvre le dépôt au téléphone."""
+    user = contributor(request)
+    exercise = get_object_or_404(Exercise, pk=exercise_id, status=Exercise.Status.PUBLISHED)
+    return 201, _upload_out(photos.open_upload(user, exercise))
+
+
+@router.post("/photo-uploads/{token}/reopen", response=PhotoUploadOut, auth=django_auth)
+def reopen_photo_upload(request, token: str):
+    """QR code expiré : son auteur le prolonge, sans perdre les photos déjà reçues."""
+    upload = _live_upload(token)
+    if upload.user_id != request.auth.pk:
+        raise HttpError(404, "Envoi introuvable.")
+    return _upload_out(photos.reopen(upload))
+
+
+@router.get("/photo-uploads/{token}", response=PhotoUploadOut)
+def photo_upload(request, token: str):
+    """État d'un envoi : le téléphone y dépose, l'ordinateur y voit arriver les photos."""
+    return _upload_out(_live_upload(token))
+
+
+@router.post(
+    "/photo-uploads/{token}/photos",
+    response={201: PhotoOut},
+    throttle=[AnonRouteThrottle("depot-photo", "60/h")],
+)
+def add_upload_photo(request, token: str, photo: File[UploadedFile]):
+    """Dépose une photo, sans compte : le jeton du QR code suffit, pendant 30 minutes."""
+    upload = _live_upload(token)
+    if not photos.is_open(upload):
+        raise HttpError(410, "Ce QR code a expiré : affiches-en un nouveau sur ton ordinateur.")
+    if photos.pending(upload).count() >= photos.MAX_PHOTOS:
+        raise HttpError(409, f"{photos.MAX_PHOTOS} photos au plus : retire-en une pour en ajouter une autre.")
+    if photo.size > photos.MAX_BYTES:
+        raise HttpError(413, "Photo trop lourde : 10 Mo au plus.")
+    try:
+        added = photos.add_photo(upload, photo.read())
+    except RuleError as error:
+        raise HttpError(422, str(error))
+    return 201, {"id": added.pk, "url": photos.upload_photo_url(upload, added), "width": added.width, "height": added.height}
+
+
+@router.delete("/photo-uploads/{token}/photos/{int:photo_id}", response={204: None})
+def remove_upload_photo(request, token: str, photo_id: int):
+    try:
+        photos.remove_photo(_live_upload(token), photo_id)
+    except RuleError as error:
+        raise HttpError(404, str(error))
+    return 204, None
+
+
+@router.get("/photo-uploads/{token}/photos/{int:photo_id}")
+def upload_photo_file(request, token: str, photo_id: int):
+    return _image(get_object_or_404(photos.pending(_live_upload(token)), pk=photo_id))
+
+
+@router.get("/solutions/{int:solution_id}/photos/{int:photo_id}")
+def solution_photo_file(request, solution_id: int, photo_id: int):
+    """Photo d'une solution, pour qui peut en lire le texte (voir photos.can_view)."""
+    photo = get_object_or_404(
+        SolutionPhoto.objects.select_related("solution__author"), pk=photo_id, solution_id=solution_id
+    )
+    if not photos.can_view(request.user, photo.solution):
+        raise HttpError(404, "Photo introuvable.")
+    return _image(photo)
+
+
 @router.get(
     "/exercises/{exercise_id}/my-solutions",
     response=list[MySolutionOut],
@@ -595,7 +765,7 @@ def my_solutions(request, exercise_id: int):
     return (
         Solution.objects.filter(exercise_id=exercise_id, author=request.auth)
         .exclude(status=Solution.Status.DRAFT)
-        .prefetch_related("reviews", "integrity_signals")
+        .prefetch_related("reviews", "integrity_signals", "photos")
         .order_by("-published_at")
     )
 
@@ -638,6 +808,7 @@ def pending_reviews(request):
             solution__status=Solution.Status.UNDER_REVIEW,
         )
         .select_related("solution__exercise__primary_level")
+        .prefetch_related("solution__photos")
         .order_by("assigned_at")
     )
 
@@ -680,6 +851,7 @@ class ArbitrationOut(Schema):
     exercise_title: str
     exercise_statement: str
     solution_body: str
+    solution_photos: list[PhotoOut]
     ai_usage: str
     reviews: list[ArbitrationReviewOut]
 
@@ -697,7 +869,9 @@ class OpenSolutionOut(Schema):
 
 
 class RevisionIn(Schema):
-    body: str = Field(min_length=20, max_length=TEXT_MAX_LENGTH)
+    body: str = Field(default="", max_length=TEXT_MAX_LENGTH)
+    # Nouvelles photos de la copie : elles remplacent les précédentes.
+    photo_upload: str | None = Field(default=None, max_length=64)
 
 
 def _expert(user):
@@ -722,6 +896,7 @@ def arbitrations(request):
             "exercise_title": solution.exercise.title,
             "exercise_statement": solution.variant_statement or solution.exercise.statement,
             "solution_body": solution.body,
+            "solution_photos": photos.described(solution),
             "ai_usage": solution.ai_usage,
             "reviews": [
                 {"verdict": r.verdict, "feedback": r.feedback, "weight": float(r.weight)}
@@ -779,9 +954,10 @@ def revise(request, solution_id: int, payload: RevisionIn):
     """Révision par l'auteur : à compléter, ou validée et changée de plus de 20 %,
     elle repart en relecture."""
     user = contributor(request)
-    solution = get_object_or_404(Solution, pk=solution_id, author=user)
-    reject_forbidden_latex([("la solution", payload.body)])
-    revised, _ = revise_solution(solution, payload.body)
+    solution = get_object_or_404(Solution.objects.select_related("exercise"), pk=solution_id, author=user)
+    upload = pending_upload(user, solution.exercise, payload.photo_upload)
+    body = solution_text(payload.body, upload is not None or solution.photos.exists())
+    revised, _ = revise_solution(solution, body, upload=upload)
     return revised
 
 

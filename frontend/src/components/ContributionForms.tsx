@@ -8,14 +8,17 @@ import { apiPost, apiUpload } from "@/lib/client-api";
 import { prepareImage } from "@/lib/image";
 import { AI_USAGE_OPTIONS, SOLUTION_STATUS_LABELS } from "@/lib/labels";
 
+import { CopyPhotoPicker, type PickedPhotos } from "./CopyPhotoPicker";
 import { LATEX_HELP } from "./ExerciseForm";
 import { Field, FormMessage, SubmitButton, inputClass, primaryButtonClass, secondaryButtonClass } from "./Form";
 import { MathEditor } from "./MathEditor";
 import { MathMarkdown } from "./MathMarkdown";
 
 // L'éditeur n'est pas un champ natif : la longueur minimale se vérifie avant l'envoi.
+// Avec des photos de la copie, le texte devient facultatif.
 const SOLUTION_MIN_LENGTH = 20;
-const TOO_SHORT = `Une solution fait au moins ${SOLUTION_MIN_LENGTH} caractères.`;
+const TOO_SHORT = `Joins des photos de ta copie, ou rédige au moins ${SOLUTION_MIN_LENGTH} caractères.`;
+const NO_PHOTOS: PickedPhotos = { token: null, count: 0 };
 
 /** Photo d'une copie manuscrite, transcrite en LaTeX par Claude ; la photo n'est pas gardée. */
 function PhotoTranscription({ exerciseId, onText }: { exerciseId: number; onText: (text: string) => void }) {
@@ -52,12 +55,11 @@ function PhotoTranscription({ exerciseId, onText }: { exerciseId: number; onText
         disabled={pending}
         className={secondaryButtonClass}
       >
-        {pending ? "Transcription en cours… jusqu'à une minute" : "[▣] Photographier ma copie"}
+        {pending ? "Transcription en cours… jusqu'à une minute" : "Transcrire une photo en LaTeX"}
       </button>
       <p className="text-sm text-mute">
-        Écrite à la main ? Une page par photo, nette et bien éclairée. Claude la transcrit telle quelle, sans
-        rien corriger, et la photo n&apos;est pas conservée. Ça compte comme une mise en forme par IA : points
-        pleins.
+        Tu préfères une version tapée ? Claude transcrit la photo d&apos;une page telle quelle, sans rien corriger,
+        et la photo n&apos;est pas conservée. Ça compte comme une mise en forme par IA : points pleins.
       </p>
       <FormMessage error={result.error} success={result.success} />
     </div>
@@ -69,6 +71,9 @@ export function SolutionForm({ exerciseId, transcription = false }: { exerciseId
   const [body, setBody] = useState("");
   const preview = useDeferredValue(body);
   const [aiUsage, setAiUsage] = useState<AiUsage>("aucune");
+  const [picked, setPicked] = useState<PickedPhotos>(NO_PHOTOS);
+  // Changée après l'envoi : un nouvel envoi de photos pour la prochaine solution.
+  const [round, setRound] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -80,22 +85,39 @@ export function SolutionForm({ exerciseId, transcription = false }: { exerciseId
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (body.trim().length < SOLUTION_MIN_LENGTH) return setError(TOO_SHORT);
+    const photos = picked.count > 0;
+    if (!photos && body.trim().length < SOLUTION_MIN_LENGTH) return setError(TOO_SHORT);
     setPending(true);
     setError(null);
-    const result = await apiPost(`/exercises/${exerciseId}/solutions`, { body, ai_usage: aiUsage });
+    const result = await apiPost(`/exercises/${exerciseId}/solutions`, {
+      body,
+      ai_usage: aiUsage,
+      photo_upload: photos ? picked.token : null,
+    });
     setPending(false);
     if (!result.ok) return setError(result.error);
     setBody("");
+    setPicked(NO_PHOTOS);
+    setRound((value) => value + 1);
     router.refresh();
   }
 
   return (
-    <form onSubmit={onSubmit} className="mt-3 space-y-4">
-      {transcription && <PhotoTranscription exerciseId={exerciseId} onText={addTranscription} />}
-      <Field label="Rédaction" htmlFor="solution-body" hint={LATEX_HELP}>
-        <MathEditor id="solution-body" label="Ta solution" value={body} onChange={setBody} />
-      </Field>
+    <form onSubmit={onSubmit} className="mt-3 space-y-6">
+      <fieldset className="space-y-2">
+        <legend className="font-medium">Ta copie, écrite à la main</legend>
+        <CopyPhotoPicker key={round} exerciseId={exerciseId} onChange={setPicked} />
+      </fieldset>
+      <div className="space-y-3">
+        <Field
+          label={picked.count > 0 ? "Rédaction en LaTeX (facultative avec des photos)" : "Ou rédige-la en LaTeX"}
+          htmlFor="solution-body"
+          hint={LATEX_HELP}
+        >
+          <MathEditor id="solution-body" label="Ta solution" value={body} onChange={setBody} />
+        </Field>
+        {transcription && <PhotoTranscription exerciseId={exerciseId} onText={addTranscription} />}
+      </div>
       {preview.trim() && (
         <div aria-label="Aperçu de la solution" className="border-l-2 border-hairline-strong bg-surface-soft px-4">
           <MathMarkdown>{preview}</MathMarkdown>
@@ -332,11 +354,24 @@ export function AppealForm({ type, id }: { type: DecisionType; id: number }) {
 }
 
 /** Reprendre sa solution : à compléter, ou validée (plus de 20 % de changement la renvoie en relecture). */
-export function ReviseSolution({ solutionId, body, validated }: { solutionId: number; body: string; validated: boolean }) {
+export function ReviseSolution({
+  solutionId,
+  exerciseId,
+  body,
+  hasPhotos,
+  validated,
+}: {
+  solutionId: number;
+  exerciseId: number;
+  body: string;
+  hasPhotos: boolean;
+  validated: boolean;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState(body);
   const preview = useDeferredValue(text);
+  const [picked, setPicked] = useState<PickedPhotos>(NO_PHOTOS);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -350,9 +385,12 @@ export function ReviseSolution({ solutionId, body, validated }: { solutionId: nu
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (text.trim().length < SOLUTION_MIN_LENGTH) return setError(TOO_SHORT);
+    if (!hasPhotos && picked.count === 0 && text.trim().length < SOLUTION_MIN_LENGTH) return setError(TOO_SHORT);
     setPending(true);
-    const saved = await apiPost(`/solutions/${solutionId}/revise`, { body: text });
+    const saved = await apiPost(`/solutions/${solutionId}/revise`, {
+      body: text,
+      photo_upload: picked.count > 0 ? picked.token : null,
+    });
     setPending(false);
     if (!saved.ok) return setError(saved.error);
     setOpen(false);
@@ -360,12 +398,19 @@ export function ReviseSolution({ solutionId, body, validated }: { solutionId: nu
   }
 
   return (
-    <form onSubmit={onSubmit} className="mt-3 space-y-3">
-      <Field
-        label="Solution révisée"
-        htmlFor={`revise-${solutionId}`}
-        hint={validated ? "Une modification de plus de 20 % renvoie la solution en relecture." : "Elle repartira en relecture, auprès de trois nouveaux relecteurs."}
-      >
+    <form onSubmit={onSubmit} className="mt-3 space-y-4">
+      <p className="text-sm text-mute">
+        {validated
+          ? "De nouvelles photos, ou plus de 20 % du texte modifié, renvoient la solution en relecture."
+          : "Elle repartira en relecture, auprès de trois nouveaux relecteurs."}
+      </p>
+      <fieldset className="space-y-2">
+        <legend className="font-medium">
+          {hasPhotos ? "Nouvelles photos de ta copie (elles remplacent les précédentes)" : "Photos de ta copie"}
+        </legend>
+        <CopyPhotoPicker exerciseId={exerciseId} onChange={setPicked} />
+      </fieldset>
+      <Field label="Solution révisée" htmlFor={`revise-${solutionId}`} hint={LATEX_HELP}>
         <MathEditor id={`revise-${solutionId}`} label="Solution révisée" value={text} onChange={setText} />
       </Field>
       {preview.trim() && (

@@ -47,10 +47,15 @@ export type ExerciseSort = "recent" | "popular" | "unsolved";
 
 export type AiUsage = "aucune" | "relecture" | "aide_idee" | "generee";
 
+/** Photo d'une page de copie manuscrite. L'adresse, sur /api, vérifie qui la demande. */
+export type CopyPhoto = { id: number; url: string; width: number; height: number };
+
 export type Solution = {
   id: number;
   author: string | null;
   body: string;
+  /** Photos de la copie : avec elles, le texte est facultatif. */
+  photos: CopyPhoto[];
   ai_usage: AiUsage;
   votes: number;
   validated_at: string | null;
@@ -339,6 +344,7 @@ export type SolutionStatus =
 export type MySolution = {
   id: number;
   body: string;
+  photos: CopyPhoto[];
   ai_usage: AiUsage;
   status: SolutionStatus;
   published_at: string | null;
@@ -358,6 +364,7 @@ export type ReviewTask = {
   exercise_statement: string;
   primary_level: string;
   solution_body: string;
+  solution_photos: CopyPhoto[];
   ai_usage: AiUsage;
 };
 
@@ -481,6 +488,7 @@ export type Arbitration = {
   exercise_title: string;
   exercise_statement: string;
   solution_body: string;
+  solution_photos: CopyPhoto[];
   ai_usage: AiUsage;
   reviews: { verdict: string; feedback: string; weight: number }[];
 };
@@ -520,6 +528,7 @@ export type ComprehensionQuestion = {
   answer_until: string | null;
   statement: string | null;
   solution_body: string | null;
+  solution_photos: CopyPhoto[];
   question: string | null;
   answer: string;
   evaluation_note: string;
@@ -530,6 +539,7 @@ export type QuestionToEvaluate = {
   exercise_title: string;
   statement: string;
   solution_body: string;
+  solution_photos: CopyPhoto[];
   question: string;
   expected_points: string[];
   answer: string;
