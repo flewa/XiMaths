@@ -115,7 +115,8 @@ def skills_map(user):
     """Maîtrise de `user` dans chaque chapitre, avec le prochain exercice proposé."""
     solved = solved_by_topic(user)
     topics = []
-    for topic in Topic.objects.all():
+    # Les chapitres seuls : les notions détaillent un chapitre, elles n'en font pas un de plus.
+    for topic in Topic.objects.filter(parent=None):
         values = solved.get(topic.pk, {}).values()
         level = mastery(values)
         target = min(MAX_DIFFICULTY, math.floor(level) + 1)

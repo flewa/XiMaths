@@ -11,6 +11,7 @@ import {
 } from "@/components/ContributionForms";
 import { CopyPhotoList } from "@/components/CopyPhotos";
 import { ApiUnavailable, Difficulty, License, logApiError } from "@/components/ExerciseMeta";
+import { ExerciseList } from "@/components/ExerciseList";
 import { secondaryButtonClass } from "@/components/Form";
 import { Icon } from "@/components/Icon";
 import { JsonLd, breadcrumb } from "@/components/JsonLd";
@@ -21,10 +22,12 @@ import {
   fetchExercise,
   fetchMe,
   fetchMySolutions,
+  fetchRelated,
   fetchTopics,
   fetchTranscriptionAvailable,
   nullOnError,
   type ExerciseDetail,
+  type ExerciseSummary,
   type Me,
   type MySolution,
   type Solution,
@@ -61,16 +64,33 @@ function Report({ me, author, ...target }: { me: Me | null; author: string | nul
   return <ReportButton {...target} canReportDuplicates={me.trust_level >= REVIEWER_TRUST_LEVEL} />;
 }
 
+// Longueur qu'un moteur affiche pour une description.
+const DESCRIPTION_MAX = 158;
+
+/** « exercice de séries entières » : la notion d'abord, plus précise que le chapitre. */
+function kindOf(exercise: ExerciseSummary) {
+  const subject = exercise.notions[0] ?? exercise.topics[0];
+  return subject ? `exercice ${ofChapter(subject)}` : "exercice de maths";
+}
+
+/** « Exercice de séries entières, niveau L2, MP, PSI. Déterminer le rayon… 2 indications. » */
+function describe(exercise: ExerciseDetail) {
+  const kind = kindOf(exercise);
+  const head = `${kind.charAt(0).toUpperCase()}${kind.slice(1)}, niveau ${exercise.levels.join(", ")}. `;
+  const hints = exercise.hints.length;
+  const tail = hints > 0 ? ` ${hints} indication${hints > 1 ? "s" : ""} pour avancer.` : "";
+  return `${head}${excerpt(exercise.statement, Math.max(60, DESCRIPTION_MAX - head.length - tail.length))}${tail}`;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const exercise = await fetchExercise(id).catch(nullOnError);
   if (!exercise) return { title: "Exercice" };
-  const description = excerpt(exercise.statement);
+  const description = describe(exercise);
   // Un doublon fusionné reste lisible, mais l'adresse de référence est celle du canonique.
   const canonical = `/exercices/${exercise.merged_into ?? exercise.id}`;
-  // « Intégrales de Wallis : exercice d'analyse (L1, MPSI, PCSI) » : ce que l'élève tape.
-  const kind = exercise.topics.length > 0 ? `exercice ${ofChapter(exercise.topics[0])}` : "exercice de maths";
-  const title = `${exercise.title} : ${kind} (${exercise.primary_level})`;
+  // « Intégrales de Wallis : exercice de calcul intégral (MPSI) » : ce que l'élève tape.
+  const title = `${exercise.title} : ${kindOf(exercise)} (${exercise.primary_level})`;
   return {
     title,
     description,
@@ -92,7 +112,7 @@ function exerciseData(exercise: ExerciseDetail, topics: Topic[]) {
     inLanguage: "fr",
     learningResourceType: "Exercice",
     educationalLevel: exercise.levels,
-    about: exercise.topics.map((name) => {
+    about: [...exercise.topics, ...exercise.notions].map((name) => {
       const topic = topics.find((item) => item.name === name);
       return { "@type": "Thing", name, ...(topic ? { url: `${SITE_URL}${chapterPath(topic.slug)}` } : {}) };
     }),
@@ -104,15 +124,36 @@ function exerciseData(exercise: ExerciseDetail, topics: Topic[]) {
   };
 }
 
+/** Fil d'Ariane pour les moteurs : chapitre puis notion quand l'exercice en a une,
+ * sinon son niveau. */
+function trail(exercise: ExerciseDetail, topics: Topic[]): [string, string][] {
+  const notion = topics.find((topic) => topic.name === exercise.notions[0] && topic.parent);
+  const chapter = notion ? topics.find((topic) => topic.slug === notion.parent) : undefined;
+  const middle: [string, string][] =
+    notion && chapter
+      ? [
+          [chapter.name, chapterPath(chapter.slug)],
+          [notion.name, chapterPath(notion.slug)],
+        ]
+      : [[exercise.primary_level, levelPath(exercise.primary_level)]];
+  return [["Accueil", "/"], ...middle, [exercise.title, `/exercices/${exercise.id}`]];
+}
+
 export default async function ExercisePage({ params }: Props) {
   const { id } = await params;
   let exercise: ExerciseDetail | null;
   let me: Me | null;
   let topics: Topic[];
+  let related: ExerciseSummary[];
   let mySolutions: MySolution[] = [];
   let transcription = false;
   try {
-    [exercise, me, topics] = await Promise.all([fetchExercise(id), fetchMe(), fetchTopics()]);
+    [exercise, me, topics, related] = await Promise.all([
+      fetchExercise(id),
+      fetchMe(),
+      fetchTopics(),
+      fetchRelated(Number(id)),
+    ]);
     if (exercise && me) {
       [mySolutions, transcription] = await Promise.all([
         fetchMySolutions(exercise.id),
@@ -140,13 +181,7 @@ export default async function ExercisePage({ params }: Props) {
       </Link>
       <h1 className="mt-3">{exercise.title}</h1>
       <JsonLd data={exerciseData(exercise, topics)} />
-      <JsonLd
-        data={breadcrumb([
-          ["Accueil", "/"],
-          [exercise.primary_level, levelPath(exercise.primary_level)],
-          [exercise.title, `/exercices/${exercise.id}`],
-        ])}
-      />
+      <JsonLd data={breadcrumb(trail(exercise, topics))} />
       <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-body">
         <span className="flex gap-1.5 font-medium">
           {exercise.levels.map((code) => (
@@ -156,16 +191,23 @@ export default async function ExercisePage({ params }: Props) {
           ))}
         </span>
         <Difficulty value={exercise.difficulty} withLabel />
-        {exercise.topics.length > 0 && (
-          <span className="flex gap-1.5">
-            {exercise.topics.map((name) => {
+        {exercise.topics.length + exercise.notions.length > 0 && (
+          <span className="flex flex-wrap gap-x-1.5">
+            {[...exercise.topics, ...exercise.notions].map((name, index) => {
               const topic = topics.find((item) => item.name === name);
+              const separator = index > 0 ? " · " : "";
               return topic ? (
-                <Link key={name} href={chapterPath(topic.slug)} className="hover:text-ink hover:underline hover:underline-offset-4">
-                  {name}
-                </Link>
+                <span key={name}>
+                  {separator}
+                  <Link href={chapterPath(topic.slug)} className="hover:text-ink hover:underline hover:underline-offset-4">
+                    {name}
+                  </Link>
+                </span>
               ) : (
-                <span key={name}>{name}</span>
+                <span key={name}>
+                  {separator}
+                  {name}
+                </span>
               );
             })}
           </span>
@@ -280,6 +322,15 @@ export default async function ExercisePage({ params }: Props) {
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {related.length > 0 && (
+        <section aria-labelledby="proches" className={section}>
+          <h2 id="proches" className={sectionTitle}>
+            Exercices proches
+          </h2>
+          <ExerciseList exercises={related} />
         </section>
       )}
 

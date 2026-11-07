@@ -19,7 +19,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...pages,
       // Les pages d'entrée : ce que cherchent les élèves (« exercices MPSI », « exercices de probabilités »).
       ...levels.map((level) => ({ url: `${SITE_URL}${levelPath(level.code)}` })),
-      ...topics.map((topic) => ({ url: `${SITE_URL}${chapterPath(topic.slug)}` })),
+      // Chapitres et notions ; une notion encore vide n'a rien à montrer.
+      ...topics
+        .filter((topic) => topic.exercises > 0)
+        .map((topic) => ({ url: `${SITE_URL}${chapterPath(topic.slug)}` })),
       ...exercises.map((exercise) => ({
         url: `${SITE_URL}/exercices/${exercise.id}`,
         lastModified: exercise.updated_at,

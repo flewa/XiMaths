@@ -8,6 +8,7 @@ import { VerifyBanner } from "@/components/AccountControls";
 import { BottomNav } from "@/components/BottomNav";
 import { MobileBar, SidebarContent, type NavAccount } from "@/components/SidebarNav";
 import { fetchLevels, fetchMe, fetchTopics, nullOnError } from "@/lib/api";
+import { chaptersOf } from "@/lib/seo-pages";
 import { DEFAULT_THEME, SITE_DESCRIPTION, SITE_URL, THEME_COOKIE, type Theme } from "@/lib/site";
 
 import "./globals.css";
@@ -50,7 +51,9 @@ export default async function RootLayout({
   const [me, levels, topics] = await Promise.all([
     fetchMe().catch(nullOnError),
     fetchLevels().catch(() => []),
-    fetchTopics().catch(() => []),
+    fetchTopics()
+      .then(chaptersOf)
+      .catch(() => []),
   ]);
   const account: NavAccount | null = me && {
     username: me.username,

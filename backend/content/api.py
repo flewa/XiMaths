@@ -61,8 +61,21 @@ class LevelOut(Schema):
 
 
 class TopicOut(Schema):
+    """Chapitre (parent vide) ou notion, rangée sous son chapitre (slug du parent)."""
+
     name: str
     slug: str
+    parent: str | None
+    # Exercices publiés de ce chapitre ou de cette notion.
+    exercises: int
+
+    @staticmethod
+    def resolve_parent(obj):
+        return obj.parent.slug if obj.parent else None
+
+    @staticmethod
+    def resolve_exercises(obj):
+        return obj.published_count
 
 
 class ExerciseSummary(Schema):
@@ -71,7 +84,9 @@ class ExerciseSummary(Schema):
     difficulty: int
     primary_level: str
     levels: list[str]
+    # Chapitres, puis notions (sous-chapitres) : noms.
     topics: list[str]
+    notions: list[str]
     validated_solutions: int
     votes: int
     published_at: datetime
@@ -90,7 +105,11 @@ class ExerciseSummary(Schema):
 
     @staticmethod
     def resolve_topics(obj):
-        return [topic.name for topic in obj.topics.all()]
+        return [topic.name for topic in obj.topics.all() if topic.parent_id is None]
+
+    @staticmethod
+    def resolve_notions(obj):
+        return [topic.name for topic in obj.topics.all() if topic.parent_id is not None]
 
 
 class PhotoOut(Schema):
@@ -197,7 +216,9 @@ def list_levels(request):
 
 @router.get("/topics", response=list[TopicOut])
 def list_topics(request):
-    return Topic.objects.all()
+    return Topic.objects.select_related("parent").annotate(
+        published_count=Count("exercises", filter=Q(exercises__status=Exercise.Status.PUBLISHED), distinct=True)
+    )
 
 
 class FeedItemOut(ExerciseSummary):
@@ -222,7 +243,7 @@ def list_exercises(
     sort: Literal["recent", "popular", "unsolved"] = "recent",
 ):
     """Exercices publiés : les plus récents, les plus populaires (score P), ou ceux
-    qui attendent encore une solution validée. `topic` : slug d'un chapitre."""
+    qui attendent encore une solution validée. `topic` : slug d'un chapitre ou d'une notion."""
     exercises = at_level(published_exercises(), level)
     if topic:
         exercises = exercises.filter(topics__slug=topic).distinct()
@@ -283,7 +304,7 @@ class ExerciseIn(Schema):
     difficulty: int = Field(ge=1, le=5)
     primary_level: str
     levels: list[str] = Field(default_factory=list)
-    topics: list[str] = Field(default_factory=list, description="Slugs des chapitres.")
+    topics: list[str] = Field(default_factory=list, description="Slugs des chapitres et des notions.")
     source_type: Literal["personnel", "inspire", "reproduit"] = "personnel"
     source_reference: str = Field(default="", max_length=300)
 
@@ -483,9 +504,11 @@ def draft_fields(payload):
     if levels.keys() != codes:
         raise HttpError(422, f"Niveau inconnu : {', '.join(sorted(codes - levels.keys()))}.")
     slugs = set(payload.topics)
-    topics = list(Topic.objects.filter(slug__in=slugs))
+    topics = list(Topic.objects.filter(slug__in=slugs).select_related("parent"))
     if len(topics) != len(slugs):
         raise HttpError(422, "Chapitre inconnu.")
+    # Une notion range l'exercice dans son chapitre aussi.
+    topics += list({topic.parent for topic in topics if topic.parent and topic.parent not in topics})
     source_reference = payload.source_reference.strip()
     if payload.source_type != Exercise.SourceType.PERSONAL and not source_reference:
         raise HttpError(422, "Indique la source de l'exercice.")
@@ -501,6 +524,41 @@ def draft_fields(payload):
         "source_reference": source_reference,
     }
     return fields, list(levels.values()), topics
+
+
+RELATED_COUNT = 6
+
+
+@router.get("/exercises/{int:exercise_id}/related", response=list[ExerciseSummary])
+def related_exercises(request, exercise_id: int):
+    """Exercices proches, pour le bas de la fiche : même notion d'abord, puis même
+    chapitre, au même niveau de préférence."""
+    exercise = get_object_or_404(
+        Exercise.objects.prefetch_related("topics", "levels"),
+        pk=exercise_id,
+        status__in=[Exercise.Status.PUBLISHED, Exercise.Status.MERGED],
+    )
+    topics = {topic.pk for topic in exercise.topics.all()}
+    notions = {topic.pk for topic in exercise.topics.all() if topic.parent_id is not None}
+    levels = {exercise.primary_level_id} | {level.pk for level in exercise.levels.all()}
+    if not topics:
+        return []
+    candidates = (
+        published_exercises()
+        .filter(topics__in=topics)
+        .exclude(pk__in=[exercise.pk, exercise.merged_into_id or 0])
+        .distinct()
+    )
+
+    def score(other):
+        theirs = {topic.pk for topic in other.topics.all()}
+        their_levels = {other.primary_level_id} | {level.pk for level in other.levels.all()}
+        return (
+            -3 * len(notions & theirs) - len(topics & theirs) - 2 * (other.primary_level_id in levels) - bool(levels & their_levels),
+            -other.published_at.timestamp(),
+        )
+
+    return sorted(candidates, key=score)[:RELATED_COUNT]
 
 
 @router.post("/exercises", response={201: DraftOut}, auth=django_auth)
