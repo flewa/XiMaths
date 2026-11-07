@@ -24,7 +24,6 @@ import {
   fetchMySolutions,
   fetchRelated,
   fetchTopics,
-  fetchTranscriptionAvailable,
   nullOnError,
   type ExerciseDetail,
   type ExerciseSummary,
@@ -146,7 +145,6 @@ export default async function ExercisePage({ params }: Props) {
   let topics: Topic[];
   let related: ExerciseSummary[];
   let mySolutions: MySolution[] = [];
-  let transcription = false;
   try {
     [exercise, me, topics, related] = await Promise.all([
       fetchExercise(id),
@@ -154,12 +152,7 @@ export default async function ExercisePage({ params }: Props) {
       fetchTopics(),
       fetchRelated(Number(id)),
     ]);
-    if (exercise && me) {
-      [mySolutions, transcription] = await Promise.all([
-        fetchMySolutions(exercise.id),
-        fetchTranscriptionAvailable(),
-      ]);
-    }
+    if (exercise && me) mySolutions = await fetchMySolutions(exercise.id);
   } catch (error) {
     logApiError(error);
     return <ApiUnavailable />;
@@ -260,7 +253,7 @@ export default async function ExercisePage({ params }: Props) {
             >
               Connecte-toi
             </Link>{" "}
-            pour proposer une solution : trois membres la reliront.
+            pour envoyer ta copie en photos : trois membres la reliront.
           </p>
         ) : !me.email_verified ? (
           <p className="mt-3 text-body">Confirme ton adresse email pour proposer une solution.</p>
@@ -276,9 +269,9 @@ export default async function ExercisePage({ params }: Props) {
                     <Icon name="timer" size={16} />
                     S&apos;entraîner en temps limité
                   </Link>
-                  <span className="text-mute">ou rédige librement ci-dessous</span>
+                  <span className="text-mute">ou à ton rythme, en photographiant ta copie ci-dessous</span>
                 </p>
-                <SolutionForm exerciseId={exercise.id} transcription={transcription} />
+                <SolutionForm exerciseId={exercise.id} />
               </>
             )}
           </>
@@ -417,8 +410,6 @@ function MySolutionCard({ solution, exerciseId }: { solution: MySolution; exerci
         <ReviseSolution
           solutionId={solution.id}
           exerciseId={exerciseId}
-          body={solution.body}
-          hasPhotos={solution.photos.length > 0}
           validated={solution.status === "validated"}
         />
       )}

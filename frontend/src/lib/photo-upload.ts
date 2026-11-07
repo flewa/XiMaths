@@ -10,9 +10,12 @@ export type PhotoUploadState = {
   exercise_id: number;
   exercise_title: string;
   expires_at: string;
-  /** Dépôt encore ouvert (30 minutes, prolongeables depuis l'ordinateur). */
+  /** Dépôt encore ouvert (30 minutes, prolongeables depuis l'ordinateur ; en temps
+   * limité, jusqu'à la fin du temps imparti et une minute de grâce). */
   open: boolean;
   max_photos: number;
+  /** Envoi d'une session chronométrée (entraînement ou défi). */
+  timed: boolean;
   photos: CopyPhoto[];
 };
 

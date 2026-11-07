@@ -79,7 +79,7 @@ Tout passe par des variables d'environnement, décrites dans `.env.example` (dé
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Notifications Web Push (clés créées par `manage.py generate_vapid_keys`) | pas de push, le réglage n'apparaît pas |
 | `ACADEMIC_EXTRA_DOMAINS` | Domaines d'établissements reconnus en plus de la liste intégrée, séparés par des virgules | la liste intégrée seule |
 | `EMBEDDINGS_URL` | Embeddings bge-m3 (E1, et E2 avec un LLM) | doublons détectés par MinHash seul |
-| `ANTHROPIC_API_KEY`, `LLM_TIMEOUT` | Claude : résumés canoniques, avis sur les doublons, questions de compréhension, transcription des photos de copie | décisions et questions rédigées par les modérateurs, pas de transcription |
+| `ANTHROPIC_API_KEY`, `LLM_TIMEOUT` | Claude : résumés canoniques, avis sur les doublons, questions de compréhension (qui lisent les photos de la copie) | décisions et questions rédigées par les modérateurs |
 | `SENTRY_DSN` | Suivi des erreurs (groupe de dépendances `prod`) | journaux seulement |
 | `NEXT_PUBLIC_SITE_URL` | Adresse publique du site : plan du site, robots.txt, OpenGraph | `http://localhost:3000` |
 
@@ -114,9 +114,7 @@ Clés VAPID : `uv run python manage.py generate_vapid_keys`, à copier dans `.en
 
 ## Photo de copie
 
-Une solution peut aussi être sa copie manuscrite, en photos, sans rien taper : sur l'ordinateur, « Depuis mon téléphone » affiche un QR code ; le téléphone qui le scanne ouvre `/photos/<jeton>` et y photographie les pages, sans se connecter (le jeton suffit, 30 minutes, prolongeables). Les photos apparaissent sur l'ordinateur au fur et à mesure, et partent en relecture avec la solution ; le texte devient facultatif. Sur un téléphone, on ajoute les photos directement. Trois pages au plus, 10 Mo chacune ; le serveur les redresse, les réduit à 2 000 px et les réencode en JPEG, ce qui efface leurs métadonnées. Elles sont servies par l'API, qui vérifie qui les demande (`content/photos.py`) : l'auteur, ses relecteurs, les arbitres et les évaluateurs de sa question de compréhension, les modérateurs, puis tout le monde une fois la solution validée. Une photo jamais jointe est effacée au bout d'un jour. Les photos sont dans le volume Docker `media`, sauvegardé chaque nuit avec la base.
-
-La transcription en LaTeX reste proposée : une solution écrite à la main se photographie depuis la fiche de l'exercice (mode libre). Le navigateur réduit la photo (2 576 px au plus grand côté, en JPEG), Claude Opus 5.5 la transcrit en Markdown et LaTeX sans rien corriger ni compléter (`[illisible]` là où il ne peut pas lire), et la transcription s'ajoute à l'éditeur : l'auteur la relit avant d'envoyer. La photo n'est pas conservée. La transcription compte comme une mise en forme par IA (points pleins), cochée d'office et modifiable. JPEG, PNG ou WebP, 5 Mo au plus, 10 photos par heure et 30 par jour. Sans `ANTHROPIC_API_KEY`, le bouton n'apparaît pas.
+Une solution est toujours la copie manuscrite, en photos : rien ne se tape, ni rédaction ni réponse finale, en libre comme en temps limité. Sur l'ordinateur, « Depuis mon téléphone » affiche un QR code ; le téléphone qui le scanne ouvre `/photos/<jeton>` et y photographie les pages, sans se connecter (le jeton suffit, 30 minutes, prolongeables). Les photos apparaissent sur l'ordinateur au fur et à mesure, et partent en relecture avec la solution ; une révision envoie de nouvelles photos, qui remplacent les précédentes. Sur un téléphone, on ajoute les photos directement. Les relecteurs et les arbitres voient la réponse attendue de l'exercice (en défi, celle des valeurs tirées) pour vérifier vite le résultat. Trois pages au plus, 10 Mo chacune ; le serveur les redresse, les réduit à 2 000 px et les réencode en JPEG, ce qui efface leurs métadonnées. Elles sont servies par l'API, qui vérifie qui les demande (`content/photos.py`) : l'auteur, ses relecteurs, les arbitres et les évaluateurs de sa question de compréhension, les modérateurs, puis tout le monde une fois la solution validée. Une photo jamais jointe est effacée au bout d'un jour. Les photos sont dans le volume Docker `media`, sauvegardé chaque nuit avec la base.
 
 ## Détection des doublons
 
@@ -161,9 +159,10 @@ Une seule page de 20 exercices, sans défilement infini : 60 % de Tendances, 25 
 Un défi par niveau, chaque jour, sur `/defi`. Les modérateurs créent des gabarits dans l'admin (« Entraînement › Gabarits de défi ») : un exercice publié, un énoncé avec des paramètres (`{{a}}`), leurs valeurs possibles, et la réponse en fonction des paramètres (`sqrt(a)/b`). Le formulaire vérifie le gabarit et montre un exemple de tirage.
 
 - **Fenêtre de 24 h**, de minuit à minuit ; 30 minutes (×1,33 avec un tiers-temps) ; **une seule tentative**, qu'abandonner consomme.
-- **Énoncé tiré pour chacun** : partager sa réponse ne sert à rien. Les relecteurs voient l'énoncé tiré de l'auteur.
-- **Barème** : 20 × m(d). 60 % dès que SymPy reconnaît la réponse, 40 % quand la justification est validée par les pairs. Bonus de rapidité jusqu'à ×1,25 ; chaque indication ouverte en retire 10 %. Les points comptent dans le classement de la semaine.
-- **Règles de session classée** : le chrono ne s'arrête pas (onglet fermé compris, la session se reprend), pas de pause, collage externe désactivé et compté, IA interdite, sorties d'onglet comptées sans pénalité. Une tentative abandonnée onglet fermé est rendue par la tâche horaire.
+- **Énoncé tiré pour chacun** : partager sa réponse ne sert à rien. Les relecteurs voient l'énoncé tiré de l'auteur et la réponse attendue pour ses valeurs.
+- **Copie manuscrite** : le QR code s'affiche au départ ; les photos (3 au plus) doivent arriver avant la fin du temps, avec 60 s de grâce, après quoi le dépôt ferme et la session est rendue avec ce qui est arrivé.
+- **Barème** : 20 × m(d), gagnés quand la copie est validée par les pairs : plus de correction automatique. Bonus de rapidité jusqu'à ×1,25 ; chaque indication ouverte en retire 10 %. Les points comptent dans le classement de la semaine.
+- **Règles de session classée** : le chrono ne s'arrête pas (onglet fermé compris, la session se reprend), pas de pause, IA interdite, sorties d'onglet comptées sans pénalité. Une tentative abandonnée onglet fermé est rendue par la tâche horaire.
 - Les solutions des autres sont visibles à la fermeture du défi.
 
 ## Série et objectifs
@@ -186,14 +185,14 @@ Sur `/progression` également :
 
 ## Entraînement chronométré
 
-Depuis la fiche d'un exercice : 15, 30, 45 ou 60 minutes, ou le temps conseillé. Non classé, documents autorisés, deux pauses. Le serveur fait foi : chaque sauvegarde (toutes les 10 s) fait avancer le chrono, et un onglet fermé l'arrête. Au rendu : réponse finale vérifiée par SymPy (grammaire restreinte, jamais de Python libre), justification envoyée en relecture, temps comparé à la médiane, auto-évaluation de la difficulté.
+Depuis la fiche d'un exercice : 15, 30, 45 ou 60 minutes, ou le temps conseillé. Non classé, documents autorisés, deux pauses. Le serveur fait foi : un signe de vie toutes les 10 s fait avancer le chrono, et un onglet fermé l'arrête. La copie est manuscrite : le QR code s'affiche au départ, et les photos doivent arriver avant la fin du temps, avec 60 s de grâce. Au rendu : copie envoyée en relecture, temps comparé à la médiane, auto-évaluation de la difficulté. Le vérificateur SymPy (`training/answers.py`, grammaire restreinte) ne sert plus qu'à valider les réponses et les gabarits de la rédaction, qu'on montre aux relecteurs.
 
 ## Modération et intégrité
 
 - **Signalements** : doublon, plagiat, erreur, contenu inapproprié, IA non déclarée. Un modérateur tranche dans l'admin, avec un motif transmis à l'auteur du contenu. Un signalement confirmé de doublon, plagiat ou erreur rapporte +3.
 - **Comptes liés** (réciprocité des votes, ou à la main) : leurs interactions mutuelles sont neutralisées, sans sanction.
 - **Anti-plagiat** : chaque solution est comparée aux solutions antérieures des autres auteurs (MinHash, Jaccard ≥ 0,7, 0,85 sous 400 caractères). Au-delà, elle est mise en vérification et l'auteur reçoit une question neutre ; un modérateur tranche.
-- **Questions de compréhension** : sur une solution classée (défi) ou à fort enjeu (plus de 30 points), un score d'intégrité agrégé (ressemblance, collages et temps) déclenche une relecture de plus (≥ 0,4) ou une question sur sa propre solution (≥ 0,7). La question est rédigée par Claude Opus 5.5 si une clé est configurée, par un modérateur dans l'admin sinon. Le membre a 72 h pour l'ouvrir sur `/questions`, puis 5 minutes pour répondre. Un expert ou un modérateur évalue, sur `/arbitrages` ; le LLM peut préparer l'évaluation. Réussie : les points sont accordés, et 30 jours sans question. Sinon, la solution reste publiée sans ses points de classement, sans sanction. Une question tous les 14 jours au plus.
+- **Questions de compréhension** : sur une solution classée (défi) ou à fort enjeu (plus de 30 points), un score d'intégrité agrégé (ressemblance et temps) déclenche une relecture de plus (≥ 0,4) ou une question sur sa propre solution (≥ 0,7). La question est rédigée par Claude Opus 5.5 si une clé est configurée, par un modérateur dans l'admin sinon. Le membre a 72 h pour l'ouvrir sur `/questions`, puis 5 minutes pour répondre. Un expert ou un modérateur évalue, sur `/arbitrages` ; le LLM peut préparer l'évaluation. Réussie : les points sont accordés, et 30 jours sans question. Sinon, la solution reste publiée sans ses points de classement, sans sanction. Une question tous les 14 jours au plus.
 - **Sanctions**, toujours humaines et motivées, dans l'admin : avertissement, exclusion des classements (30 jours), suspension (7 jours), bannissement. Un compte suspendu peut se connecter pour faire appel, pas contribuer.
 - **Appels** sous 14 jours, depuis `/decisions` : sanctions, retraits de contenu, plagiats confirmés. Un autre modérateur que l'auteur de la décision les examine, sous 7 jours, et motive sa réponse. Une décision annulée lève la sanction ou rétablit le contenu et ses points.
 
@@ -280,7 +279,7 @@ npx tsc --noEmit
 npm run lint
 ```
 
-Le backend couvre le ledger et le barème, la relecture par les pairs (tours, délais, volontaires, arbitrages, révisions), les votes, l'authentification (Google compris), les notifications (push compris), la détection des doublons (avec E2 et l'avis du LLM simulés), les classements, les badges et les niveaux de confiance, le niveau de contributeur et la carte de compétences, le fil d'accueil, les signalements, l'anti-plagiat, les sanctions et appels, les questions de compréhension, la transcription des photos de copie, l'entraînement chronométré, le défi du jour, les séries et objectifs, et les tâches planifiées. Aucun test n'appelle un service externe : Claude, Google et les embeddings sont simulés.
+Le backend couvre le ledger et le barème, la relecture par les pairs (tours, délais, volontaires, arbitrages, révisions), les votes, l'authentification (Google compris), les notifications (push compris), la détection des doublons (avec E2 et l'avis du LLM simulés), les classements, les badges et les niveaux de confiance, le niveau de contributeur et la carte de compétences, le fil d'accueil, les signalements, l'anti-plagiat, les sanctions et appels, les questions de compréhension, les photos de copie (QR code, sessions chronométrées), l'entraînement chronométré, le défi du jour, les séries et objectifs, et les tâches planifiées. Aucun test n'appelle un service externe : Claude, Google et les embeddings sont simulés.
 
 ## Limites connues
 

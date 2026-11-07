@@ -1,10 +1,15 @@
+import shutil
+import tempfile
 from datetime import timedelta
 
-from django.test import SimpleTestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import SimpleTestCase, override_settings
 from django.utils import timezone
 
 from config.errors import RuleError
+from content import photos
 from content.models import Exercise, Solution
+from content.test_photos import jpeg
 from content.tests import ContentTestCase, make_user
 
 from .answers import check_answer
@@ -13,6 +18,7 @@ from .services import (
     abandon,
     median_elapsed_s,
     pause,
+    photo_upload,
     rate,
     remaining_s,
     resume,
@@ -22,7 +28,7 @@ from .services import (
 )
 
 Status = TimedSession.Status
-PROOF = "Par le critère de d'Alembert, le rayon vaut 2 : le quotient tend vers |x|/2."
+MEDIA = tempfile.mkdtemp(prefix="ximaths-entrainement-")
 
 
 class AnswerTests(SimpleTestCase):
@@ -52,7 +58,13 @@ class AnswerTests(SimpleTestCase):
                 self.assertIsNone(check_answer(given, "2"))
 
 
+@override_settings(MEDIA_ROOT=MEDIA)
 class SessionTests(ContentTestCase):
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(MEDIA, ignore_errors=True)
+
     def setUp(self):
         super().setUp()
         self.t0 = timezone.now()
@@ -64,6 +76,10 @@ class SessionTests(ContentTestCase):
 
     def session(self, minutes=15, user=None):
         return start(user or self.student, self.exercise, minutes=minutes, now=self.t0)
+
+    def photograph(self, session, seconds):
+        """Le téléphone dépose une page de la copie, `seconds` après le départ."""
+        return photos.add_photo(photo_upload(session, now=self.at(seconds)), jpeg(), now=self.at(seconds))
 
     def test_starting_twice_resumes_the_open_session(self):
         first = self.session()
@@ -82,11 +98,11 @@ class SessionTests(ContentTestCase):
 
     def test_the_clock_only_runs_while_the_browser_is_there(self):
         session = self.session()
-        save(session, draft="a", now=self.at(10))
-        save(session, draft="ab", now=self.at(20))
+        save(session, now=self.at(10))
+        save(session, now=self.at(20))
         # Onglet fermé deux minutes : ce temps ne compte pas.
-        save(session, draft="abc", now=self.at(140))
-        save(session, draft="abcd", now=self.at(150))
+        save(session, now=self.at(140))
+        save(session, now=self.at(150))
         self.assertAlmostEqual(session.elapsed_s, 30)
         self.assertAlmostEqual(remaining_s(session, now=self.at(155)), 15 * 60 - 35)
 
@@ -103,49 +119,56 @@ class SessionTests(ContentTestCase):
 
     def run_to_the_deadline(self, session):
         for second in range(10, 15 * 60 + 1, 10):
-            save(session, draft="brouillon", now=self.at(second))
+            save(session, now=self.at(second))
 
-    def test_a_save_within_the_grace_period_is_the_final_version(self):
+    def test_the_session_upload_is_the_same_on_every_call(self):
+        session = self.session()
+        upload = photo_upload(session, now=self.at(5))
+        self.assertEqual(photo_upload(session, now=self.at(6)).pk, upload.pk)
+        state = photos.upload_state(upload, now=self.at(5))
+        self.assertTrue(state["timed"] and state["open"])
+
+    def test_photos_arrive_until_the_deadline_and_the_grace_minute(self):
         session = self.session()
         self.run_to_the_deadline(session)
         session.refresh_from_db()
         self.assertEqual(session.status, Status.RUNNING)
 
-        save(session, draft=PROOF, final_answer="2", now=self.at(15 * 60 + 20))
+        self.photograph(session, 15 * 60 + 20)
+        save(session, now=self.at(15 * 60 + 30))
+        save(session, now=self.at(15 * 60 + 40))
+        save(session, now=self.at(15 * 60 + 50))
+        save(session, now=self.at(15 * 60 + 60))
+        save(session, now=self.at(15 * 60 + 70))
+
+        # Grâce écoulée : la session est rendue avec la photo arrivée, et le dépôt est fermé.
+        self.assertEqual(session.status, Status.SUBMITTED)
+        self.assertEqual(session.solution.photos.count(), 1)
+        self.assertAlmostEqual(session.elapsed_s, 15 * 60)
+        with self.assertRaisesMessage(RuleError, "Le temps est écoulé"):
+            photos.add_photo(session.photo_upload, jpeg(), now=self.at(15 * 60 + 75))
+
+    def test_submitting_sends_the_photos_to_review(self):
+        session = self.session()
+        self.photograph(session, 100)
+        self.photograph(session, 200)
+        submit(session, ai_usage="relecture", now=self.at(300))
 
         self.assertEqual(session.status, Status.SUBMITTED)
-        self.assertEqual((session.draft, session.answer_correct), (PROOF, True))
-        self.assertAlmostEqual(session.elapsed_s, 15 * 60)
-
-    def test_a_save_after_the_grace_period_keeps_the_last_version(self):
-        session = self.session()
-        save(session, draft=PROOF, now=self.at(10))
-        # Au-delà de 30 s sans signe de vie, le chrono s'arrête : on simule 15 min actives.
-        TimedSession.objects.filter(pk=session.pk).update(elapsed_s=15 * 60 + 70)
-        session.refresh_from_db()
-
-        save(session, draft="trop tard", now=self.at(20))
-
-        self.assertEqual((session.status, session.draft), (Status.SUBMITTED, PROOF))
-
-    def test_submitting_checks_the_answer_and_sends_the_proof_to_review(self):
-        session = self.session()
-        submit(session, draft=PROOF, final_answer="R = 4/2", ai_usage="relecture", now=self.at(300))
-
-        self.assertEqual((session.status, session.answer_correct), (Status.SUBMITTED, True))
+        self.assertIsNone(session.answer_correct)
         solution = session.solution
         self.assertEqual(
-            (solution.origin, solution.status, solution.ai_usage),
-            (Solution.Origin.TRAINING, Solution.Status.UNDER_REVIEW, "relecture"),
+            (solution.origin, solution.status, solution.ai_usage, solution.body, solution.photos.count()),
+            (Solution.Origin.TRAINING, Solution.Status.UNDER_REVIEW, "relecture", "", 2),
         )
         with self.assertRaises(RuleError):
-            save(session, draft="encore", now=self.at(310))
+            save(session, now=self.at(310))
 
-    def test_a_short_draft_is_not_sent_to_review(self):
+    def test_without_photos_nothing_is_sent_to_review(self):
         session = self.session()
-        submit(session, draft="Rayon : 2", final_answer="3", now=self.at(60))
+        photo_upload(session, now=self.at(10))
+        submit(session, now=self.at(60))
         self.assertIsNone(session.solution)
-        self.assertIs(session.answer_correct, False)
 
     def test_abandoning_ends_the_session(self):
         session = self.session()
@@ -156,7 +179,7 @@ class SessionTests(ContentTestCase):
     def test_self_rating_refines_the_estimated_difficulty(self):
         for name, rating in [("a", 2), ("b", 4)]:
             session = self.session(user=make_user(name))
-            submit(session, draft="", now=self.at(60))
+            submit(session, now=self.at(60))
             rate(session, rating)
         self.exercise.refresh_from_db()
         self.assertEqual((self.exercise.difficulty_estimated, self.exercise.difficulty_ratings), (3, 2))
@@ -167,12 +190,13 @@ class SessionTests(ContentTestCase):
         for name, seconds in [("a", 100), ("b", 300), ("c", 200)]:
             session = self.session(user=make_user(name))
             for second in range(10, seconds + 1, 10):
-                save(session, draft="", now=self.at(second))
-            submit(session, draft="", now=self.at(seconds))
+                save(session, now=self.at(second))
+            submit(session, now=self.at(seconds))
         self.assertEqual(median_elapsed_s(self.exercise), 200)
         self.assertEqual(median_elapsed_s(self.exercise, exclude=session), 200)
 
 
+@override_settings(MEDIA_ROOT=MEDIA)
 class TrainingApiTests(ContentTestCase):
     def setUp(self):
         super().setUp()
@@ -188,18 +212,37 @@ class TrainingApiTests(ContentTestCase):
         self.assertEqual(options["recommended"], 45)  # difficulté 3
 
         session = self.post("/api/training/sessions", {"exercise_id": self.exercise.pk, "minutes": 15}).json()
-        self.assertEqual((session["status"], session["pauses_left"]), ("en_cours", 2))
+        self.assertEqual((session["status"], session["pauses_left"], session["photo_count"]), ("en_cours", 2, 0))
         self.assertLessEqual(session["remaining_s"], 15 * 60)
         url = f"/api/training/sessions/{session['id']}"
 
-        saved = self.post(f"{url}/save", {"draft": "début", "focus_losses": 1}).json()
-        self.assertEqual((saved["draft"], saved["focus_losses"]), ("début", 1))
+        saved = self.post(f"{url}/save", {"focus_losses": 1}).json()
+        self.assertEqual(saved["focus_losses"], 1)
         self.assertEqual(self.post(f"{url}/pause").json()["status"], "en_pause")
         self.assertEqual(self.post(f"{url}/resume").json()["status"], "en_cours")
 
-        done = self.post(f"{url}/submit", {"draft": PROOF, "final_answer": "2"}).json()
-        self.assertEqual((done["status"], done["solution_status"]), ("rendue", "under_review"))
+        upload = self.post(f"{url}/photo-upload").json()
+        self.assertTrue(upload["timed"] and upload["open"])
+        self.assertEqual(self.post(f"{url}/photo-upload").json()["token"], upload["token"])
+        sent = self.client.post(
+            f"/api/photo-uploads/{upload['token']}/photos",
+            {"photo": SimpleUploadedFile("copie.jpg", jpeg(), content_type="image/jpeg")},
+        )
+        self.assertEqual(sent.status_code, 201)
+        self.assertEqual(self.client.get(url).json()["photo_count"], 1)
+        # Le temps d'une session ne se prolonge pas, et ses photos ne partent pas ailleurs.
+        self.assertEqual(self.post(f"/api/photo-uploads/{upload['token']}/reopen").status_code, 409)
+        free = self.post(f"/api/exercises/{self.exercise.pk}/solutions", {"photo_upload": upload["token"]})
+        self.assertEqual(free.status_code, 422)
+
+        done = self.post(f"{url}/submit", {"ai_usage": "aucune"}).json()
+        self.assertEqual((done["status"], done["solution_status"], done["photo_count"]), ("rendue", "under_review", 1))
         self.assertEqual(self.post(f"{url}/rating", {"rating": 3}).json()["self_rating"], 3)
+        late = self.client.post(
+            f"/api/photo-uploads/{upload['token']}/photos",
+            {"photo": SimpleUploadedFile("copie.jpg", jpeg(), content_type="image/jpeg")},
+        )
+        self.assertEqual(late.status_code, 410)
 
         self.client.force_login(make_user("curieux"))
         self.assertEqual(self.client.get(url).status_code, 404)

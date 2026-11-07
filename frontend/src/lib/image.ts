@@ -4,8 +4,8 @@ export function fitWithin(width: number, height: number, max: number) {
   return { width: Math.round(width * scale), height: Math.round(height * scale) };
 }
 
-// Bord le plus long lu par Claude ; au-delà, l'image serait réduite de son côté.
-const MAX_EDGE = 2576;
+// Le serveur ne garde pas plus de 2 000 px de côté (content/photos.py) : inutile d'envoyer davantage.
+const MAX_EDGE = 2000;
 
 /** Photo réduite et recompressée en JPEG avant l'envoi : quelques centaines de Ko au
  * lieu de plusieurs Mo, l'orientation de l'appareil appliquée. null si le navigateur

@@ -18,11 +18,10 @@ logger = logging.getLogger(__name__)
 
 # Modèles du document de conception : Sonnet arbitre les doublons, Haiku écrit les
 # résumés canoniques. Les questions de compréhension, qui portent sur le raisonnement
-# d'une solution, reviennent à Opus, comme la lecture des copies manuscrites.
+# d'une solution et lisent les photos de la copie manuscrite, reviennent à Opus.
 ARBITRATION_MODEL = "claude-sonnet-5-5"
 SUMMARY_MODEL = "claude-haiku-5-5"
 COMPREHENSION_MODEL = "claude-opus-5-5"
-TRANSCRIPTION_MODEL = "claude-opus-5-5"
 # Haiku n'a pas de repli côté serveur : un refus y reste un refus.
 WITHOUT_FALLBACK = {SUMMARY_MODEL}
 FALLBACK_BETA = "server-side-fallback-2026-07-01"

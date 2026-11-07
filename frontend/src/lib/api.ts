@@ -152,7 +152,6 @@ export type TrainingSession = {
   exercise_title: string;
   statement: string;
   hints: string[];
-  has_final_answer: boolean;
   status: TrainingStatus;
   duration_s: number;
   extra_time_factor: number;
@@ -161,10 +160,8 @@ export type TrainingSession = {
   remaining_s: number;
   pauses_left: number;
   focus_losses: number;
-  external_paste_chars: number;
-  draft: string;
-  final_answer: string;
-  answer_correct: boolean | null;
+  /** Photos de la copie arrivées depuis le téléphone. */
+  photo_count: number;
   solution_id: number | null;
   solution_status: SolutionStatus | null;
   median_elapsed_s: number | null;
@@ -177,7 +174,7 @@ export type TrainingSession = {
   challenge_closes_at: string | null;
   points_max: number | null;
   bonus: number | null;
-  answer_points: number;
+  /** Défi : points gagnés quand la copie sera validée par les pairs. */
   justification_points: number;
 };
 
@@ -194,8 +191,6 @@ export type DailyChallenge = {
   attempt: {
     session_id: number;
     status: TrainingStatus;
-    answer_correct: boolean | null;
-    answer_points: number;
     justification_points: number;
   } | null;
 };
@@ -373,6 +368,8 @@ export type ReviewTask = {
   primary_level: string;
   solution_body: string;
   solution_photos: CopyPhoto[];
+  /** Réponse attendue (en défi, pour les valeurs tirées) ; vide s'il n'y en a pas. */
+  expected_answer: string;
   ai_usage: AiUsage;
 };
 
@@ -481,11 +478,6 @@ export function fetchNotifications() {
   return get<{ unread: number; items: AppNotification[] }>("/notifications");
 }
 
-/** La transcription des photos de copie est-elle proposée ? */
-export async function fetchTranscriptionAvailable() {
-  return (await get<{ available: boolean }>("/transcription"))?.available ?? false;
-}
-
 /** Clé VAPID publique ; null si les notifications push ne sont pas configurées. */
 export async function fetchPushKey() {
   return (await get<{ public_key: string | null }>("/push/key"))?.public_key ?? null;
@@ -502,6 +494,7 @@ export type Arbitration = {
   exercise_statement: string;
   solution_body: string;
   solution_photos: CopyPhoto[];
+  expected_answer: string;
   ai_usage: AiUsage;
   reviews: { verdict: string; feedback: string; weight: number }[];
 };

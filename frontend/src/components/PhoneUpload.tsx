@@ -87,14 +87,16 @@ export function PhoneUpload({ token }: { token: string }) {
 
       {!upload.open ? (
         <p className="text-body">
-          Ce QR code a expiré. Sur ton ordinateur, clique sur « Prolonger de 30 minutes », puis recharge cette page.
+          {upload.timed
+            ? "Le temps est écoulé : les photos ne sont plus acceptées. Les pages déjà envoyées sont rendues avec ta copie."
+            : "Ce QR code a expiré. Sur ton ordinateur, clique sur « Prolonger de 30 minutes », puis recharge cette page."}
         </p>
       ) : full ? (
         <p className="flex gap-2 text-body">
           <Icon name="check" className="mt-0.5 text-accent" />
           <span>
-            C&apos;est complet : tes {upload.max_photos} photos sont sur ton ordinateur. Termine l&apos;envoi de ta
-            solution là-bas.
+            C&apos;est complet : tes {upload.max_photos} photos sont sur ton ordinateur.{" "}
+            {upload.timed ? "Rends ta copie là-bas." : "Termine l'envoi de ta solution là-bas."}
           </span>
         </p>
       ) : (
@@ -165,8 +167,10 @@ export function PhoneUpload({ token }: { token: string }) {
 
       {upload.open && (
         <p className="text-sm text-mute">
-          Code valable jusqu&apos;à {hourFormat.format(new Date(upload.expires_at))}. Tu peux fermer cette page une fois
-          tes photos envoyées.
+          {upload.timed
+            ? `Temps limité : photos acceptées jusqu'à ${hourFormat.format(new Date(upload.expires_at))}, puis une minute de grâce.`
+            : `Code valable jusqu'à ${hourFormat.format(new Date(upload.expires_at))}.`}{" "}
+          Tu peux fermer cette page une fois tes photos envoyées.
         </p>
       )}
     </div>

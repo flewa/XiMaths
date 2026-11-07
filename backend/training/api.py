@@ -11,7 +11,9 @@ from ninja.security import django_auth
 from pydantic import Field
 
 from accounts.permissions import contributor
-from content.models import TEXT_MAX_LENGTH, Exercise
+from content import photos
+from content.api import PhotoUploadOut
+from content.models import Exercise
 
 from . import challenges, services
 from .models import Challenge, TimedSession
@@ -25,15 +27,10 @@ class StartIn(Schema):
 
 
 class SaveIn(Schema):
-    draft: str = Field(default="", max_length=TEXT_MAX_LENGTH)
-    final_answer: str = Field(default="", max_length=200)
     focus_losses: int = Field(default=0, ge=0, le=1000)
-    external_paste_chars: int = Field(default=0, ge=0, le=TEXT_MAX_LENGTH)
 
 
 class SubmitIn(Schema):
-    draft: str = Field(default="", max_length=TEXT_MAX_LENGTH)
-    final_answer: str = Field(default="", max_length=200)
     ai_usage: Literal["aucune", "relecture", "aide_idee", "generee"] = "aucune"
 
 
@@ -48,7 +45,6 @@ class SessionOut(Schema):
     exercise_title: str
     statement: str
     hints: list[str]
-    has_final_answer: bool
     status: str
     duration_s: int
     extra_time_factor: float
@@ -57,10 +53,8 @@ class SessionOut(Schema):
     remaining_s: float
     pauses_left: int
     focus_losses: int
-    external_paste_chars: int
-    draft: str
-    final_answer: str
-    answer_correct: bool | None
+    # Photos de la copie arrivées (rendues avec la solution une fois la session rendue).
+    photo_count: int
     solution_id: int | None
     solution_status: str | None
     median_elapsed_s: float | None
@@ -73,7 +67,7 @@ class SessionOut(Schema):
     challenge_closes_at: datetime | None
     points_max: int | None
     bonus: float | None
-    answer_points: int
+    # Défi : points gagnés quand la copie sera validée par les pairs.
     justification_points: int
 
     @staticmethod
@@ -106,9 +100,10 @@ class SessionOut(Schema):
         return round(challenges.points_total(obj.exercise) * (1 + challenges.SPEED_BONUS)) if obj.ranked else None
 
     @staticmethod
-    def resolve_has_final_answer(obj):
-        # Un défi a toujours une réponse à vérifier, celle de ses paramètres.
-        return obj.ranked or bool(obj.exercise.final_answer.strip())
+    def resolve_photo_count(obj):
+        if obj.solution_id:
+            return obj.solution.photos.count()
+        return photos.pending(obj.photo_upload).count() if obj.photo_upload_id else 0
 
     @staticmethod
     def resolve_remaining_s(obj):
@@ -138,7 +133,7 @@ class OptionsOut(Schema):
 
 def _own(request, session_id):
     return get_object_or_404(
-        TimedSession.objects.select_related("exercise", "solution", "challenge__template"),
+        TimedSession.objects.select_related("exercise", "solution", "challenge__template", "photo_upload"),
         pk=session_id,
         user=request.auth,
     )
@@ -170,9 +165,16 @@ def detail(request, session_id: int):
 
 @router.post("/training/sessions/{int:session_id}/save", response=SessionOut, auth=django_auth)
 def save(request, session_id: int, payload: SaveIn):
-    """Sauvegarde automatique, toutes les 10 secondes : c'est aussi le signe de vie
-    qui fait avancer le chrono."""
+    """Signe de vie, toutes les 10 secondes : il fait avancer le chrono."""
     return services.save(_own(request, session_id), **payload.dict())
+
+
+@router.post("/training/sessions/{int:session_id}/photo-upload", response=PhotoUploadOut, auth=django_auth)
+def session_photo_upload(request, session_id: int):
+    """L'envoi de photos de la session (le même à chaque appel) : son jeton va dans le QR
+    code, affiché dès le départ ; le dépôt ferme avec le temps imparti."""
+    upload = services.photo_upload(_own(request, session_id))
+    return photos.upload_state(upload)
 
 
 @router.post("/training/sessions/{int:session_id}/pause", response=SessionOut, auth=django_auth)
@@ -187,7 +189,7 @@ def resume(request, session_id: int):
 
 @router.post("/training/sessions/{int:session_id}/submit", response=SessionOut, auth=django_auth)
 def submit(request, session_id: int, payload: SubmitIn):
-    """Rend la session : réponse vérifiée, justification envoyée en relecture."""
+    """Rend la session : les photos de la copie partent en relecture."""
     contributor(request)
     return services.submit(_own(request, session_id), **payload.dict())
 
@@ -214,8 +216,7 @@ def hint(request, session_id: int):
 class MyAttemptOut(Schema):
     session_id: int
     status: str
-    answer_correct: bool | None
-    answer_points: int
+    # Points gagnés quand la copie sera validée par les pairs.
     justification_points: int
 
 
@@ -248,8 +249,6 @@ def _challenge_out(challenge, attempt):
         and {
             "session_id": attempt.pk,
             "status": attempt.status,
-            "answer_correct": attempt.answer_correct,
-            "answer_points": attempt.answer_points,
             "justification_points": attempt.justification_points,
         },
     }

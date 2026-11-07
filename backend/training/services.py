@@ -6,9 +6,11 @@ Règles du document de conception :
   signe de vie (sauvegarde toutes les 10 s) ; en entraînement, le chrono s'arrête
   donc si l'onglet se ferme, et la session se reprend ;
 - deux pauses ; documents libres ;
-- à l'échéance, la dernière version est rendue, avec 60 s de grâce pour le réseau ;
-- au rendu : réponse finale vérifiée par SymPy, justification en relecture par les
-  pairs, solutions débloquées, temps comparé à la médiane, auto-évaluation de 1 à 5.
+- la copie est manuscrite : on la photographie depuis le téléphone (QR code) pendant le
+  temps imparti, avec 60 s de grâce pour le réseau ; à l'échéance, ce qui est arrivé est
+  rendu ;
+- au rendu : copie en relecture par les pairs, solutions débloquées, temps comparé à la
+  médiane, auto-évaluation de 1 à 5.
 
 Le défi du jour (challenges.py) passe par les mêmes sessions, avec ses propres règles :
 le chrono compte depuis le départ, sans pause, et la session rapporte des points.
@@ -21,15 +23,12 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from config.errors import RuleError
-from content.models import Exercise, Solution
+from content import photos
+from content.models import Exercise, PhotoUpload, Solution
 from content.services import publish_solution
 from gamification.badges import check_badges
-from gamification.models import PointTransaction
-from gamification.services import award
-from moderation.comprehension import points_on_hold
 
 from . import challenges
-from .answers import check_answer
 from .models import EXTRA_TIME_FACTOR, TimedSession
 
 Status = TimedSession.Status
@@ -41,7 +40,6 @@ MAX_PAUSES = 2
 # Au-delà de 30 s sans signe de vie, l'onglet est considéré fermé : ce temps ne compte pas.
 HEARTBEAT_GAP = timedelta(seconds=30)
 GRACE = timedelta(seconds=60)
-MIN_SOLUTION_LENGTH = 20
 
 
 def recommended_minutes(exercise):
@@ -110,22 +108,40 @@ def _require_open(session):
         raise RuleError("Cette session est terminée.")
 
 
+def accepts_photos(session, now=None):
+    """Le téléphone peut-il encore déposer une photo ? Pendant le temps imparti et la
+    grâce de 60 s, tant que la session n'est pas rendue."""
+    return session.open and remaining_s(session, now) > -GRACE.total_seconds()
+
+
 @transaction.atomic
-def save(session, *, draft, final_answer="", focus_losses=0, external_paste_chars=0, now=None):
-    """Sauvegarde automatique, qui sert aussi de signe de vie. Après l'échéance et la
-    grâce de 60 s, la sauvegarde est refusée et la dernière version est rendue."""
+def photo_upload(session, *, now=None):
+    """L'envoi de photos de la session : son jeton, dans le QR code affiché dès le départ."""
+    _require_open(session)
+    if session.photo_upload_id:
+        return session.photo_upload
+    now = now or timezone.now()
+    upload = photos.open_upload(session.user, session.exercise, now=now)
+    # Indicatif : c'est l'état de la session qui ouvre ou ferme le dépôt.
+    upload.expires_at = session.started_at + timedelta(seconds=session.limit_s) + GRACE
+    upload.save(update_fields=["expires_at"])
+    session.photo_upload = upload
+    session.save(update_fields=["photo_upload"])
+    return upload
+
+
+@transaction.atomic
+def save(session, *, focus_losses=0, now=None):
+    """Signe de vie, toutes les 10 s : il fait avancer le chrono. Après l'échéance et
+    la grâce de 60 s, la session est rendue avec les photos arrivées."""
     now = now or timezone.now()
     _require_open(session)
     over = -remaining_s(session, now)
     _tick(session, now)
-    if over <= GRACE.total_seconds():
-        session.draft = draft
-        session.final_answer = final_answer
     session.focus_losses += max(focus_losses, 0)
-    session.external_paste_chars += max(external_paste_chars, 0)
     session.save()
-    if over > 0:
-        return submit(session, draft=session.draft, final_answer=session.final_answer, now=now)
+    if over > GRACE.total_seconds():
+        return submit(session, now=now)
     return session
 
 
@@ -159,49 +175,34 @@ def resume(session, *, now=None):
 
 
 @transaction.atomic
-def submit(session, *, draft, final_answer="", ai_usage=Solution.AiUsage.NONE, now=None):
-    """Rend la session. La justification devient une solution, qui part en relecture."""
+def submit(session, *, ai_usage=Solution.AiUsage.NONE, now=None):
+    """Rend la session. Les photos arrivées deviennent une solution, qui part en relecture ;
+    sans photo, rien n'est envoyé."""
     _require_open(session)
     now = now or timezone.now()
     _tick(session, now)
     session.elapsed_s = min(session.elapsed_s, session.limit_s)
-    session.draft = draft
-    session.final_answer = final_answer.strip()
-    session.answer_correct = (
-        check_answer(session.final_answer, challenges.expected(session)) if session.final_answer else None
-    )
     session.status = Status.SUBMITTED
     session.submitted_at = now
     session.last_tick_at = None
     if session.ranked:
         challenges.score(session)
-    # Enregistrée avant la publication : le score d'intégrité lit le temps et les collages.
+    # Enregistrée avant la publication : le score d'intégrité lit le temps de la session.
     session.save()
-    if len(draft.strip()) >= MIN_SOLUTION_LENGTH:
+    upload = PhotoUpload.objects.filter(pk=session.photo_upload_id).first()
+    if upload is not None and photos.pending(upload).exists():
         solution = Solution.objects.create(
             exercise=session.exercise,
             author=session.user,
-            body=draft.strip(),
             # L'IA est interdite en défi.
             ai_usage=Solution.AiUsage.NONE if session.ranked else ai_usage,
             origin=Solution.Origin.DAILY if session.ranked else Solution.Origin.TRAINING,
             variant_statement=challenges.statement(session) if session.ranked else "",
         )
+        photos.attach(upload, solution)
         session.solution = solution
         session.save(update_fields=["solution"])
         publish_solution(solution, now=now)
-    if session.ranked:
-        # Une question de compréhension retient aussi les points de la réponse.
-        if session.answer_points and not (session.solution and points_on_hold(session.solution)):
-            award(
-                session.user,
-                PointTransaction.Reason.CHALLENGE_ANSWER,
-                session,
-                amount=session.answer_points,
-                level=session.exercise.primary_level,
-                now=now,
-            )
-    session.save()
     if session.ranked:
         check_badges(session.user, now=now)
     return session
@@ -238,8 +239,8 @@ def rate(session, rating):
 
 
 def close_expired(*, now=None):
-    """Défis dont l'échéance et la grâce sont passées sans rendu (onglet fermé) : la
-    dernière version sauvegardée est rendue. Renvoie leur nombre."""
+    """Défis dont l'échéance et la grâce sont passées sans rendu (onglet fermé) : les
+    photos arrivées sont rendues. Renvoie leur nombre."""
     now = now or timezone.now()
     count = 0
     running = TimedSession.objects.filter(status=Status.RUNNING, challenge__isnull=False).select_related(
@@ -247,7 +248,7 @@ def close_expired(*, now=None):
     )
     for session in running:
         if -remaining_s(session, now) > GRACE.total_seconds():
-            submit(session, draft=session.draft, final_answer=session.final_answer, now=now)
+            submit(session, now=now)
             count += 1
     return count
 

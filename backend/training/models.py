@@ -105,7 +105,11 @@ class TimedSession(models.Model):
     bonus = models.FloatField(null=True, blank=True, help_text="Bonus de rapidité, indications déduites.")
     answer_points = models.PositiveIntegerField(default=0)
     justification_points = models.PositiveIntegerField(
-        default=0, help_text="Accordés quand la justification est validée par les pairs."
+        default=0, help_text="Accordés quand la copie est validée par les pairs."
+    )
+    # Photos de la copie, déposées depuis le téléphone (QR code) pendant le temps imparti.
+    photo_upload = models.OneToOneField(
+        "content.PhotoUpload", null=True, blank=True, on_delete=models.SET_NULL, related_name="timed_session"
     )
 
     class Meta:

@@ -1,8 +1,10 @@
 """Photos de copie manuscrite jointes à une solution, envoyées au besoin depuis un téléphone.
 
+- Une solution est toujours une copie manuscrite en photos : rien n'est tapé.
 - Sur l'ordinateur, l'auteur ouvre un envoi : le QR code affiché porte son jeton. Le
   jeton suffit pour déposer des photos pendant 30 minutes, sans se connecter sur le
-  téléphone ; il n'ouvre rien d'autre.
+  téléphone ; il n'ouvre rien d'autre. En temps limité (entraînement, défi), l'envoi
+  suit la session : ouvert pendant le temps imparti et 60 s de grâce, pas au-delà.
 - Trois photos au plus. Chacune est redressée, réduite à 2000 pixels de côté et
   réencodée en JPEG : les métadonnées (lieu de la prise, appareil) disparaissent.
 - La solution part en relecture avec ses photos ; le texte devient facultatif. Les
@@ -55,15 +57,64 @@ def live_uploads(now=None):
     return PhotoUpload.objects.filter(created_at__gt=now - KEEP_UNUSED)
 
 
+def session_of(upload):
+    """La session chronométrée de l'envoi, ou None."""
+    return getattr(upload, "timed_session", None)
+
+
 def reopen(upload, *, now=None):
-    """30 minutes de plus pour déposer : les photos déjà reçues restent dans l'envoi."""
+    """30 minutes de plus pour déposer : les photos déjà reçues restent dans l'envoi.
+    Le temps d'une session chronométrée, lui, ne se prolonge pas."""
+    if session_of(upload) is not None:
+        raise RuleError("Le temps d'une session chronométrée ne se prolonge pas.")
     upload.expires_at = (now or timezone.now()) + UPLOAD_WINDOW
     upload.save(update_fields=["expires_at"])
     return upload
 
 
 def is_open(upload, now=None):
+    session = session_of(upload)
+    if session is not None:
+        from training.services import accepts_photos
+
+        return accepts_photos(session, now)
     return (now or timezone.now()) < upload.expires_at
+
+
+def closes_at(upload, now=None):
+    """Fin du dépôt, pour l'affichage : en session, la fin du temps imparti (grâce non
+    comprise), recalculée d'après le chrono du serveur."""
+    session = session_of(upload)
+    if session is None:
+        return upload.expires_at
+    from training.services import remaining_s
+
+    now = now or timezone.now()
+    return now + timedelta(seconds=max(remaining_s(session, now), 0)) if session.open else now
+
+
+def closed_message(upload):
+    if session_of(upload) is not None:
+        return "Le temps est écoulé : les photos ne sont plus acceptées."
+    return "Ce QR code a expiré : affiches-en un nouveau sur ton ordinateur."
+
+
+def upload_state(upload, now=None):
+    """L'envoi tel que le voient l'ordinateur (QR code, photos reçues) et le téléphone."""
+    session = session_of(upload)
+    return {
+        "token": upload.token,
+        "exercise_id": upload.exercise_id,
+        "exercise_title": upload.exercise.title,
+        "expires_at": closes_at(upload, now),
+        "open": is_open(upload, now),
+        "max_photos": MAX_PHOTOS,
+        "timed": session is not None,
+        "photos": [
+            {"id": photo.pk, "url": upload_photo_url(upload, photo), "width": photo.width, "height": photo.height}
+            for photo in pending(upload)
+        ],
+    }
 
 
 def pending(upload):
@@ -99,7 +150,7 @@ def add_photo(upload, data, *, now=None):
     """Dépose une photo dans un envoi encore ouvert."""
     upload = PhotoUpload.objects.select_for_update().get(pk=upload.pk)
     if not is_open(upload, now):
-        raise RuleError("Ce QR code a expiré : affiches-en un nouveau sur ton ordinateur.")
+        raise RuleError(closed_message(upload))
     count = pending(upload).count()
     if count >= MAX_PHOTOS:
         raise RuleError(f"{MAX_PHOTOS} photos au plus : retire-en une pour en ajouter une autre.")
@@ -124,7 +175,8 @@ def remove_photo(upload, photo_id):
 
 def upload_for(user, exercise, token, *, now=None):
     """L'envoi `token` de l'auteur pour cet exercice, encore utilisable, ou une erreur."""
-    upload = live_uploads(now).filter(token=token, user=user, exercise=exercise).first()
+    # Les photos d'une session chronométrée sont rendues avec elle, pas ailleurs.
+    upload = live_uploads(now).filter(token=token, user=user, exercise=exercise, timed_session=None).first()
     if upload is None:
         raise RuleError("Photos introuvables ou trop anciennes : envoie-les de nouveau.")
     return upload
