@@ -35,3 +35,15 @@ export function CopyPhotoList({ photos, compact = false }: { photos: CopyPhoto[]
     </ol>
   );
 }
+
+/** Réponse attendue, pour vérifier vite le résultat d'une copie : en défi, celle des
+ * valeurs tirées pour l'auteur. Écrite comme le vérificateur la lit (sqrt, pi, ^). */
+export function ExpectedAnswer({ value }: { value: string }) {
+  if (!value.trim()) return null;
+  return (
+    <p className="my-3 text-sm text-body">
+      Réponse attendue : <code className="rounded bg-surface-card px-1.5 py-0.5 text-ink">{value}</code>
+      <span className="text-mute"> · le raisonnement compte autant que le résultat</span>
+    </p>
+  );
+}

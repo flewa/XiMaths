@@ -19,7 +19,7 @@ export default function PrivacyPage() {
           items={[
             "Compte : pseudo, adresse email, mot de passe chiffré, niveau déclaré, tiers-temps si tu le déclares, préférences.",
             "Contributions : exercices, solutions, relectures, votes, signalements.",
-            "Photos de copie jointes à une solution : 3 pages au plus, réencodées à la réception, ce qui efface leurs métadonnées (lieu de la prise, appareil). Elles sont montrées comme le texte de la solution : à ses relecteurs et aux modérateurs, puis à tous une fois la solution validée.",
+            "Photos de copie, qui sont tes solutions (en libre, en entraînement et au défi du jour) : 3 pages au plus, réencodées à la réception, ce qui efface leurs métadonnées (lieu de la prise, appareil). Elles sont montrées comme le texte de la solution : à ses relecteurs et aux modérateurs, puis à tous une fois la solution validée.",
             "Activité : points, badges, sessions chronométrées (temps, nombre de sorties d'onglet, taille des collages venus d'ailleurs, jamais leur contenu), jours actifs, objectifs et mode vacances.",
             "Questions de compréhension, si l'une t'est posée : la question, ta réponse et l'évaluation.",
             "Connexion Google, si tu l'utilises : ton adresse email et l'identifiant de ton compte Google.",
@@ -39,9 +39,8 @@ export default function PrivacyPage() {
         />
         <p>
           Quand il est activé, le modèle Claude d&apos;Anthropic reçoit des énoncés publiés, pour la
-          détection des doublons, et, si une question de compréhension t&apos;est posée, ta solution (photos
-          de copie comprises) et ta réponse, pour préparer la question et l&apos;évaluation. Il reçoit aussi
-          les photos que tu fais transcrire en LaTeX ; XiMaths ne garde pas celles-là. Ni ton pseudo ni ton adresse
+          détection des doublons, et, si une question de compréhension t&apos;est posée, ta solution (les
+          photos de ta copie) et ta réponse, pour préparer la question et l&apos;évaluation. Ni ton pseudo ni ton adresse
           ne lui sont transmis, et la décision reste toujours humaine.
         </p>
         <p>Pas de publicité, pas de revente de données, pas de traceur tiers.</p>

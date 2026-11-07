@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 import { ReviewForm, VolunteerButton } from "@/components/ContributionForms";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
-import { CopyPhotoList } from "@/components/CopyPhotos";
+import { CopyPhotoList, ExpectedAnswer } from "@/components/CopyPhotos";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { ProseSection } from "@/components/Prose";
 import { Tag } from "@/components/Tag";
@@ -70,6 +70,7 @@ export default async function ReviewsPage() {
                 </p>
                 <CopyPhotoList photos={task.solution_photos} />
                 {task.solution_body && <MathMarkdown>{task.solution_body}</MathMarkdown>}
+                <ExpectedAnswer value={task.expected_answer} />
               </div>
               <div className="mt-4">
                 <ReviewForm reviewId={task.id} />

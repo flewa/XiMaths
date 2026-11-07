@@ -3,10 +3,11 @@
 - fenêtre de 24 h, 30 minutes, une seule tentative : abandonner la consomme ;
 - gabarits paramétrés : chaque membre reçoit ses propres paramètres, partager sa
   réponse ne sert donc à rien (partager la méthode reste permis) ;
-- barème 20 × m(d) : 60 % dès que SymPy reconnaît la réponse, 40 % quand la
-  justification est validée par les pairs ; bonus de rapidité ×(1 + 0,25 × (1 − t/T))
-  au plus, réduit de 10 % par indication ouverte ;
-- le chrono ne s'arrête pas, sans pause ; collage externe désactivé et compté ;
+- la copie est manuscrite, photographiée depuis le téléphone pendant le temps imparti
+  (grâce de 60 s) : rien n'est tapé, rien n'est corrigé automatiquement ;
+- barème 20 × m(d), gagné quand la copie est validée par les pairs ; bonus de rapidité
+  ×(1 + 0,25 × (1 − t/T)) au plus, réduit de 10 % par indication ouverte ;
+- le chrono ne s'arrête pas, sans pause ;
 - les solutions des autres sont visibles à la fermeture de la fenêtre.
 """
 
@@ -33,7 +34,6 @@ User = get_user_model()
 
 MINUTES = 30
 BASE_POINTS = 20
-ANSWER_SHARE = 0.6
 SPEED_BONUS = 0.25
 HINT_PENALTY = 0.1
 # Un gabarit ne revient pas dans le même niveau avant une semaine, s'il y a le choix.
@@ -95,13 +95,13 @@ def speed_bonus(elapsed_s, limit_s, hints_opened):
 
 
 def score(session):
-    """Fixe le bonus et les deux parts de points d'une session rendue."""
+    """Fixe le bonus et les points d'une session rendue. Plus de réponse vérifiée
+    automatiquement : tous les points viennent quand la copie est validée."""
     total = points_total(session.exercise)
     session.bonus = speed_bonus(session.elapsed_s, session.limit_s, session.hints_opened)
+    session.answer_points = 0
     # Arrondi au demi supérieur, comme le reste du barème.
-    answer = math.floor(total * ANSWER_SHARE * session.bonus + 0.5)
-    session.answer_points = answer if session.answer_correct else 0
-    session.justification_points = math.floor(total * (1 - ANSWER_SHARE) * session.bonus + 0.5)
+    session.justification_points = math.floor(total * session.bonus + 0.5)
 
 
 def window(date):

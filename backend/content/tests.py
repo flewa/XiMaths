@@ -283,12 +283,19 @@ class WriteApiTests(ContentTestCase):
                 self.assertEqual(response.status_code, 422)
 
     def test_propose_a_solution_then_review_it(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        from .test_photos import MEDIA, jpeg
+
         url = f"/api/exercises/{self.exercise.pk}/solutions"
-        body = {"body": "Par comparaison avec une série télescopique, la série converge."}
-        response = self.post(url, body, user=self.student)
+        with self.settings(MEDIA_ROOT=MEDIA):
+            token = self.post(f"/api/exercises/{self.exercise.pk}/photo-uploads", user=self.student).json()["token"]
+            photo = SimpleUploadedFile("copie.jpg", jpeg(), content_type="image/jpeg")
+            self.assertEqual(self.client.post(f"/api/photo-uploads/{token}/photos", {"photo": photo}).status_code, 201)
+            response = self.post(url, {"photo_upload": token}, user=self.student)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.json()["status"], "under_review")
-        self.assertEqual(self.post(url, body).status_code, 409)
+        self.assertEqual(self.post(url, {"photo_upload": token}).status_code, 409)
 
         self.client.force_login(self.reviewers[0])
         [task] = self.client.get("/api/reviews").json()

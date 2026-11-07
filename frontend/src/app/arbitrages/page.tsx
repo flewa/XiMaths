@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { ArbitrationButtons } from "@/components/ContributionForms";
 import { EvaluateQuestion } from "@/components/Questions";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
-import { CopyPhotoList } from "@/components/CopyPhotos";
+import { CopyPhotoList, ExpectedAnswer } from "@/components/CopyPhotos";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { Tag } from "@/components/Tag";
 import { fetchArbitrations, fetchMe, fetchQuestionsToEvaluate } from "@/lib/api";
@@ -58,6 +58,7 @@ export default async function ArbitrationsPage() {
                 </p>
                 <CopyPhotoList photos={item.solution_photos} />
                 {item.solution_body && <MathMarkdown>{item.solution_body}</MathMarkdown>}
+                <ExpectedAnswer value={item.expected_answer} />
               </div>
               <ul className="mt-4 space-y-2">
                 {item.reviews.map((review, index) => (

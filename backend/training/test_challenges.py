@@ -1,11 +1,16 @@
 import random
+import shutil
+import tempfile
 from datetime import timedelta
 
+from django.test import override_settings
 from django.utils import timezone
 
 from config.errors import RuleError
+from content import photos
 from content.models import Exercise, Review, Solution
 from content.services import submit_review
+from content.test_photos import jpeg
 from content.tests import ContentTestCase, make_user
 from gamification.models import PointTransaction, UserBadge
 from notifications.models import Notification
@@ -14,7 +19,7 @@ from . import challenges, services
 from .models import Challenge, ChallengeTemplate, TimedSession
 
 Reason = PointTransaction.Reason
-JUSTIFICATION = "On applique la règle de d'Alembert au terme général, dont le rapport tend vers |x|/b."
+MEDIA = tempfile.mkdtemp(prefix="ximaths-defi-")
 
 
 class ChallengeTestCase(ContentTestCase):
@@ -90,62 +95,73 @@ class SessionTests(ChallengeTestCase):
         self.assertEqual(session.hints_opened, 2)
 
 
+@override_settings(MEDIA_ROOT=MEDIA)
 class ScoringTests(ChallengeTestCase):
-    def submit(self, session, answer, *, minutes=15):
-        return services.submit(
-            session, draft=JUSTIFICATION, final_answer=answer, now=self.now + timedelta(minutes=minutes)
-        )
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(MEDIA, ignore_errors=True)
 
-    def test_a_right_answer_earns_sixty_percent_with_the_speed_bonus(self):
-        session = self.submit(self.start(), f"R = {self.start().parameters['b']}")
+    def photograph(self, session, *, minutes):
+        upload = services.photo_upload(session, now=self.now + timedelta(minutes=minutes))
+        return photos.add_photo(upload, jpeg(), now=self.now + timedelta(minutes=minutes))
 
-        # Mi-temps : bonus ×1,125. 25 × 0,6 × 1,125 = 16,875.
-        self.assertTrue(session.answer_correct)
+    def submit(self, session, *, minutes=15):
+        self.photograph(session, minutes=minutes - 1)
+        return services.submit(session, now=self.now + timedelta(minutes=minutes))
+
+    def test_all_the_points_wait_for_the_copy_to_be_validated(self):
+        session = self.submit(self.start())
+
+        # Mi-temps : bonus ×1,125. 25 × 1,125 = 28,125 → 28 ; rien n'est versé au rendu.
         self.assertAlmostEqual(session.bonus, 1.125)
-        self.assertEqual(session.answer_points, 17)
-        self.assertEqual(session.justification_points, 11)
-        txn = PointTransaction.objects.get(user=self.student, reason=Reason.CHALLENGE_ANSWER)
-        self.assertEqual((txn.amount, txn.level), (17, self.exercise.primary_level))
+        self.assertEqual((session.answer_points, session.justification_points), (0, 28))
+        self.assertFalse(PointTransaction.objects.filter(user=self.student, reason=Reason.CHALLENGE_ANSWER).exists())
 
-    def test_a_wrong_answer_earns_nothing_now(self):
-        session = self.submit(self.start(), "1000")
-        self.assertFalse(session.answer_correct)
-        self.assertEqual(session.answer_points, 0)
-        self.assertFalse(PointTransaction.objects.filter(reason=Reason.CHALLENGE_ANSWER).exists())
-
-    def test_each_hint_cuts_the_bonus_by_ten_percent(self):
-        session = self.start()
-        challenges.open_hint(session)
-        session = self.submit(session, str(session.parameters["b"]))
-        self.assertAlmostEqual(session.bonus, 1 + 0.25 * 0.5 * 0.9)
-
-    def test_the_justification_goes_to_review_with_the_drawn_statement(self):
-        session = self.submit(self.start(), "3")
-        solution = session.solution
-        self.assertEqual(solution.origin, Solution.Origin.DAILY)
-        self.assertEqual(solution.ai_usage, Solution.AiUsage.NONE)
-        self.assertIn(f"{session.parameters['b']}^n", solution.variant_statement)
-
-    def test_a_validated_justification_earns_the_other_forty_percent(self):
-        session = self.submit(self.start(), "3")
         for review in session.solution.reviews.all():
             submit_review(review, Review.Verdict.CORRECT)
 
         session.solution.refresh_from_db()
         self.assertEqual(session.solution.status, Solution.Status.VALIDATED)
-        reasons = set(PointTransaction.objects.filter(user=self.student).values_list("reason", flat=True))
-        self.assertIn(Reason.CHALLENGE_JUSTIFIED, reasons)
-        self.assertNotIn(Reason.SOLUTION_VALIDATED, reasons)
+        txn = PointTransaction.objects.get(user=self.student, reason=Reason.CHALLENGE_JUSTIFIED)
+        self.assertEqual(txn.amount, 28)
+        self.assertFalse(PointTransaction.objects.filter(user=self.student, reason=Reason.SOLUTION_VALIDATED).exists())
 
-    def test_an_abandoned_tab_is_submitted_after_the_deadline(self):
+    def test_each_hint_cuts_the_bonus_by_ten_percent(self):
         session = self.start()
-        services.save(session, draft=JUSTIFICATION, final_answer="5", now=self.now + timedelta(minutes=5))
+        challenges.open_hint(session)
+        session = self.submit(session)
+        self.assertAlmostEqual(session.bonus, 1 + 0.25 * 0.5 * 0.9)
+
+    def test_the_copy_goes_to_review_with_the_drawn_statement(self):
+        session = self.submit(self.start())
+        solution = session.solution
+        self.assertEqual(solution.origin, Solution.Origin.DAILY)
+        self.assertEqual(solution.ai_usage, Solution.AiUsage.NONE)
+        self.assertEqual(solution.photos.count(), 1)
+        self.assertIn(f"{session.parameters['b']}^n", solution.variant_statement)
+
+    def test_photos_must_arrive_within_the_thirty_minutes_and_the_grace(self):
+        session = self.start()
+        self.photograph(session, minutes=30.5)
+        with self.assertRaisesMessage(RuleError, "Le temps est écoulé"):
+            self.photograph(session, minutes=31.1)
+
+    def test_without_photos_nothing_is_sent_and_nothing_is_earned(self):
+        session = services.submit(self.start(), now=self.now + timedelta(minutes=10))
+        self.assertIsNone(session.solution)
+        self.assertFalse(PointTransaction.objects.filter(user=self.student, reason__startswith="challenge").exists())
+
+    def test_an_abandoned_tab_is_submitted_after_the_deadline_with_its_photos(self):
+        session = self.start()
+        self.photograph(session, minutes=5)
+        services.save(session, now=self.now + timedelta(minutes=5))
 
         self.assertEqual(services.close_expired(now=self.now + timedelta(minutes=20)), 0)
         self.assertEqual(services.close_expired(now=self.now + timedelta(minutes=32)), 1)
         session.refresh_from_db()
         self.assertEqual(session.status, TimedSession.Status.SUBMITTED)
-        self.assertEqual(session.final_answer, "5")
+        self.assertEqual(session.solution.photos.count(), 1)
 
     def test_five_validated_challenges_earn_under_pressure(self):
         for day in range(5):
@@ -157,7 +173,7 @@ class ScoringTests(ChallengeTestCase):
                 closes_at=self.now + timedelta(hours=1),
             )
             session = challenges.start(self.student, challenge, now=self.now)
-            session = self.submit(session, "3")
+            session = self.submit(session)
             Solution.objects.filter(pk=session.solution_id).update(status=Solution.Status.VALIDATED)
         from gamification.badges import check_badges
 
@@ -165,6 +181,7 @@ class ScoringTests(ChallengeTestCase):
         self.assertTrue(UserBadge.objects.filter(user=self.student, badge="sous-pression").exists())
 
 
+@override_settings(MEDIA_ROOT=MEDIA)
 class ChallengeApiTests(ChallengeTestCase):
     def setUp(self):
         super().setUp()
@@ -192,8 +209,23 @@ class ChallengeApiTests(ChallengeTestCase):
         self.assertEqual(len(opened["hints"]), 1)
         self.assertEqual(self.client.get("/api/challenges/today").json()[0]["attempt"]["session_id"], session["id"])
 
+    def submitted(self):
+        session = self.start()
+        photos.add_photo(services.photo_upload(session, now=self.now), jpeg(), now=self.now)
+        return services.submit(session, now=self.now)
+
+    def test_reviewers_see_the_answer_expected_for_the_drawn_parameters(self):
+        session = self.submitted()
+        reviewer = session.solution.reviews.first().reviewer
+        self.client.force_login(reviewer)
+
+        [task] = self.client.get("/api/reviews").json()
+
+        self.assertEqual(task["expected_answer"], f"({session.parameters['b']})")
+        self.assertEqual(len(task["solution_photos"]), 1)
+
     def test_challenge_solutions_stay_hidden_until_the_window_closes(self):
-        session = services.submit(self.start(), draft=JUSTIFICATION, final_answer="3", now=self.now)
+        session = self.submitted()
         Solution.objects.filter(pk=session.solution_id).update(status=Solution.Status.VALIDATED, validated_at=self.now)
 
         detail = self.client.get(f"/api/exercises/{self.exercise.pk}").json()

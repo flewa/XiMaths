@@ -2,17 +2,18 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { AiUsage, TrainingOptions, TrainingSession } from "@/lib/api";
 import { apiPost } from "@/lib/client-api";
-import { AI_USAGE_OPTIONS, SOLUTION_STATUS_LABELS } from "@/lib/labels";
+import { SOLUTION_STATUS_LABELS } from "@/lib/labels";
 
-import { LATEX_HELP } from "./ExerciseForm";
-import { Field, FormMessage, SubmitButton, inputClass, primaryButtonClass, secondaryButtonClass } from "./Form";
+import { AiUsageChoice } from "./ContributionForms";
+import { CopyPhotoPicker } from "./CopyPhotoPicker";
+import { FormMessage, SubmitButton, primaryButtonClass, secondaryButtonClass } from "./Form";
 import { MathMarkdown } from "./MathMarkdown";
 
-// Sauvegarde automatique, qui sert aussi de signe de vie au chrono du serveur.
+// Signe de vie au chrono du serveur.
 const SAVE_EVERY_MS = 10_000;
 // Rappels annoncés au lecteur d'écran, et seuls visibles quand le chrono est masqué.
 const REMINDERS_S = [600, 300, 60];
@@ -26,24 +27,6 @@ export function clock(seconds: number) {
   const s = total % 60;
   const pad = (n: number) => String(n).padStart(2, "0");
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
-}
-
-function storageKey(id: number) {
-  return `ximaths:entrainement:${id}`;
-}
-
-function readStoredDraft(id: number) {
-  try {
-    return window.localStorage.getItem(storageKey(id));
-  } catch {
-    // Stockage indisponible (navigation privée) : le serveur garde la copie.
-    return null;
-  }
-}
-
-// Le brouillon local ne change pas sous nos pieds : rien à écouter.
-function noSubscription() {
-  return () => {};
 }
 
 /** Écran des règles : durée, tiers-temps, puis « Commencer ». */
@@ -148,18 +131,19 @@ export function ChallengeStart({ challengeId, minutes }: { challengeId: number; 
   );
 }
 
-type Panel = "enonce" | "solution" | "apercu";
+type Panel = "enonce" | "copie";
 const PANELS: { value: Panel; label: string }[] = [
   { value: "enonce", label: "Énoncé" },
-  { value: "solution", label: "Solution" },
-  { value: "apercu", label: "Aperçu" },
+  { value: "copie", label: "Ma copie" },
 ];
 
-/** La session : chrono fixé en haut, énoncé, brouillon, aperçu, rendu. */
+// Après la fin du chrono, une minute pour que les dernières photos arrivent.
+const GRACE_S = 60;
+
+/** La session : chrono fixé en haut, énoncé, copie photographiée depuis le téléphone, rendu. */
 export function TrainingRoom({ initial }: { initial: TrainingSession }) {
   const [session, setSession] = useState(initial);
-  const [draft, setDraft] = useState(initial.draft);
-  const [answer, setAnswer] = useState(initial.final_answer);
+  const [photoCount, setPhotoCount] = useState(initial.photo_count);
   const [aiUsage, setAiUsage] = useState<AiUsage>("aucune");
   const [remaining, setRemaining] = useState(initial.remaining_s);
   const [hidden, setHidden] = useState(false);
@@ -167,34 +151,18 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
   const [announce, setAnnounce] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  // Compteurs envoyés à la prochaine sauvegarde.
-  const unsent = useRef({ focusLosses: 0, pasteChars: 0 });
-  const lastInternalCopy = useRef("");
-  const latest = useRef({ draft, answer, aiUsage });
+  // Sorties d'onglet, envoyées au prochain signe de vie.
+  const unsentFocusLosses = useRef(0);
+  const latestAiUsage = useRef(aiUsage);
   const autoSubmitted = useRef(false);
-  const [pasteBlocked, setPasteBlocked] = useState(false);
   const running = session.status === "en_cours";
-  // Défi du jour : classé, sans pause, sans collage externe, sans IA.
+  // Défi du jour : classé, sans pause, sans IA.
   const ranked = session.kind === "defi";
 
   useEffect(() => {
-    latest.current = { draft, answer, aiUsage };
-  }, [draft, answer, aiUsage]);
+    latestAiUsage.current = aiUsage;
+  }, [aiUsage]);
   const open = running || session.status === "en_pause";
-  // Brouillon gardé aussi dans le navigateur, si le réseau tombe : proposé à la restauration.
-  const storedDraft = useSyncExternalStore(
-    noSubscription,
-    () => readStoredDraft(initial.id),
-    () => null,
-  );
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(storageKey(session.id), draft);
-    } catch {
-      // Idem : sans stockage local, la sauvegarde serveur suffit.
-    }
-  }, [draft, session.id]);
 
   const call = useCallback(
     async (path: string, body?: unknown) => {
@@ -213,12 +181,12 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
 
   const submit = useCallback(async () => {
     setPending(true);
-    const { draft: body, answer: finalAnswer, aiUsage: usage } = latest.current;
-    await call("/submit", { draft: body, final_answer: finalAnswer, ai_usage: usage });
+    await call("/submit", { ai_usage: latestAiUsage.current });
     setPending(false);
   }, [call]);
 
-  // Seconde par seconde, en local ; la sauvegarde recale sur le serveur.
+  // Seconde par seconde, en local ; le signe de vie recale sur le serveur. Le décompte
+  // continue sous zéro pendant la minute de grâce.
   useEffect(() => {
     if (!running) return;
     const timer = setInterval(() => {
@@ -226,16 +194,17 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
         const next = value - 1;
         const crossed = REMINDERS_S.find((threshold) => value > threshold && next <= threshold);
         if (crossed) setAnnounce(`Il reste ${crossed / 60} minute${crossed > 60 ? "s" : ""}.`);
+        if (value > 0 && next <= 0) setAnnounce("Temps écoulé : une minute pour envoyer tes dernières photos.");
         return next;
       });
     }, 1000);
     return () => clearInterval(timer);
   }, [running]);
 
-  // Échéance : rendu automatique de la dernière version, une seule fois. Si l'appel
-  // échoue, la sauvegarde suivante arrivera après l'échéance et le serveur rendra seul.
+  // Fin de la minute de grâce : rendu automatique de ce qui est arrivé, une seule fois.
+  // Si l'appel échoue, le signe de vie suivant arrivera trop tard et le serveur rendra seul.
   useEffect(() => {
-    if (running && remaining <= 0 && !autoSubmitted.current) {
+    if (running && remaining <= -GRACE_S && !autoSubmitted.current) {
       autoSubmitted.current = true;
       void submit();
     }
@@ -244,14 +213,9 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
   useEffect(() => {
     if (!running) return;
     const timer = setInterval(() => {
-      const counters = unsent.current;
-      unsent.current = { focusLosses: 0, pasteChars: 0 };
-      void call("/save", {
-        draft: latest.current.draft,
-        final_answer: latest.current.answer,
-        focus_losses: counters.focusLosses,
-        external_paste_chars: counters.pasteChars,
-      });
+      const focusLosses = unsentFocusLosses.current;
+      unsentFocusLosses.current = 0;
+      void call("/save", { focus_losses: focusLosses });
     }, SAVE_EVERY_MS);
     return () => clearInterval(timer);
   }, [running, call]);
@@ -259,7 +223,7 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
   // Sorties d'onglet : comptées et affichées, jamais pénalisées.
   useEffect(() => {
     function onVisibility() {
-      if (document.hidden && running) unsent.current.focusLosses += 1;
+      if (document.hidden && running) unsentFocusLosses.current += 1;
     }
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
@@ -269,13 +233,18 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
 
   const panelClass = (value: Panel) => (panel === value ? "block" : "hidden md:block");
   const warning = remaining <= WARNING_S;
+  const overtime = remaining <= 0;
 
   return (
     <div>
       <div className="sticky top-14 z-10 -mx-5 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 bg-surface-dark px-5 py-3 text-on-dark sm:mx-0 sm:rounded-xl lg:top-2">
         <p className="font-medium">
           <span className="text-on-dark-mute">chrono </span>
-          {hidden ? (
+          {overtime ? (
+            <span className="text-warning">
+              temps écoulé · dernières photos, encore {Math.max(0, GRACE_S + Math.round(remaining))} s
+            </span>
+          ) : hidden ? (
             <span className="text-on-dark-mute">masqué · rappels à 10, 5 et 1 min</span>
           ) : (
             <span className={`tabular-nums ${warning ? "text-warning" : ""}`}>{clock(remaining)}</span>
@@ -313,7 +282,7 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
         {ranked
           ? "Défi du jour classé · cours personnel autorisé · IA interdite · le chrono continue même onglet fermé"
           : "Entraînement non classé · documents autorisés"}{" "}
-        · sauvegarde toutes les 10 s · sorties d&apos;onglet : {session.focus_losses}
+        · copie sur papier, photographiée avant la fin · sorties d&apos;onglet : {session.focus_losses}
       </p>
 
       <div role="tablist" aria-label="Sections" className="mt-6 flex border-b border-hairline-strong md:hidden">
@@ -334,144 +303,70 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
       </div>
 
       {session.status === "en_pause" ? (
-        <p className="mt-8 border-l-2 border-ink pl-3">
-          [pause] L&apos;énoncé et ton brouillon sont masqués pendant la pause.
-        </p>
+        <p className="mt-8 border-l-2 border-ink pl-3">[pause] L&apos;énoncé est masqué pendant la pause.</p>
       ) : (
-        <>
-          <section aria-label="Énoncé" className={`mt-6 ${panelClass("enonce")}`}>
-            <h2>Énoncé</h2>
-            <MathMarkdown>{session.statement}</MathMarkdown>
-            {ranked
-              ? session.hints.map((hint, index) => (
-                  <div key={index} className="border-b border-hairline py-3">
-                    <p className="font-medium">Indication {index + 1}</p>
-                    <MathMarkdown>{hint}</MathMarkdown>
-                  </div>
-                ))
-              : session.hints.map((hint, index) => (
-                  <details key={index} className="border-b border-hairline py-3">
-                    <summary className="font-medium">Indication {index + 1}</summary>
-                    <MathMarkdown>{hint}</MathMarkdown>
-                  </details>
-                ))}
-            {ranked && session.hints_opened < session.hint_count && (
-              <button type="button" onClick={() => call("/hint")} className="mt-3 underline underline-offset-4">
-                Ouvrir l&apos;indication {session.hints_opened + 1} · −10 % de bonus de rapidité
-              </button>
-            )}
-          </section>
-
-          <section aria-label="Solution" className={`mt-10 space-y-4 ${panelClass("solution")}`}>
-            <h2>Ta solution</h2>
-            {storedDraft && !draft.trim() && (
-              <button type="button" onClick={() => setDraft(storedDraft)} className="underline underline-offset-4">
-                [↺] Restaurer le brouillon gardé dans ce navigateur
-              </button>
-            )}
-            <Field
-              label="Justification"
-              htmlFor="training-draft"
-              hint={
-                ranked
-                  ? `${LATEX_HELP} Pendant un défi, le collage depuis l'extérieur est désactivé ; le copier-coller dans ton brouillon reste possible.`
-                  : `${LATEX_HELP} Les collages venus d'ailleurs sont comptés (leur taille, jamais leur contenu).`
-              }
-            >
-              <textarea
-                id="training-draft"
-                rows={12}
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-                // Un copier-coller à l'intérieur du brouillon n'est pas un collage externe.
-                onCopy={(event) => {
-                  const area = event.currentTarget;
-                  lastInternalCopy.current = area.value.slice(area.selectionStart, area.selectionEnd);
-                }}
-                onCut={(event) => {
-                  const area = event.currentTarget;
-                  lastInternalCopy.current = area.value.slice(area.selectionStart, area.selectionEnd);
-                }}
-                onPaste={(event) => {
-                  const text = event.clipboardData.getData("text");
-                  if (!text || text === lastInternalCopy.current) return;
-                  unsent.current.pasteChars += text.length;
-                  // En défi, un signal et non une barrière : contournable, donc seulement compté.
-                  if (ranked) {
-                    event.preventDefault();
-                    setPasteBlocked(true);
-                  }
-                }}
-                className={inputClass}
-              />
-            </Field>
-            {pasteBlocked && (
-              <p role="status" className="text-sm text-mute">
-                Collage depuis l&apos;extérieur désactivé pendant le défi.
-              </p>
-            )}
-            {session.has_final_answer && (
-              <Field
-                label="Réponse finale"
-                htmlFor="training-answer"
-                hint="Une valeur, par exemple 2, sqrt(2)/2 ou pi/4. Elle est vérifiée au rendu."
-              >
-                <input
-                  id="training-answer"
-                  value={answer}
-                  maxLength={200}
-                  onChange={(event) => setAnswer(event.target.value)}
-                  className={inputClass}
-                />
-              </Field>
-            )}
-            {ranked ? (
-              <p className="text-sm text-mute">IA interdite pendant le défi : ta justification est relue par trois membres.</p>
-            ) : (
-              <fieldset className="space-y-2">
-                <legend className="font-medium">As-tu utilisé une IA ?</legend>
-                {AI_USAGE_OPTIONS.map((option) => (
-                  <label key={option.value} className="flex gap-2">
-                    <input
-                      type="radio"
-                      name="training-ai"
-                      value={option.value}
-                      checked={aiUsage === option.value}
-                      onChange={() => setAiUsage(option.value)}
-                      className="shrink-0"
-                    />
-                    <span>
-                      {option.label} <span className="text-mute">· {option.help}</span>
-                    </span>
-                  </label>
-                ))}
-              </fieldset>
-            )}
-          </section>
-
-          <section aria-label="Aperçu" className={`mt-10 ${panelClass("apercu")}`}>
-            <h2>Aperçu</h2>
-            {draft.trim() ? (
-              <div className="border-l-2 border-hairline-strong bg-surface-soft px-4">
-                <MathMarkdown>{draft}</MathMarkdown>
-              </div>
-            ) : (
-              <p className="mt-3 text-mute">Ton brouillon s&apos;affichera ici.</p>
-            )}
-          </section>
-        </>
+        <section aria-label="Énoncé" className={`mt-6 ${panelClass("enonce")}`}>
+          <h2>Énoncé</h2>
+          <MathMarkdown>{session.statement}</MathMarkdown>
+          {ranked
+            ? session.hints.map((hint, index) => (
+                <div key={index} className="border-b border-hairline py-3">
+                  <p className="font-medium">Indication {index + 1}</p>
+                  <MathMarkdown>{hint}</MathMarkdown>
+                </div>
+              ))
+            : session.hints.map((hint, index) => (
+                <details key={index} className="border-b border-hairline py-3">
+                  <summary className="font-medium">Indication {index + 1}</summary>
+                  <MathMarkdown>{hint}</MathMarkdown>
+                </details>
+              ))}
+          {ranked && session.hints_opened < session.hint_count && (
+            <button type="button" onClick={() => call("/hint")} className="mt-3 underline underline-offset-4">
+              Ouvrir l&apos;indication {session.hints_opened + 1} · −10 % de bonus de rapidité
+            </button>
+          )}
+        </section>
       )}
 
+      {/* La copie reste accessible en pause : les photos déjà prises s'y voient. */}
+      <section aria-label="Ma copie" className={`mt-10 space-y-4 ${panelClass("copie")}`}>
+        <h2>Ma copie</h2>
+        <p className="text-body">
+          Rédige sur papier. Quand tu as fini, photographie tes pages avec ton téléphone : elles doivent arriver avant
+          la fin du temps, avec une minute de grâce.
+        </p>
+        <CopyPhotoPicker source={{ sessionId: session.id }} onChange={(picked) => setPhotoCount(picked.count)} />
+        {ranked ? (
+          <p className="text-sm text-mute">IA interdite pendant le défi : ta copie est relue par trois membres.</p>
+        ) : (
+          <AiUsageChoice name="training-ai" value={aiUsage} onChange={setAiUsage} />
+        )}
+      </section>
+
       <div className="mt-10 flex flex-wrap items-center gap-4 border-t border-hairline pt-6">
-        <button type="button" disabled={pending} onClick={submit} className={primaryButtonClass}>
-          {pending ? "Un instant…" : "Rendre ma copie"}
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => {
+            if (
+              photoCount === 0 &&
+              !window.confirm("Aucune photo de ta copie n'est arrivée : rien ne partira en relecture. Rendre quand même ?")
+            ) {
+              return;
+            }
+            void submit();
+          }}
+          className={primaryButtonClass}
+        >
+          {pending ? "Un instant…" : `Rendre ma copie${photoCount > 0 ? ` (${photoCount} page${photoCount > 1 ? "s" : ""})` : ""}`}
         </button>
         <button
           type="button"
           onClick={() => {
             const question = ranked
               ? "Abandonner le défi ? Ta tentative sera consommée, sans autre pénalité."
-              : "Abandonner cette session ? Ton brouillon ne sera pas envoyé.";
+              : "Abandonner cette session ? Tes photos ne seront pas envoyées.";
             if (window.confirm(question)) void call("/abandon");
           }}
           className={secondaryButtonClass}
@@ -511,14 +406,7 @@ function TrainingResult({ session }: { session: TrainingSession }) {
   }
 
   const median = session.median_elapsed_s;
-  const verdict =
-    session.answer_correct === true
-      ? "Réponse finale juste."
-      : session.answer_correct === false
-        ? "Réponse finale différente de celle attendue."
-        : session.has_final_answer
-          ? "Réponse finale absente ou illisible : rien à vérifier automatiquement."
-          : "Cet exercice n'a pas de réponse finale à vérifier.";
+  const pages = session.photo_count;
 
   return (
     <div>
@@ -537,11 +425,10 @@ function TrainingResult({ session }: { session: TrainingSession }) {
       </dl>
 
       <ul className="mt-6 space-y-2">
-        <li>{verdict}</li>
         <li>
           {session.solution_status
-            ? `Ta justification est envoyée : ${SOLUTION_STATUS_LABELS[session.solution_status].toLowerCase()}. Trois membres la liront.`
-            : "Justification trop courte : elle n'a pas été envoyée en relecture."}
+            ? `Ta copie (${pages} page${pages > 1 ? "s" : ""}) est envoyée : ${SOLUTION_STATUS_LABELS[session.solution_status].toLowerCase()}. Trois membres la liront.`
+            : "Aucune photo de ta copie n'est arrivée à temps : rien n'est parti en relecture."}
         </li>
         {ranked && <ChallengePoints session={session} />}
         <li className="text-mute">
@@ -595,19 +482,14 @@ function TrainingResult({ session }: { session: TrainingSession }) {
 const bonusFormat = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 });
 const timeFormat = new Intl.DateTimeFormat("fr-FR", { weekday: "long", hour: "2-digit", minute: "2-digit" });
 
-/** Barème du défi : 60 % pour la réponse, tout de suite ; 40 % à la validation. */
+/** Barème du défi : tous les points quand la copie est validée par les pairs. */
 function ChallengePoints({ session }: { session: TrainingSession }) {
-  const bonus = session.bonus === null ? "" : ` · bonus de rapidité ×${bonusFormat.format(session.bonus)}`;
+  const bonus = session.bonus === null ? "" : `, bonus de rapidité ×${bonusFormat.format(session.bonus)} compris`;
   return (
     <>
-      <li>
-        {session.answer_correct
-          ? `+${session.answer_points} points pour la réponse juste${bonus}.`
-          : "Pas de points pour la réponse : elle n'est pas reconnue comme juste."}
-      </li>
       {session.solution_status && (
         <li>
-          +{session.justification_points} points de plus quand ta justification sera validée par les pairs.
+          +{session.justification_points} points quand ta copie sera validée par les pairs{bonus}.
         </li>
       )}
       {session.challenge_closes_at && (

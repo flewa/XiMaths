@@ -14,9 +14,10 @@ type Props = { params: Promise<{ id: string }> };
 const RULES = [
   "Entraînement non classé : documents autorisés.",
   "Deux pauses. Si tu fermes l'onglet, le chrono s'arrête et la session se reprend.",
-  "Enregistrés : le temps, compté par le serveur ; ton brouillon, toutes les 10 secondes ; le nombre de sorties d'onglet et la taille des collages venus d'ailleurs. Rien de tout cela n'est pénalisé.",
-  "À la fin du temps, ta dernière version est rendue automatiquement.",
-  "Au rendu : réponse finale vérifiée, justification relue par trois membres, solutions débloquées.",
+  "Copie écrite à la main sur papier : au départ, scanne le QR code avec ton téléphone, puis photographie tes pages (3 au plus) avant la fin du temps, avec une minute de grâce. Rien ne se tape.",
+  "Enregistrés : le temps, compté par le serveur, et le nombre de sorties d'onglet. Rien de tout cela n'est pénalisé.",
+  "À la fin du temps et de la minute de grâce, les photos arrivées sont rendues automatiquement.",
+  "Au rendu : copie relue par trois membres, solutions débloquées.",
 ];
 
 export default async function TrainingRulesPage({ params }: Props) {

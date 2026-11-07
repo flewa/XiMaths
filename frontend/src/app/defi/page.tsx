@@ -9,15 +9,17 @@ import { type DailyChallenge, type Me, fetchDailyChallenges, fetchMe } from "@/l
 
 export const metadata: Metadata = {
   title: "Défi du jour",
-  description: "Un défi chronométré par niveau, chaque jour : 30 minutes, une seule tentative, un énoncé tiré pour toi.",
+  description:
+    "Un défi chronométré par niveau, chaque jour : 30 minutes, une seule tentative, un énoncé tiré pour toi, une copie écrite à la main.",
 };
 
 const RULES = [
   "30 minutes (40 avec un tiers-temps), une seule tentative, jusqu'à minuit. Abandonner consomme la tentative, sans autre pénalité.",
   "Ton énoncé est tiré pour toi : les autres ont d'autres valeurs. Partager sa méthode reste permis, c'est de l'apprentissage.",
-  "Cours personnel autorisé, IA interdite. Le collage depuis l'extérieur est désactivé ; les sorties d'onglet sont comptées, jamais pénalisées.",
-  "Le chrono ne s'arrête pas si tu fermes l'onglet : la session se reprend, et ta dernière version est rendue à l'échéance.",
-  "Barème : 20 × la difficulté. 60 % dès que ta réponse est reconnue juste, 40 % quand ta justification est validée par les pairs. Bonus de rapidité jusqu'à ×1,25 ; chaque indication ouverte en retire 10 %.",
+  "Copie écrite à la main sur papier : au départ, scanne le QR code avec ton téléphone, puis photographie tes pages (3 au plus) avant la fin du temps, avec une minute de grâce. Rien ne se tape.",
+  "Cours personnel autorisé, IA interdite. Les sorties d'onglet sont comptées, jamais pénalisées.",
+  "Le chrono ne s'arrête pas si tu fermes l'onglet : la session se reprend, et les photos arrivées sont rendues à l'échéance.",
+  "Barème : 20 × la difficulté, gagnés quand ta copie est validée par les pairs. Bonus de rapidité jusqu'à ×1,25 ; chaque indication ouverte en retire 10 %.",
 ];
 
 const ATTEMPT_LABELS: Record<string, string> = {
@@ -38,7 +40,7 @@ function Attempt({ attempt }: { attempt: NonNullable<DailyChallenge["attempt"]> 
   if (attempt.status === "abandonnee") return <p className="text-mute">Abandonné : à demain.</p>;
   return (
     <p>
-      {attempt.answer_correct ? `Réponse juste : +${attempt.answer_points} points` : "Réponse non reconnue"}
+      Rendu
       {" · "}
       <Link href={`/entrainement/${attempt.session_id}`} className="underline underline-offset-4">
         voir mon rendu

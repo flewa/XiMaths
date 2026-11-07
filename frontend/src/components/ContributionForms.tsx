@@ -1,75 +1,53 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useDeferredValue, useRef, useState } from "react";
+import { useState } from "react";
 
 import type { AiUsage, DecisionType } from "@/lib/api";
-import { apiPost, apiUpload } from "@/lib/client-api";
-import { prepareImage } from "@/lib/image";
+import { apiPost } from "@/lib/client-api";
 import { AI_USAGE_OPTIONS, SOLUTION_STATUS_LABELS } from "@/lib/labels";
 
 import { CopyPhotoPicker, type PickedPhotos } from "./CopyPhotoPicker";
-import { LATEX_HELP } from "./ExerciseForm";
 import { Field, FormMessage, SubmitButton, inputClass, primaryButtonClass, secondaryButtonClass } from "./Form";
-import { MathEditor } from "./MathEditor";
-import { MathMarkdown } from "./MathMarkdown";
 
-// L'éditeur n'est pas un champ natif : la longueur minimale se vérifie avant l'envoi.
-// Avec des photos de la copie, le texte devient facultatif.
-const SOLUTION_MIN_LENGTH = 20;
-const TOO_SHORT = `Joins des photos de ta copie, ou rédige au moins ${SOLUTION_MIN_LENGTH} caractères.`;
+// Une solution est la copie manuscrite, en photos : rien ne se tape.
 const NO_PHOTOS: PickedPhotos = { token: null, count: 0 };
+const PHOTOS_NEEDED = "Joins les photos de ta copie : scanne le QR code avec ton téléphone.";
 
-/** Photo d'une copie manuscrite, transcrite en LaTeX par Claude ; la photo n'est pas gardée. */
-function PhotoTranscription({ exerciseId, onText }: { exerciseId: number; onText: (text: string) => void }) {
-  const input = useRef<HTMLInputElement>(null);
-  const [result, setResult] = useState<{ error?: string; success?: string }>({});
-  const [pending, setPending] = useState(false);
-
-  async function onFile(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = ""; // pour pouvoir reprendre la même photo
-    if (!file) return;
-    setPending(true);
-    setResult({});
-    const image = await prepareImage(file);
-    if (!image) {
-      setPending(false);
-      return setResult({ error: "Format non reconnu : prends la photo en JPEG ou en PNG." });
-    }
-    const form = new FormData();
-    form.append("photo", image, "copie.jpg");
-    const transcribed = await apiUpload<{ text: string }>(`/exercises/${exerciseId}/transcription`, form);
-    setPending(false);
-    if (!transcribed.ok) return setResult({ error: transcribed.error });
-    onText(transcribed.data.text);
-    setResult({ success: "Transcription ajoutée à ta solution : relis-la et corrige-la avant d'envoyer." });
-  }
-
+/** Usage de l'IA, déclaré par l'auteur : il module les points, jamais la relecture. */
+export function AiUsageChoice({
+  name,
+  value,
+  onChange,
+}: {
+  name: string;
+  value: AiUsage;
+  onChange: (value: AiUsage) => void;
+}) {
   return (
-    <div className="space-y-2">
-      <input ref={input} type="file" accept="image/*" hidden onChange={onFile} />
-      <button
-        type="button"
-        onClick={() => input.current?.click()}
-        disabled={pending}
-        className={secondaryButtonClass}
-      >
-        {pending ? "Transcription en cours… jusqu'à une minute" : "Transcrire une photo en LaTeX"}
-      </button>
-      <p className="text-sm text-mute">
-        Tu préfères une version tapée ? Claude transcrit la photo d&apos;une page telle quelle, sans rien corriger,
-        et la photo n&apos;est pas conservée. Ça compte comme une mise en forme par IA : points pleins.
-      </p>
-      <FormMessage error={result.error} success={result.success} />
-    </div>
+    <fieldset className="space-y-2">
+      <legend className="font-medium">As-tu utilisé une IA ?</legend>
+      {AI_USAGE_OPTIONS.map((option) => (
+        <label key={option.value} className="flex gap-2">
+          <input
+            type="radio"
+            name={name}
+            value={option.value}
+            checked={value === option.value}
+            onChange={() => onChange(option.value)}
+            className="shrink-0"
+          />
+          <span>
+            {option.label} <span className="text-mute">· {option.help}</span>
+          </span>
+        </label>
+      ))}
+    </fieldset>
   );
 }
 
-export function SolutionForm({ exerciseId, transcription = false }: { exerciseId: number; transcription?: boolean }) {
+export function SolutionForm({ exerciseId }: { exerciseId: number }) {
   const router = useRouter();
-  const [body, setBody] = useState("");
-  const preview = useDeferredValue(body);
   const [aiUsage, setAiUsage] = useState<AiUsage>("aucune");
   const [picked, setPicked] = useState<PickedPhotos>(NO_PHOTOS);
   // Changée après l'envoi : un nouvel envoi de photos pour la prochaine solution.
@@ -77,26 +55,14 @@ export function SolutionForm({ exerciseId, transcription = false }: { exerciseId
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  function addTranscription(text: string) {
-    setBody((current) => (current.trim() ? `${current.trimEnd()}\n\n${text}` : text));
-    // La transcription est une mise en forme par IA : on le déclare, sans perdre de points.
-    if (aiUsage === "aucune") setAiUsage("relecture");
-  }
-
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const photos = picked.count > 0;
-    if (!photos && body.trim().length < SOLUTION_MIN_LENGTH) return setError(TOO_SHORT);
+    if (picked.count === 0 || !picked.token) return setError(PHOTOS_NEEDED);
     setPending(true);
     setError(null);
-    const result = await apiPost(`/exercises/${exerciseId}/solutions`, {
-      body,
-      ai_usage: aiUsage,
-      photo_upload: photos ? picked.token : null,
-    });
+    const result = await apiPost(`/exercises/${exerciseId}/solutions`, { ai_usage: aiUsage, photo_upload: picked.token });
     setPending(false);
     if (!result.ok) return setError(result.error);
-    setBody("");
     setPicked(NO_PHOTOS);
     setRound((value) => value + 1);
     router.refresh();
@@ -106,41 +72,9 @@ export function SolutionForm({ exerciseId, transcription = false }: { exerciseId
     <form onSubmit={onSubmit} className="mt-3 space-y-6">
       <fieldset className="space-y-2">
         <legend className="font-medium">Ta copie, écrite à la main</legend>
-        <CopyPhotoPicker key={round} exerciseId={exerciseId} onChange={setPicked} />
+        <CopyPhotoPicker key={round} source={{ exerciseId }} onChange={setPicked} />
       </fieldset>
-      <div className="space-y-3">
-        <Field
-          label={picked.count > 0 ? "Rédaction en LaTeX (facultative avec des photos)" : "Ou rédige-la en LaTeX"}
-          htmlFor="solution-body"
-          hint={LATEX_HELP}
-        >
-          <MathEditor id="solution-body" label="Ta solution" value={body} onChange={setBody} />
-        </Field>
-        {transcription && <PhotoTranscription exerciseId={exerciseId} onText={addTranscription} />}
-      </div>
-      {preview.trim() && (
-        <div aria-label="Aperçu de la solution" className="border-l-2 border-hairline-strong bg-surface-soft px-4">
-          <MathMarkdown>{preview}</MathMarkdown>
-        </div>
-      )}
-      <fieldset className="space-y-2">
-        <legend className="font-medium">As-tu utilisé une IA ?</legend>
-        {AI_USAGE_OPTIONS.map((option) => (
-          <label key={option.value} className="flex gap-2">
-            <input
-              type="radio"
-              name="ai_usage"
-              value={option.value}
-              checked={aiUsage === option.value}
-              onChange={() => setAiUsage(option.value)}
-              className="shrink-0"
-            />
-            <span>
-              {option.label} <span className="text-mute">· {option.help}</span>
-            </span>
-          </label>
-        ))}
-      </fieldset>
+      <AiUsageChoice name="ai_usage" value={aiUsage} onChange={setAiUsage} />
       <FormMessage error={error} />
       <SubmitButton pending={pending}>Envoyer en relecture</SubmitButton>
     </form>
@@ -357,20 +291,14 @@ export function AppealForm({ type, id }: { type: DecisionType; id: number }) {
 export function ReviseSolution({
   solutionId,
   exerciseId,
-  body,
-  hasPhotos,
   validated,
 }: {
   solutionId: number;
   exerciseId: number;
-  body: string;
-  hasPhotos: boolean;
   validated: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [text, setText] = useState(body);
-  const preview = useDeferredValue(text);
   const [picked, setPicked] = useState<PickedPhotos>(NO_PHOTOS);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -378,19 +306,16 @@ export function ReviseSolution({
   if (!open) {
     return (
       <button type="button" onClick={() => setOpen(true)} className="mt-2 text-sm underline underline-offset-4">
-        {validated ? "Modifier ma solution" : "Compléter ma solution"}
+        {validated ? "Remplacer ma copie" : "Compléter ma copie"}
       </button>
     );
   }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!hasPhotos && picked.count === 0 && text.trim().length < SOLUTION_MIN_LENGTH) return setError(TOO_SHORT);
+    if (picked.count === 0 || !picked.token) return setError(PHOTOS_NEEDED);
     setPending(true);
-    const saved = await apiPost(`/solutions/${solutionId}/revise`, {
-      body: text,
-      photo_upload: picked.count > 0 ? picked.token : null,
-    });
+    const saved = await apiPost(`/solutions/${solutionId}/revise`, { photo_upload: picked.token });
     setPending(false);
     if (!saved.ok) return setError(saved.error);
     setOpen(false);
@@ -399,25 +324,14 @@ export function ReviseSolution({
 
   return (
     <form onSubmit={onSubmit} className="mt-3 space-y-4">
-      <p className="text-sm text-mute">
-        {validated
-          ? "De nouvelles photos, ou plus de 20 % du texte modifié, renvoient la solution en relecture."
-          : "Elle repartira en relecture, auprès de trois nouveaux relecteurs."}
-      </p>
       <fieldset className="space-y-2">
-        <legend className="font-medium">
-          {hasPhotos ? "Nouvelles photos de ta copie (elles remplacent les précédentes)" : "Photos de ta copie"}
-        </legend>
-        <CopyPhotoPicker exerciseId={exerciseId} onChange={setPicked} />
+        <legend className="font-medium">Nouvelles photos de ta copie, complète</legend>
+        <p className="text-sm text-mute">
+          Elles remplacent les précédentes, et ta solution repart en relecture
+          {validated ? "" : ", auprès de trois nouveaux relecteurs"}.
+        </p>
+        <CopyPhotoPicker source={{ exerciseId }} onChange={setPicked} />
       </fieldset>
-      <Field label="Solution révisée" htmlFor={`revise-${solutionId}`} hint={LATEX_HELP}>
-        <MathEditor id={`revise-${solutionId}`} label="Solution révisée" value={text} onChange={setText} />
-      </Field>
-      {preview.trim() && (
-        <div className="border-l-2 border-hairline-strong bg-surface-soft px-4">
-          <MathMarkdown>{preview}</MathMarkdown>
-        </div>
-      )}
       <FormMessage error={error} />
       <div className="flex items-center gap-4">
         <SubmitButton pending={pending}>Envoyer</SubmitButton>

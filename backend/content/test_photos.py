@@ -69,9 +69,9 @@ class PhotoTestCase(ContentTestCase):
             {"photo": SimpleUploadedFile(name, data or jpeg(), content_type="image/jpeg")},
         )
 
-    def propose(self, token=None, body="", user=None):
+    def propose(self, token=None, user=None, **extra):
         self.client.force_login(user or self.student)
-        payload = {"body": body, "ai_usage": "aucune"}
+        payload = {"ai_usage": "aucune", **extra}
         if token:
             payload["photo_upload"] = token
         return self.client.post(
@@ -214,12 +214,18 @@ class SolutionWithPhotosTests(PhotoTestCase):
         self.assertEqual(self.client.get(f"/api/photo-uploads/{token}").json()["photos"], [])
         self.assertIsNone(SolutionPhoto.objects.filter(solution=None).first())
 
-    def test_without_photos_the_text_is_still_required(self):
-        response = self.propose(body="Trop court")
+    def test_a_solution_is_always_photos_never_typed_text(self):
+        # Sans jeton, ou avec un envoi vide : refusé, même avec une rédaction tapée.
+        self.assertEqual(self.propose(body="Une rédaction tapée, bien assez longue.").status_code, 422)
+        response = self.propose(self.open_upload(), body="Une rédaction tapée, bien assez longue.")
         self.assertEqual(response.status_code, 422)
-        self.assertIn("joins des photos", response.json()["detail"])
-        # Un envoi vide ne compte pas comme des photos.
-        self.assertEqual(self.propose(self.open_upload(), body="Trop court").status_code, 422)
+        self.assertIn("Joins les photos de ta copie", response.json()["detail"])
+
+        token = self.open_upload()
+        self.send(token)
+        response = self.propose(token, body="Ignoré : une solution ne se tape plus.")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Solution.objects.get(pk=response.json()["id"]).body, "")
 
     def test_someone_elses_upload_cannot_be_attached(self):
         other = make_user("intrus", email_verified_at=timezone.now())
@@ -238,12 +244,12 @@ class SolutionWithPhotosTests(PhotoTestCase):
         self.send(token)
         self.assertEqual(self.propose(token).status_code, 422)
 
-    def test_short_notes_next_to_photos_are_not_taken_for_plagiarism(self):
+    def test_two_photo_solutions_are_not_taken_for_plagiarism(self):
         first = make_user("marc", level="L1", email_verified_at=timezone.now())
         for author in (first, self.student):
             token = self.open_upload(user=author)
             self.send(token, jpeg(color=(200, 200, 200) if author == first else (250, 250, 250)))
-            self.assertEqual(self.propose(token, body="Voir les photos de ma copie.", user=author).status_code, 201)
+            self.assertEqual(self.propose(token, user=author).status_code, 201)
 
         mine = Solution.objects.get(author=self.student)
         self.assertEqual(mine.status, Solution.Status.UNDER_REVIEW)
@@ -299,6 +305,11 @@ class VisibilityTests(PhotoTestCase):
         page = self.client.get(f"/api/exercises/{self.exercise.pk}").json()
         self.assertEqual(page["solutions"][0]["photos"][0]["url"], self.url)
 
+    def test_a_missing_file_is_not_found_rather_than_an_error(self):
+        self.stored(self.solution.photos.get()).unlink()
+        self.client.force_login(self.student)
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+
     def test_the_url_must_match_its_solution(self):
         other = self.publish(author=make_user("autre", level="L1"))
         photo_id = self.solution.photos.get().pk
@@ -313,9 +324,9 @@ class RevisionWithPhotosTests(PhotoTestCase):
         self.send(token)
         self.solution = Solution.objects.get(pk=self.propose(token).json()["id"])
 
-    def revise(self, token=None, body=""):
+    def revise(self, token=None, **extra):
         self.client.force_login(self.student)
-        payload = {"body": body} | ({"photo_upload": token} if token else {})
+        payload = extra | ({"photo_upload": token} if token else {})
         return self.client.post(f"/api/solutions/{self.solution.pk}/revise", payload, content_type="application/json")
 
     def test_new_photos_replace_the_old_ones_and_go_back_to_review(self):
@@ -346,9 +357,24 @@ class RevisionWithPhotosTests(PhotoTestCase):
         self.assertEqual(revised.status, Solution.Status.VALIDATED)
         self.assertEqual(revised.photos.count(), 1)
 
-    def test_text_alone_needs_20_characters_unless_photos_remain(self):
+    def test_a_revision_is_new_photos(self):
         Solution.objects.filter(pk=self.solution.pk).update(status=Solution.Status.NEEDS_WORK)
-        self.assertEqual(self.revise(body="J'ai complété.").status_code, 200)
+        self.assertEqual(self.revise(body="J'ai complété la preuve, en détail.").status_code, 422)
+        self.assertEqual(self.revise(self.open_upload()).status_code, 422)
+
+    def test_photos_replace_an_older_typed_solution(self):
+        Solution.objects.filter(pk=self.solution.pk).update(
+            status=Solution.Status.NEEDS_WORK, body="Ancienne rédaction tapée, d'avant les photos."
+        )
+        self.solution.photos.all().delete()
+        token = self.open_upload()
+        self.send(token)
+
+        self.assertEqual(self.revise(token).status_code, 200)
+
+        self.solution.refresh_from_db()
+        self.assertEqual((self.solution.body, self.solution.photos.count()), ("", 1))
+        self.assertEqual(self.solution.status, Solution.Status.UNDER_REVIEW)
 
 
 class ComprehensionPromptTests(PhotoTestCase):
@@ -356,12 +382,12 @@ class ComprehensionPromptTests(PhotoTestCase):
         token = self.open_upload()
         self.send(token)
         self.send(token)
-        solution = Solution.objects.get(pk=self.propose(token, body="Note : page 2 au verso.").json()["id"])
+        solution = Solution.objects.get(pk=self.propose(token).json()["id"])
 
         blocks = _solution_blocks(solution, "Énoncé : …\n\nSolution de l'étudiant :\n\n", "\n\nQuestion : …")
 
         self.assertEqual([block["type"] for block in blocks], ["text", "image", "image", "text"])
-        self.assertIn("Note : page 2 au verso.", blocks[0]["text"])
+        self.assertIn("Copie manuscrite de l'étudiant, en 2 photo(s)", blocks[0]["text"])
         self.assertEqual(blocks[1]["source"]["media_type"], "image/jpeg")
         self.assertEqual(blocks[-1]["text"], "\n\nQuestion : …")
 
