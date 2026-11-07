@@ -9,7 +9,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { MobileBar, SidebarContent, type NavAccount } from "@/components/SidebarNav";
 import { fetchLevels, fetchMe, fetchTopics, nullOnError } from "@/lib/api";
 import { chaptersOf } from "@/lib/seo-pages";
-import { DEFAULT_THEME, SITE_DESCRIPTION, SITE_URL, THEME_COOKIE, type Theme } from "@/lib/site";
+import { DEFAULT_THEME, SITE_DESCRIPTION, SITE_URL, SOCIAL_PROFILES, THEME_COOKIE, type Theme } from "@/lib/site";
 
 import "./globals.css";
 
@@ -96,6 +96,11 @@ export default async function RootLayout({
                   <Link key={link.href} href={link.href} className="hover:text-ink">
                     {link.label}
                   </Link>
+                ))}
+                {SOCIAL_PROFILES.map((profile) => (
+                  <a key={profile.url} href={profile.url} rel="me noopener" className="hover:text-ink">
+                    {profile.label}
+                  </a>
                 ))}
                 <a
                   href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr"

@@ -17,5 +17,9 @@ export const SHARE_IMAGE = {
   alt: "XiMaths : des maths du supérieur, résolues et relues par la communauté.",
 };
 
+/** Comptes officiels de XiMaths : déclarés aux moteurs (sameAs) et liés en pied de page.
+ * Ils aident Google à rattacher le nom « XiMaths » au site. */
+export const SOCIAL_PROFILES = [{ label: "YouTube", url: "https://www.youtube.com/@Ximathsfr" }];
+
 /** Sans choix dans les réglages, le site est sombre. */
 export const DEFAULT_THEME: Theme = "dark";
