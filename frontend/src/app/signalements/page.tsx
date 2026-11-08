@@ -6,6 +6,7 @@ import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { Tag } from "@/components/Tag";
 import { fetchMyReports } from "@/lib/api";
 import { dateFormat } from "@/lib/labels";
+import { MathText } from "@/components/MathText";
 
 export const metadata: Metadata = { title: "Mes signalements" };
 
@@ -37,7 +38,7 @@ export default async function MyReportsPage() {
             <li key={report.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
               <span>
                 <Link href={`/exercices/${report.exercise_id}`} className="font-medium hover:underline">
-                  {report.title}
+                  <MathText>{report.title}</MathText>
                 </Link>
                 <span className="block text-sm text-mute">
                   {report.reason_label} · le {dateFormat.format(new Date(report.created_at))}

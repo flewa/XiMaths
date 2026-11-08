@@ -8,6 +8,7 @@ import type { SimilarExercise, SimilarityBand } from "@/lib/api";
 import { Field, FormMessage, SubmitButton, inputClass } from "./Form";
 import { MathMarkdown } from "./MathMarkdown";
 import { Tag } from "./Tag";
+import { MathText } from "./MathText";
 
 export type PublishChoice =
   | { choice: "variante"; target_id: number }
@@ -30,7 +31,7 @@ function SimilarHeader({ exercise }: { exercise: SimilarExercise }) {
         target="_blank"
         className="font-medium underline underline-offset-4"
       >
-        {exercise.title}
+        <MathText>{exercise.title}</MathText>
       </Link>
       <span className="text-sm text-mute">
         {exercise.primary_level} · {solutionsLabel(exercise.validated_solutions)}
@@ -139,7 +140,7 @@ export function DuplicateScreen({
               {candidates.map((candidate) => (
                 <li key={candidate.id}>
                   <Link href={`/exercices/${candidate.id}`} className="underline underline-offset-4">
-                    Ouvrir « {candidate.title} »
+                    Ouvrir « <MathText>{candidate.title}</MathText> »
                   </Link>
                 </li>
               ))}
@@ -174,7 +175,7 @@ export function DuplicateScreen({
                     onChange={() => setTargetId(candidate.id)}
                     className="shrink-0"
                   />
-                  Variante de « {candidate.title} »
+                  Variante de « <MathText>{candidate.title}</MathText> »
                 </label>
               ))}
             </div>

@@ -8,6 +8,7 @@ import { plural } from "@/lib/labels";
 import { primaryButtonClass, secondaryButtonClass } from "./Form";
 import { Icon, type IconName } from "./Icon";
 import { SearchBox } from "./SearchBox";
+import { MathText } from "./MathText";
 
 const DAY_LETTERS = ["L", "M", "M", "J", "V", "S", "D"];
 const DAY_NAMES = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
@@ -58,7 +59,11 @@ function actionsFor(me: Me, progress: Progress | null): Action[] {
     actions.push({
       icon: "chart",
       href: `/exercices/${skill.next.id}`,
-      label: `Progresser en ${skill.topic.toLowerCase()} avec « ${skill.next.title} »`,
+      label: (
+        <>
+          Progresser en {skill.topic.toLowerCase()} avec « <MathText>{skill.next.title}</MathText> »
+        </>
+      ),
       detail: `Difficulté ${skill.next.difficulty}/5`,
     });
   }
@@ -106,7 +111,7 @@ export function ChallengeCard({ challenge }: { challenge: DailyChallenge }) {
         <span className="sm:ml-auto">Ferme à minuit</span>
       </div>
       <p className="mt-4 font-serif text-[1.5rem] leading-snug text-ink-deep sm:text-[1.625rem]">
-        {challenge.exercise_title}
+        <MathText>{challenge.exercise_title}</MathText>
       </p>
       <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3">
         <Link href="/defi" className={`${primaryButtonClass} min-h-11 px-5`}>

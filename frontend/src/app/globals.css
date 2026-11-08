@@ -297,6 +297,11 @@
   color: var(--ink-deep);
 }
 
+/* Formules d'un titre : à peine plus grandes que le texte qui les entoure. */
+.math-text .katex {
+  font-size: 1.08em;
+}
+
 /* Une formule et la ponctuation qui la suit (« $x$ : ») ne se séparent pas. */
 .math-markdown .math-glue {
   white-space: nowrap;

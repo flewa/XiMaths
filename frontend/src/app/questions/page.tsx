@@ -6,6 +6,7 @@ import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { AnswerQuestion, OpenQuestion } from "@/components/Questions";
 import { Tag } from "@/components/Tag";
 import { type ComprehensionQuestion, fetchMyQuestions } from "@/lib/api";
+import { MathText } from "@/components/MathText";
 
 export const metadata: Metadata = { title: "Questions de compréhension" };
 
@@ -23,7 +24,7 @@ function QuestionCard({ question }: { question: ComprehensionQuestion }) {
     <li className="py-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Link href={`/exercices/${question.exercise_id}`} className="font-medium hover:underline">
-          {question.exercise_title}
+          <MathText>{question.exercise_title}</MathText>
         </Link>
         <Tag strong={question.status === "envoyee" || question.status === "ouverte"}>{question.status_label}</Tag>
       </div>

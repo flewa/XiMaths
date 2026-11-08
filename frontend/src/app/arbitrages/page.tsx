@@ -10,6 +10,7 @@ import { MathMarkdown } from "@/components/MathMarkdown";
 import { Tag } from "@/components/Tag";
 import { fetchArbitrations, fetchMe, fetchQuestionsToEvaluate } from "@/lib/api";
 import { AI_USAGE_BADGES } from "@/lib/labels";
+import { MathText } from "@/components/MathText";
 
 export const metadata: Metadata = { title: "Arbitrages", robots: { index: false } };
 
@@ -48,7 +49,7 @@ export default async function ArbitrationsPage() {
             <article key={item.solution_id} className="mt-10 border border-hairline p-4">
               <p className="text-sm text-mute">
                 <Link href={`/exercices/${item.exercise_id}`} className="font-medium text-ink hover:underline">
-                  {item.exercise_title}
+                  <MathText>{item.exercise_title}</MathText>
                 </Link>
               </p>
               <MathMarkdown>{item.exercise_statement}</MathMarkdown>
@@ -87,7 +88,9 @@ export default async function ArbitrationsPage() {
           </p>
           {questions.map((item) => (
             <article key={item.id} className="mt-8 border border-hairline p-4">
-              <p className="text-sm font-medium">{item.exercise_title}</p>
+              <p className="text-sm font-medium">
+                <MathText>{item.exercise_title}</MathText>
+              </p>
               <MathMarkdown>{item.statement}</MathMarkdown>
               <div className="mt-4 border-l-2 border-hairline-strong bg-surface-soft px-4 py-1">
                 <CopyPhotoList photos={item.solution_photos} />

@@ -3,15 +3,9 @@ import ReactMarkdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";
 
-// Macros fournies aux auteurs, à la place de \def et \newcommand libres.
-export const MACROS = {
-  "\\R": "\\mathbb{R}",
-  "\\N": "\\mathbb{N}",
-  "\\Z": "\\mathbb{Z}",
-  "\\Q": "\\mathbb{Q}",
-  "\\C": "\\mathbb{C}",
-  "\\K": "\\mathbb{K}",
-};
+import { MACROS } from "@/lib/katex-macros";
+
+export { MACROS };
 
 /**
  * Ramène les écritures LaTeX usuelles à celles de remark-math, qui ne lit un bloc

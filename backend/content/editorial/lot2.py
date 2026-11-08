@@ -43,7 +43,8 @@ EXERCISES = [
         "topics": ["algebre", "nombres-complexes", "polynomes"],
     },
     {
-        "title": "Méthode de Héron pour approcher racine de 2",
+        "title": r"Méthode de Héron pour approcher $\sqrt{2}$",
+        "former_titles": ["Méthode de Héron pour approcher racine de 2"],
         "statement": (
             r"On définit la suite $(u_n)$ par $u_0 = 1$ et $u_{n+1} = \dfrac{1}{2}\left(u_n + \dfrac{2}{u_n}\right)$."
             "\n\n"
@@ -65,7 +66,8 @@ EXERCISES = [
         "topics": ["analyse", "suites-numeriques"],
     },
     {
-        "title": "Borne supérieure de l'ensemble des 1/n − 1/m",
+        "title": r"Borne supérieure de l'ensemble des $1/n - 1/m$",
+        "former_titles": ["Borne supérieure de l'ensemble des 1/n − 1/m"],
         "statement": (
             r"On note $A = \left\{ \dfrac{1}{n} - \dfrac{1}{m} \;:\; n, m \in \N^* \right\}$."
             "\n\n"
@@ -81,8 +83,8 @@ EXERCISES = [
         "topics": ["analyse", "nombres-reels"],
     },
     {
-        "title": "Intégrale de x e²ˣ par intégration par parties",
-        "former_titles": ["Intégrale de x·e^(2x) par intégration par parties"],
+        "title": r"Intégrale de $x e^{2x}$ par intégration par parties",
+        "former_titles": ["Intégrale de x·e^(2x) par intégration par parties", "Intégrale de x e²ˣ par intégration par parties"],
         "statement": r"Calculer $\displaystyle\int_0^1 x\,e^{2x}\,\mathrm{d}x$.",
         "hints": [
             r"Intégrer par parties en dérivant $x$ et en intégrant $e^{2x}$.",
@@ -118,7 +120,8 @@ EXERCISES = [
         "topics": ["algebre", "polynomes"],
     },
     {
-        "title": "Dérivée n-ième par la formule de Leibniz",
+        "title": r"Dérivée $n$-ième par la formule de Leibniz",
+        "former_titles": ["Dérivée n-ième par la formule de Leibniz"],
         "statement": (
             r"Soit $f(x) = x^2 e^x$. Pour tout $n \geq 2$, calculer $f^{(n)}(x)$, puis $f^{(n)}(0)$."
         ),
@@ -133,7 +136,8 @@ EXERCISES = [
         "topics": ["analyse", "derivation"],
     },
     {
-        "title": "Équation diophantienne 21x + 15y = 6",
+        "title": r"Équation diophantienne $21x + 15y = 6$",
+        "former_titles": ["Équation diophantienne 21x + 15y = 6"],
         "statement": r"Déterminer tous les couples $(x, y) \in \Z^2$ tels que $21x + 15y = 6$.",
         "hints": [
             r"$\gcd(21, 15) = 3$ divise $6$ : simplifier en $7x + 5y = 2$.",
@@ -145,7 +149,8 @@ EXERCISES = [
         "topics": ["arithmetique", "divisibilite-pgcd"],
     },
     {
-        "title": "Point fixe d'une fonction continue de [0, 1] dans lui-même",
+        "title": r"Point fixe d'une fonction continue de $[0, 1]$ dans lui-même",
+        "former_titles": ["Point fixe d'une fonction continue de [0, 1] dans lui-même"],
         "statement": (
             r"Soit $f : [0, 1] \to [0, 1]$ continue. Montrer que $f$ admet un point fixe."
             "\n\n"
@@ -162,7 +167,8 @@ EXERCISES = [
     },
     # ------------------------------------------------------------------ MPSI
     {
-        "title": "Linéarisation de sin³ x par les formules d'Euler",
+        "title": r"Linéarisation de $\sin^3 x$ par les formules d'Euler",
+        "former_titles": ["Linéarisation de sin³ x par les formules d'Euler"],
         "statement": (
             r"1. Linéariser $\sin^3 x$ à l'aide des formules d'Euler."
             "\n"
@@ -179,7 +185,8 @@ EXERCISES = [
         "topics": ["analyse", "nombres-complexes", "calcul-integral"],
     },
     {
-        "title": "Somme arctan x + arctan(1/x)",
+        "title": r"Somme $\arctan x + \arctan(1/x)$",
+        "former_titles": ["Somme arctan x + arctan(1/x)"],
         "statement": (
             r"Montrer que pour tout $x > 0$, $\arctan x + \arctan \dfrac{1}{x} = \dfrac{\pi}{2}$."
             "\n\n"
@@ -195,7 +202,8 @@ EXERCISES = [
         "topics": ["analyse", "fonctions-usuelles", "derivation"],
     },
     {
-        "title": "Calcul de arctan(1/2) + arctan(1/3)",
+        "title": r"Calcul de $\arctan(1/2) + \arctan(1/3)$",
+        "former_titles": ["Calcul de arctan(1/2) + arctan(1/3)"],
         "statement": r"Calculer $\arctan \dfrac{1}{2} + \arctan \dfrac{1}{3}$.",
         "hints": [
             r"Calculer la tangente de la somme avec $\tan(a + b) = \dfrac{\tan a + \tan b}{1 - \tan a \tan b}$.",
@@ -208,7 +216,8 @@ EXERCISES = [
         "topics": ["analyse", "fonctions-usuelles"],
     },
     {
-        "title": "Équation ch x = 2 et fonctions hyperboliques",
+        "title": r"Équation $\operatorname{ch} x = 2$ et fonctions hyperboliques",
+        "former_titles": ["Équation ch x = 2 et fonctions hyperboliques"],
         "statement": (
             r"Résoudre dans $\R$ l'équation $\operatorname{ch} x = 2$, puis donner sa solution positive."
         ),
@@ -228,8 +237,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Un nombre pseudo-premier : 2³⁴⁰ modulo 341",
-        "former_titles": ["Un nombre pseudo-premier : 2^340 modulo 341"],
+        "title": r"Un nombre pseudo-premier : $2^{340}$ modulo 341",
+        "former_titles": ["Un nombre pseudo-premier : 2^340 modulo 341", "Un nombre pseudo-premier : 2³⁴⁰ modulo 341"],
         "statement": (
             r"1. Montrer que $341$ n'est pas premier."
             "\n"
@@ -247,7 +256,8 @@ EXERCISES = [
         "topics": ["arithmetique", "congruences"],
     },
     {
-        "title": "Limite de 1/sin² x − 1/x² en 0",
+        "title": r"Limite de $1/\sin^2 x - 1/x^2$ en 0",
+        "former_titles": ["Limite de 1/sin² x − 1/x² en 0"],
         "statement": r"Déterminer $\displaystyle\lim_{x \to 0} \left( \frac{1}{\sin^2 x} - \frac{1}{x^2} \right)$.",
         "hints": [
             r"Réduire au même dénominateur : $\dfrac{x^2 - \sin^2 x}{x^2 \sin^2 x}$.",
@@ -260,7 +270,8 @@ EXERCISES = [
         "topics": ["analyse", "limites-continuite", "developpements-limites"],
     },
     {
-        "title": "Développement limité de ln(1 + sin x) à l'ordre 3",
+        "title": r"Développement limité de $\ln(1 + \sin x)$ à l'ordre 3",
+        "former_titles": ["Développement limité de ln(1 + sin x) à l'ordre 3"],
         "statement": (
             r"Déterminer le développement limité à l'ordre $3$ en $0$ de $\ln(1 + \sin x)$, "
             r"puis donner le coefficient de $x^3$."
@@ -297,7 +308,8 @@ EXERCISES = [
         "topics": ["algebre", "ensembles-applications"],
     },
     {
-        "title": "Relation d'équivalence x − y entier",
+        "title": r"Relation d'équivalence $x - y \in \Z$",
+        "former_titles": ["Relation d'équivalence x − y entier"],
         "statement": (
             r"Sur $\R$, on pose $x \mathrel{\mathcal{R}} y$ si $x - y \in \Z$."
             "\n\n"
@@ -331,7 +343,8 @@ EXERCISES = [
         "topics": ["algebre", "denombrement"],
     },
     {
-        "title": "Générateurs du groupe Z/12Z",
+        "title": r"Générateurs du groupe $\Z/12\Z$",
+        "former_titles": ["Générateurs du groupe Z/12Z"],
         "statement": (
             r"Déterminer les générateurs du groupe additif $\Z/12\Z$, puis leur nombre."
         ),
@@ -346,8 +359,8 @@ EXERCISES = [
         "topics": ["arithmetique", "groupes-anneaux", "congruences"],
     },
     {
-        "title": "Dernier chiffre de 7²⁰²⁶",
-        "former_titles": ["Dernier chiffre de 7^2026"],
+        "title": r"Dernier chiffre de $7^{2026}$",
+        "former_titles": ["Dernier chiffre de 7^2026", "Dernier chiffre de 7²⁰²⁶"],
         "statement": r"Quel est le chiffre des unités de $7^{2026}$ ?",
         "hints": [
             r"Calculer les puissances successives de $7$ modulo $10$.",
@@ -377,7 +390,8 @@ EXERCISES = [
     },
     # ------------------------------------------------------------------ PCSI
     {
-        "title": "Équation différentielle y' + 2xy = 2x",
+        "title": r"Équation différentielle $y' + 2xy = 2x$",
+        "former_titles": ["Équation différentielle y' + 2xy = 2x"],
         "statement": (
             r"Résoudre sur $\R$ l'équation $y' + 2xy = 2x$ avec la condition $y(0) = 0$, puis calculer $y(1)$."
         ),
@@ -417,7 +431,8 @@ EXERCISES = [
         "topics": ["probabilites", "probabilites-conditionnelles"],
     },
     {
-        "title": "Intégrale de 1/(x² + x + 1) sur [0, 1]",
+        "title": r"Intégrale de $1/(x^2 + x + 1)$ sur $[0, 1]$",
+        "former_titles": ["Intégrale de 1/(x² + x + 1) sur [0, 1]"],
         "statement": r"Calculer $\displaystyle\int_0^1 \frac{\mathrm{d}x}{x^2 + x + 1}$.",
         "hints": [
             r"Forme canonique : $x^2 + x + 1 = \left(x + \frac{1}{2}\right)^2 + \frac{3}{4}$.",
@@ -430,7 +445,8 @@ EXERCISES = [
         "topics": ["analyse", "calcul-integral"],
     },
     {
-        "title": "Encadrement de ln(1 + x) par les accroissements finis",
+        "title": r"Encadrement de $\ln(1 + x)$ par les accroissements finis",
+        "former_titles": ["Encadrement de ln(1 + x) par les accroissements finis"],
         "statement": (
             r"1. Montrer que pour tout $x > 0$, $\dfrac{x}{1 + x} < \ln(1 + x) < x$."
             "\n"
@@ -446,7 +462,8 @@ EXERCISES = [
         "topics": ["analyse", "derivation"],
     },
     {
-        "title": "Somme des k fois k parmi n",
+        "title": r"Somme des $k \binom{n}{k}$",
+        "former_titles": ["Somme des k fois k parmi n"],
         "statement": r"Pour $n \geq 1$, calculer $\displaystyle\sum_{k=0}^{n} k \binom{n}{k}$.",
         "hints": [
             r"Vérifier que $k \binom{n}{k} = n \binom{n-1}{k-1}$ pour $k \geq 1$.",
@@ -459,7 +476,8 @@ EXERCISES = [
         "topics": ["algebre", "sommes-recurrence", "denombrement"],
     },
     {
-        "title": "Somme télescopique de 1/(k(k+1)(k+2))",
+        "title": r"Somme télescopique de $1/(k(k+1)(k+2))$",
+        "former_titles": ["Somme télescopique de 1/(k(k+1)(k+2))"],
         "statement": (
             r"Pour $n \geq 1$, calculer $S_n = \displaystyle\sum_{k=1}^{n} \frac{1}{k(k+1)(k+2)}$ en fonction de $n$."
         ),
@@ -474,8 +492,8 @@ EXERCISES = [
         "topics": ["algebre", "sommes-recurrence"],
     },
     {
-        "title": "Vitesse de convergence de (1 + 1/n)ⁿ vers e",
-        "former_titles": ["Vitesse de convergence de (1 + 1/n)^n vers e"],
+        "title": r"Vitesse de convergence de $(1 + 1/n)^n$ vers $e$",
+        "former_titles": ["Vitesse de convergence de (1 + 1/n)^n vers e", "Vitesse de convergence de (1 + 1/n)ⁿ vers e"],
         "statement": (
             r"Déterminer $\displaystyle\lim_{n \to +\infty} n\left(e - \left(1 + \frac{1}{n}\right)^n\right)$."
         ),
@@ -491,7 +509,8 @@ EXERCISES = [
     },
     # ------------------------------------------------------------------ PTSI
     {
-        "title": "Équation différentielle à racine double y'' + 2y' + y = 0",
+        "title": r"Équation différentielle à racine double $y'' + 2y' + y = 0$",
+        "former_titles": ["Équation différentielle à racine double y'' + 2y' + y = 0"],
         "statement": (
             r"Résoudre $y'' + 2y' + y = 0$ avec $y(0) = 1$ et $y'(0) = 0$, puis calculer $y(1)$."
         ),
@@ -506,7 +525,8 @@ EXERCISES = [
         "topics": ["analyse", "equations-differentielles"],
     },
     {
-        "title": "Équation différentielle y'' + y = cos x : la résonance",
+        "title": r"Équation différentielle $y'' + y = \cos x$ : la résonance",
+        "former_titles": ["Équation différentielle y'' + y = cos x : la résonance"],
         "statement": (
             r"Résoudre $y'' + y = \cos x$ avec $y(0) = y'(0) = 0$, puis calculer $y\left(\dfrac{\pi}{2}\right)$."
         ),
@@ -529,7 +549,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Noyau et image d'une application linéaire de R³",
+        "title": r"Noyau et image d'une application linéaire de $\R^3$",
+        "former_titles": ["Noyau et image d'une application linéaire de R³"],
         "statement": (
             r"Soit $f : \R^3 \to \R^3$, $(x, y, z) \mapsto (x + y,\, y + z,\, x - z)$."
             "\n\n"
@@ -561,7 +582,8 @@ EXERCISES = [
         "topics": ["algebre-lineaire", "applications-lineaires", "determinants"],
     },
     {
-        "title": "Puissance n-ième d'une matrice par la formule du binôme",
+        "title": r"Puissance $n$-ième d'une matrice par la formule du binôme",
+        "former_titles": ["Puissance n-ième d'une matrice par la formule du binôme"],
         "statement": (
             r"Soit $A = \begin{pmatrix} 2 & 1 \\ 0 & 2 \end{pmatrix}$. Calculer $A^n$ pour tout $n \geq 1$, "
             r"puis donner son coefficient en position $(1, 2)$."
@@ -577,7 +599,8 @@ EXERCISES = [
         "topics": ["algebre-lineaire", "calcul-matriciel"],
     },
     {
-        "title": "Nature et aire de la conique x² + xy + y² = 1",
+        "title": r"Nature et aire de la conique $x^2 + xy + y^2 = 1$",
+        "former_titles": ["Nature et aire de la conique x² + xy + y² = 1"],
         "statement": (
             r"Déterminer la nature de la courbe d'équation $x^2 + xy + y^2 = 1$, ses axes de symétrie, "
             r"puis l'aire du domaine $x^2 + xy + y^2 \leq 1$."
@@ -593,7 +616,8 @@ EXERCISES = [
         "topics": ["geometrie", "courbes-coniques"],
     },
     {
-        "title": "Intégrale de 1/(x² − 1) par décomposition en éléments simples",
+        "title": r"Intégrale de $1/(x^2 - 1)$ par décomposition en éléments simples",
+        "former_titles": ["Intégrale de 1/(x² − 1) par décomposition en éléments simples"],
         "statement": r"Calculer $\displaystyle\int_2^3 \frac{\mathrm{d}x}{x^2 - 1}$.",
         "hints": [
             r"$\dfrac{1}{x^2 - 1} = \dfrac{1}{2}\left(\dfrac{1}{x - 1} - \dfrac{1}{x + 1}\right)$.",
@@ -624,7 +648,8 @@ EXERCISES = [
     },
     # ------------------------------------------------------------------ L2
     {
-        "title": "Somme de la série de terme général (n + 1)/n!",
+        "title": r"Somme de la série de terme général $(n + 1)/n!$",
+        "former_titles": ["Somme de la série de terme général (n + 1)/n!"],
         "statement": r"Calculer $\displaystyle\sum_{n=0}^{+\infty} \frac{n + 1}{n!}$.",
         "hints": [
             r"Séparer en $\displaystyle\sum \frac{n}{n!} + \sum \frac{1}{n!}$.",
@@ -642,8 +667,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Convergence simple mais non uniforme de nx e⁻ⁿˣ",
-        "former_titles": ["Convergence simple mais non uniforme de n x e^(−nx)"],
+        "title": r"Convergence simple mais non uniforme de $nx e^{-nx}$",
+        "former_titles": ["Convergence simple mais non uniforme de n x e^(−nx)", "Convergence simple mais non uniforme de nx e⁻ⁿˣ"],
         "statement": (
             r"Pour $n \geq 1$ et $x \geq 0$, on pose $f_n(x) = n x e^{-nx}$."
             "\n\n"
@@ -664,7 +689,8 @@ EXERCISES = [
         "topics": ["analyse", "suites-series-fonctions"],
     },
     {
-        "title": "Somme des 1/n² par une série de Fourier",
+        "title": r"Somme des $1/n^2$ par une série de Fourier",
+        "former_titles": ["Somme des 1/n² par une série de Fourier"],
         "statement": (
             r"Soit $f$ la fonction $2\pi$-périodique telle que $f(x) = x^2$ pour $x \in [-\pi, \pi]$."
             "\n\n"
@@ -685,8 +711,8 @@ EXERCISES = [
         "topics": ["analyse", "series-de-fourier", "series-numeriques"],
     },
     {
-        "title": "Série de Leibniz : somme des (−1)ⁿ/(2n + 1)",
-        "former_titles": ["Série de Leibniz : somme des (−1)^n/(2n + 1)"],
+        "title": r"Série de Leibniz : somme des $(-1)^n/(2n + 1)$",
+        "former_titles": ["Série de Leibniz : somme des (−1)^n/(2n + 1)", "Série de Leibniz : somme des (−1)ⁿ/(2n + 1)"],
         "statement": (
             r"1. Pour $N \geq 0$, montrer que $\displaystyle\sum_{n=0}^{N} \frac{(-1)^n}{2n+1} = \int_0^1 \frac{1 - (-t^2)^{N+1}}{1 + t^2}\,\mathrm{d}t$."
             "\n"
@@ -703,7 +729,8 @@ EXERCISES = [
         "topics": ["analyse", "series-numeriques"],
     },
     {
-        "title": "Fonction Gamma : relation fonctionnelle et Γ(5/2)",
+        "title": r"Fonction Gamma : relation fonctionnelle et $\Gamma(5/2)$",
+        "former_titles": ["Fonction Gamma : relation fonctionnelle et Γ(5/2)"],
         "statement": (
             r"Pour $x > 0$, on pose $\Gamma(x) = \displaystyle\int_0^{+\infty} t^{x-1} e^{-t}\,\mathrm{d}t$."
             "\n\n"
@@ -740,8 +767,8 @@ EXERCISES = [
     },
     # ------------------------------------------------------------------ MP
     {
-        "title": "Série de terme général ln(1 + (−1)ⁿ/√n)",
-        "former_titles": ["Série de terme général ln(1 + (−1)^n/√n)"],
+        "title": r"Série de terme général $\ln(1 + (-1)^n/\sqrt{n})$",
+        "former_titles": ["Série de terme général ln(1 + (−1)^n/√n)", "Série de terme général ln(1 + (−1)ⁿ/√n)"],
         "statement": (
             r"Étudier la nature de la série de terme général $u_n = \ln\left(1 + \dfrac{(-1)^n}{\sqrt{n}}\right)$, $n \geq 2$."
             "\n\n"
@@ -758,8 +785,8 @@ EXERCISES = [
         "topics": ["analyse", "series-numeriques", "developpements-limites"],
     },
     {
-        "title": "Somme de la série entière de terme général xⁿ/(n(n + 1))",
-        "former_titles": ["Somme de la série entière de terme général x^n/(n(n+1))"],
+        "title": r"Somme de la série entière de terme général $x^n/(n(n + 1))$",
+        "former_titles": ["Somme de la série entière de terme général x^n/(n(n+1))", "Somme de la série entière de terme général xⁿ/(n(n + 1))"],
         "statement": (
             r"1. Déterminer le rayon de convergence de $\displaystyle\sum_{n \geq 1} \frac{x^n}{n(n+1)}$."
             "\n"
@@ -799,7 +826,8 @@ EXERCISES = [
         "topics": ["analyse", "integrales-a-parametre"],
     },
     {
-        "title": "Deux normes non équivalentes sur R[X]",
+        "title": r"Deux normes non équivalentes sur $\R[X]$",
+        "former_titles": ["Deux normes non équivalentes sur R[X]"],
         "statement": (
             r"Pour $P = \sum_k a_k X^k \in \R[X]$, on pose $N_1(P) = \sum_k |a_k|$ et $N_\infty(P) = \displaystyle\sup_{x \in [0, 1]} |P(x)|$."
             "\n\n"
@@ -849,7 +877,8 @@ EXERCISES = [
         "topics": ["probabilites", "variables-aleatoires-discretes", "probabilites-conditionnelles"],
     },
     {
-        "title": "Nombre d'inversibles de Z/360Z",
+        "title": r"Nombre d'inversibles de $\Z/360\Z$",
+        "former_titles": ["Nombre d'inversibles de Z/360Z"],
         "statement": (
             r"Combien l'anneau $\Z/360\Z$ compte-t-il d'éléments inversibles ?"
         ),
@@ -871,7 +900,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Suite récurrente u(n+1) = sin(u(n)) : équivalent",
+        "title": r"Suite récurrente $u_{n+1} = \sin u_n$ : équivalent",
+        "former_titles": ["Suite récurrente u(n+1) = sin(u(n)) : équivalent"],
         "statement": (
             r"Soit $u_0 \in \left]0, \pi\right[$ et $u_{n+1} = \sin u_n$."
             "\n\n"
@@ -894,7 +924,8 @@ EXERCISES = [
     },
     # ------------------------------------------------------------------ PC
     {
-        "title": "Une matrice 2×2 non diagonalisable et ses puissances",
+        "title": r"Une matrice $2 \times 2$ non diagonalisable et ses puissances",
+        "former_titles": ["Une matrice 2×2 non diagonalisable et ses puissances"],
         "statement": (
             r"Soit $A = \begin{pmatrix} 1 & 1 \\ -1 & 3 \end{pmatrix}$."
             "\n\n"
@@ -947,7 +978,8 @@ EXERCISES = [
         "topics": ["probabilites", "variables-aleatoires-discretes"],
     },
     {
-        "title": "Intégrale de 1/(1 + x³) sur [0, +∞[",
+        "title": r"Intégrale de $1/(1 + x^3)$ sur $[0, +\infty[$",
+        "former_titles": ["Intégrale de 1/(1 + x³) sur [0, +∞["],
         "statement": r"Justifier la convergence de $\displaystyle\int_0^{+\infty} \frac{\mathrm{d}x}{1 + x^3}$ et la calculer.",
         "hints": [
             r"Le changement de variable $x = \dfrac{1}{u}$ montre que l'intégrale vaut aussi $\displaystyle\int_0^{+\infty} \frac{x\,\mathrm{d}x}{1 + x^3}$.",
@@ -960,7 +992,8 @@ EXERCISES = [
         "topics": ["analyse", "integrales-generalisees"],
     },
     {
-        "title": "Diagonalisation d'une matrice 3×3 avec une valeur propre double",
+        "title": r"Diagonalisation d'une matrice $3 \times 3$ avec une valeur propre double",
+        "former_titles": ["Diagonalisation d'une matrice 3×3 avec une valeur propre double"],
         "statement": (
             r"Soit $A = \begin{pmatrix} 0 & 1 & 1 \\ -1 & 2 & 1 \\ -1 & 1 & 2 \end{pmatrix}$."
             "\n\n"
@@ -1075,7 +1108,8 @@ EXERCISES = [
         "topics": ["algebre-lineaire", "espaces-euclidiens"],
     },
     {
-        "title": "Équation d'Euler x²y'' + xy' − y = 0",
+        "title": r"Équation d'Euler $x^2 y'' + x y' - y = 0$",
+        "former_titles": ["Équation d'Euler x²y'' + xy' − y = 0"],
         "statement": (
             r"Résoudre sur $]0, +\infty[$ l'équation $x^2 y'' + x y' - y = 0$ avec $y(1) = 2$ et $y'(1) = 0$, "
             r"puis calculer $y(2)$."
@@ -1108,7 +1142,8 @@ EXERCISES = [
         "topics": ["analyse", "equations-differentielles", "reduction"],
     },
     {
-        "title": "Extremums de f(x, y) = x³ + y³ − 3xy",
+        "title": r"Extremums de $f(x, y) = x^3 + y^3 - 3xy$",
+        "former_titles": ["Extremums de f(x, y) = x³ + y³ − 3xy"],
         "statement": (
             r"Soit $f(x, y) = x^3 + y^3 - 3xy$ sur $\R^2$."
             "\n\n"
@@ -1209,8 +1244,8 @@ EXERCISES = [
     },
     # ------------------------------------------------------------------ L3
     {
-        "title": "Convergence dominée : limite de l'intégrale de (1 − x/n)ⁿ exp(x/2)",
-        "former_titles": ["Convergence dominée : limite de l'intégrale de (1 − x/n)^n e^(x/2)"],
+        "title": r"Convergence dominée : limite de l'intégrale de $(1 - x/n)^n e^{x/2}$",
+        "former_titles": ["Convergence dominée : limite de l'intégrale de (1 − x/n)^n e^(x/2)", "Convergence dominée : limite de l'intégrale de (1 − x/n)ⁿ exp(x/2)"],
         "statement": (
             r"Déterminer $\displaystyle\lim_{n \to +\infty} \int_0^n \left(1 - \frac{x}{n}\right)^n e^{x/2}\,\mathrm{d}x$."
         ),
@@ -1225,7 +1260,8 @@ EXERCISES = [
         "topics": ["analyse", "integration-lebesgue"],
     },
     {
-        "title": "Intégrale de ln x/(1 + x) sur [0, 1]",
+        "title": r"Intégrale de $\ln x/(1 + x)$ sur $[0, 1]$",
+        "former_titles": ["Intégrale de ln x/(1 + x) sur [0, 1]"],
         "statement": (
             r"Montrer que $\displaystyle\int_0^1 \frac{\ln x}{1 + x}\,\mathrm{d}x = \sum_{n=0}^{+\infty} \frac{(-1)^{n+1}}{(n+1)^2}$, "
             r"puis calculer cette intégrale, sachant que $\displaystyle\sum_{n \geq 1} \frac{1}{n^2} = \frac{\pi^2}{6}$."
@@ -1242,7 +1278,8 @@ EXERCISES = [
         "topics": ["analyse", "integration-lebesgue", "series-numeriques"],
     },
     {
-        "title": "Éléments d'ordre 2 du groupe symétrique S4",
+        "title": r"Éléments d'ordre 2 du groupe symétrique $\mathfrak{S}_4$",
+        "former_titles": ["Éléments d'ordre 2 du groupe symétrique S4"],
         "statement": (
             r"Combien le groupe symétrique $\mathfrak{S}_4$ compte-t-il d'éléments d'ordre $2$ ?"
         ),
@@ -1313,7 +1350,8 @@ EXERCISES = [
         "topics": ["analyse", "analyse-fonctionnelle"],
     },
     {
-        "title": "Minimum de n variables uniformes : convergence en loi",
+        "title": r"Minimum de $n$ variables uniformes : convergence en loi",
+        "former_titles": ["Minimum de n variables uniformes : convergence en loi"],
         "statement": (
             r"Soit $(U_k)$ une suite de variables indépendantes de loi uniforme sur $[0, 1]$, "
             r"et $M_n = \min(U_1, \dots, U_n)$."
@@ -1371,7 +1409,8 @@ EXERCISES = [
         "topics": ["analyse", "analyse-fonctionnelle"],
     },
     {
-        "title": "Inégalité de Poincaré sur ]0, 1[ et sa constante optimale",
+        "title": r"Inégalité de Poincaré sur $]0, 1[$ et sa constante optimale",
+        "former_titles": ["Inégalité de Poincaré sur ]0, 1[ et sa constante optimale"],
         "statement": (
             r"Soit $u \in C^1([0, 1])$ telle que $u(0) = u(1) = 0$."
             "\n\n"

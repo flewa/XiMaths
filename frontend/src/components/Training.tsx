@@ -12,6 +12,7 @@ import { AiUsageChoice } from "./ContributionForms";
 import { CopyPhotoPicker } from "./CopyPhotoPicker";
 import { FormMessage, SubmitButton, primaryButtonClass, secondaryButtonClass } from "./Form";
 import { MathMarkdown } from "./MathMarkdown";
+import { MathText } from "./MathText";
 
 // Signe de vie au chrono du serveur.
 const SAVE_EVERY_MS = 10_000;
@@ -277,7 +278,9 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
         {announce}
       </p>
 
-      <h1 className="mt-8">{session.exercise_title}</h1>
+      <h1 className="mt-8">
+        <MathText>{session.exercise_title}</MathText>
+      </h1>
       <p className="mt-2 text-sm text-mute">
         {ranked
           ? "Défi du jour classé · cours personnel autorisé · IA interdite · le chrono continue même onglet fermé"
@@ -390,7 +393,9 @@ function TrainingResult({ session }: { session: TrainingSession }) {
   if (session.status === "abandonnee") {
     return (
       <div>
-        <h1>{session.exercise_title}</h1>
+        <h1>
+        <MathText>{session.exercise_title}</MathText>
+      </h1>
         <p className="mt-4">
           {ranked
             ? "Défi abandonné. Ta tentative est consommée, sans autre pénalité."
@@ -411,7 +416,9 @@ function TrainingResult({ session }: { session: TrainingSession }) {
   return (
     <div>
       <p className="text-sm text-mute">{ranked ? "Défi du jour rendu" : "Entraînement rendu"}</p>
-      <h1>{session.exercise_title}</h1>
+      <h1>
+        <MathText>{session.exercise_title}</MathText>
+      </h1>
 
       <dl className="mt-8 grid grid-cols-2 border-y border-hairline">
         <div className="flex flex-col-reverse py-4">

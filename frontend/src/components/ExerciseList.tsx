@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ExerciseSummary, FeedItem } from "@/lib/api";
 
 import { Difficulty } from "./ExerciseMeta";
+import { MathText } from "./MathText";
 
 /** Solutions envoyées : un compteur, les solutions elles-mêmes restent privées. */
 function solutionsLabel(count: number) {
@@ -40,7 +41,7 @@ export function ExerciseList({ exercises }: { exercises: (ExerciseSummary | Feed
               className="-mx-3 flex items-center gap-5 rounded-xl px-3 py-4 hover:bg-hover"
             >
               <span className="min-w-0 flex-1">
-                <span className="block font-serif text-[1.1875rem] leading-snug text-ink-deep">{exercise.title}</span>
+                <span className="block font-serif text-[1.1875rem] leading-snug text-ink-deep"><MathText>{exercise.title}</MathText></span>
                 <span className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px] text-mute">
                   {exercise.topics.length > 0 && (
                     <>

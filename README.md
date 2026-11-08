@@ -141,6 +141,10 @@ uv run python manage.py scan_duplicates --reindex --all   # après un changement
 - **Mobile et tablette** (sous 1 024 px) : barre d'onglets en bas d'écran, à portée du pouce (Fil, Parcourir, Publier, Défi, Moi), masquée pendant une session chronométrée ; en-tête réduit au logo, aux notifications et au menu.
 - **Accessibilité** : contrastes d'au moins 4,5:1 (marqueurs d'état, textes sur la surface sombre, indications des champs), anneau de focus de 2 px sur toutes les surfaces, lien « Aller au contenu », cibles tactiles d'au moins 24 px, onglets qui ramènent l'onglet actif dans la vue.
 
+## Titres d'exercices
+
+Un titre peut contenir des formules entre `$…$` (« Reste de `$3^{100}$` modulo 7 »), rendues par KaTeX partout où il s'affiche (`MathText`). Pour l'onglet du navigateur, Google, les partages, les notifications et les emails, `plain_math` (backend) en écrit une version texte : « Reste de 3¹⁰⁰ modulo 7 » (champ `title_text` de l'API). Un titre dont une formule n'est pas fermée, ou qui utilise une commande interdite, est refusé.
+
 ## Fil d'accueil et catalogue
 
 Une seule page de 20 exercices, sans défilement infini : 60 % de Tendances, 25 % d'« À résoudre » (moins de 14 jours, moins de 2 solutions validées), 15 % d'exploration. Les scores sont logarithmiques : cent fois plus de solutions ne donnent qu'un score sept fois plus élevé. Chaque exercice affiche son état, pas la raison de sa présence : « Tendance », « Nouveau » (publié depuis moins de 7 jours), et le nombre de solutions validées, en gris.

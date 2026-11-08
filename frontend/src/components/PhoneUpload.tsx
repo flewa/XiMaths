@@ -7,6 +7,7 @@ import { type PhotoUploadState, hourFormat, photoCount, readUpload, removePhoto,
 
 import { FormMessage, primaryButtonClass, secondaryButtonClass } from "./Form";
 import { Icon } from "./Icon";
+import { MathText } from "./MathText";
 
 type Loaded = { state: PhotoUploadState | null; token: string };
 
@@ -82,7 +83,9 @@ export function PhoneUpload({ token }: { token: string }) {
     <div className="mx-auto mt-6 max-w-md space-y-5">
       <header className="space-y-1">
         <p className="text-sm text-mute">Photos de ta copie</p>
-        <h1 className="text-2xl">{upload.exercise_title}</h1>
+        <h1 className="text-2xl">
+          <MathText>{upload.exercise_title}</MathText>
+        </h1>
       </header>
 
       {!upload.open ? (
