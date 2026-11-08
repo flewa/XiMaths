@@ -159,3 +159,36 @@ class FeedApiTests(FeedTestCase):
         self.assertEqual(ids("recent"), [quiet.pk, popular.pk])
         self.assertEqual(ids("popular"), [popular.pk, quiet.pk])
         self.assertEqual(ids("unsolved"), [quiet.pk])
+
+    def test_trending_favours_recent_activity_over_old_popularity(self):
+        Exercise.objects.all().delete()
+        old_hit = self.published(days_ago=200)
+        recent = self.published(days_ago=3)
+        for _ in range(3):
+            self.solve(old_hit, days_ago=180)
+        self.solve(recent, days_ago=1)
+
+        ids = lambda sort: [e["id"] for e in self.client.get("/api/exercises", {"sort": sort}).json()]
+        self.assertEqual(ids("popular"), [old_hit.pk, recent.pk])
+        self.assertEqual(ids("trending"), [recent.pk, old_hit.pk])
+
+    def test_an_exercise_is_new_for_a_week(self):
+        Exercise.objects.all().delete()
+        fresh = self.published(days_ago=2)
+        older = self.published(days_ago=9)
+        flags = {e["id"]: e["is_new"] for e in self.client.get("/api/exercises").json()}
+        self.assertEqual(flags, {fresh.pk: True, older.pk: False})
+
+    def test_search_matches_every_word_in_title_statement_or_chapter(self):
+        Exercise.objects.all().delete()
+        series = self.published(days_ago=1)
+        Exercise.objects.filter(pk=series.pk).update(title="Rayon d'une série entière", statement="Calculer le rayon.")
+        matrix = self.published(days_ago=2)
+        Exercise.objects.filter(pk=matrix.pk).update(title="Puissances d'une matrice", statement="Soit $A$ une matrice.")
+
+        found = lambda q: [e["id"] for e in self.client.get("/api/exercises", {"q": q}).json()]
+        self.assertEqual(found("RAYON"), [series.pk])
+        self.assertEqual(found("série"), [series.pk])
+        self.assertEqual(found("matrice puissances"), [matrix.pk])
+        self.assertEqual(found("rayon matrice"), [])
+        self.assertEqual(found("   "), [series.pk, matrix.pk])

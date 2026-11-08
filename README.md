@@ -141,7 +141,9 @@ uv run python manage.py scan_duplicates --reindex --all   # après un changement
 
 ## Fil d'accueil et catalogue
 
-Une seule page de 20 exercices, sans défilement infini : 60 % de Tendances, 25 % d'« À résoudre » (moins de 14 jours, moins de 2 solutions validées), 15 % d'exploration. Chaque exercice dit pourquoi il est là. Les scores sont logarithmiques : cent fois plus de solutions ne donnent qu'un score sept fois plus élevé. `/exercices` parcourt tout le catalogue : récents, populaires ou sans solution validée.
+Une seule page de 20 exercices, sans défilement infini : 60 % de Tendances, 25 % d'« À résoudre » (moins de 14 jours, moins de 2 solutions validées), 15 % d'exploration. Les scores sont logarithmiques : cent fois plus de solutions ne donnent qu'un score sept fois plus élevé. Chaque exercice affiche son état, pas la raison de sa présence : « Tendance », « Nouveau » (publié depuis moins de 7 jours), et le nombre de solutions validées, en gris.
+
+Sur l'accueil, des onglets (`?vue=`) passent du fil aux vues triées : sans solution, tendance (score T), nouveaux. Connecté, l'accueil a deux colonnes sur grand écran : le défi du jour et les exercices, puis « Ta semaine », « À faire » et « Revoir le cours » (rappels publiés proches du fil) ; sur téléphone, une seule colonne. `/exercices` parcourt tout le catalogue : récents, populaires ou sans solution validée, et la recherche (`?q=`) y cherche chaque mot dans le titre, l'énoncé et les chapitres, sans tenir compte de la casse (les accents comptent).
 
 ## Classements, badges et niveaux de confiance
 

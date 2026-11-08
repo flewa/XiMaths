@@ -2,7 +2,7 @@
 (compte actif, email vérifié)."""
 
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Literal
 
 from django.db import IntegrityError, transaction
@@ -45,6 +45,9 @@ from .services import (
     submit_review,
     volunteer_review,
 )
+
+# Un exercice reste « Nouveau » une semaine après sa publication.
+NEW_FOR = timedelta(days=7)
 
 router = Router(tags=["contenus"])
 
@@ -89,10 +92,16 @@ class ExerciseSummary(Schema):
     validated_solutions: int
     votes: int
     published_at: datetime
+    # Publié depuis moins de NEW_FOR : le site l'affiche « Nouveau ».
+    is_new: bool
 
     @staticmethod
     def resolve_primary_level(obj):
         return obj.primary_level.code
+
+    @staticmethod
+    def resolve_is_new(obj):
+        return obj.published_at is not None and obj.published_at > timezone.now() - NEW_FOR
 
     @staticmethod
     def resolve_votes(obj):
@@ -234,24 +243,42 @@ def at_level(exercises, level):
     return exercises.filter(Q(primary_level__code=level) | Q(levels__code=level)).distinct()
 
 
+# Au-delà, une recherche n'apporte rien de plus qu'une poignée de mots.
+SEARCH_MAX_LENGTH = 100
+
+
+def matching(exercises, text):
+    """Exercices dont le titre, l'énoncé ou un chapitre (ou une notion) contient chacun des
+    mots de `text`, sans tenir compte de la casse."""
+    for word in text[:SEARCH_MAX_LENGTH].split():
+        exercises = exercises.filter(
+            Q(title__icontains=word) | Q(statement__icontains=word) | Q(topics__name__icontains=word)
+        )
+    return exercises.distinct()
+
+
 @router.get("/exercises", response=list[ExerciseSummary])
 def list_exercises(
     request,
     level: str | None = None,
     topic: str | None = None,
-    sort: Literal["recent", "popular", "unsolved"] = "recent",
+    sort: Literal["recent", "popular", "trending", "unsolved"] = "recent",
+    q: str | None = None,
 ):
-    """Exercices publiés : les plus récents, les plus populaires (score P), ou ceux
-    qui attendent encore une solution validée. `topic` : slug d'un chapitre ou d'une notion."""
+    """Exercices publiés : les plus récents, les plus populaires (score P), ceux dont on parle
+    en ce moment (score T), ou ceux qui attendent encore une solution validée. `topic` : slug
+    d'un chapitre ou d'une notion ; `q` : mots cherchés dans le titre, l'énoncé et les chapitres."""
     exercises = at_level(published_exercises(), level)
     if topic:
         exercises = exercises.filter(topics__slug=topic).distinct()
+    if q and q.strip():
+        exercises = matching(exercises, q)
     if sort == "unsolved":
         return exercises.filter(validated_solutions=0)
-    if sort == "popular":
+    if sort in ("popular", "trending"):
         exercises = list(exercises)
         scores = compute_scores(exercises)
-        return sorted(exercises, key=lambda e: (-scores[e.pk].popular, -e.published_at.timestamp()))
+        return sorted(exercises, key=lambda e: (-getattr(scores[e.pk], sort), -e.published_at.timestamp()))
     return exercises
 
 
