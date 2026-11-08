@@ -6,6 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.test import TestCase
 from django.utils import timezone
 
+from config.errors import RuleError
 from catalog.models import Level, Topic
 from gamification.services import balance
 
@@ -16,6 +17,7 @@ from .services import (
     publish_exercise,
     publish_solution,
     resolve_contested,
+    review_deadlines,
     submit_review,
 )
 
@@ -64,9 +66,16 @@ class ContentTestCase(TestCase):
         return publish_solution(solution, rng=random.Random(0))
 
     def review(self, solution, reviewer, verdict):
-        review = Review.objects.get(solution=solution, reviewer=reviewer)
-        status = submit_review(review, verdict)
+        review = Review.objects.get(solution=solution, reviewer=reviewer, round=solution.review_round)
+        status = submit_review(review, verdict, feedback="Commentaire du relecteur.")
         solution.refresh_from_db()
+        return status
+
+    def validate(self, solution):
+        """Les trois relecteurs tirés au sort jugent la copie correcte : le consensus."""
+        status = None
+        for review in solution.reviews.filter(round=solution.review_round, assigned=True, expired_at=None):
+            status = self.review(solution, review.reviewer, Verdict.CORRECT)
         return status
 
 
@@ -75,10 +84,11 @@ class PublicationTests(ContentTestCase):
         self.assertEqual(self.exercise.status, Exercise.Status.PUBLISHED)
         self.assertEqual(balance(self.author), 5)
 
-    def test_publishing_a_solution_pays_the_attempt_and_draws_three_reviewers(self):
+    def test_publishing_a_solution_pays_nothing_and_draws_three_reviewers(self):
         solution = self.publish()
         self.assertEqual(solution.status, Solution.Status.UNDER_REVIEW)
-        self.assertEqual(balance(self.student), 2)
+        # Les points ne viennent qu'avec le consensus des relecteurs.
+        self.assertEqual(balance(self.student), 0)
         reviewers = set(solution.reviews.values_list("reviewer_id", flat=True))
         self.assertEqual(reviewers, {r.pk for r in self.reviewers})
 
@@ -99,72 +109,88 @@ class PublicationTests(ContentTestCase):
 
 
 class ReviewQuorumTests(ContentTestCase):
-    def test_two_correct_reviews_validate_and_pay_everyone(self):
+    def test_three_correct_reviews_validate_and_pay_everyone(self):
         solution = self.publish()
         self.review(solution, self.reviewers[0], Verdict.CORRECT)
         status = self.review(solution, self.reviewers[1], Verdict.CORRECT)
+        # Deux avis ne suffisent pas : on attend le troisième.
+        self.assertEqual(status, Solution.Status.UNDER_REVIEW)
+        self.assertEqual(balance(self.student), 0)
+        status = self.review(solution, self.reviewers[2], Verdict.CORRECT)
 
         self.assertEqual(status, Solution.Status.VALIDATED)
-        # tentative 2 + validée 15 × 1,5 = 23 + première validée 10
-        self.assertEqual(balance(self.student), 35)
+        # validée 15 × 1,5 = 23 + première validée 10
+        self.assertEqual(balance(self.student), 33)
         # publication 5 + solution validée reçue 3
         self.assertEqual(balance(self.author), 8)
-        self.assertEqual(balance(self.reviewers[0]), 2)
-        self.assertEqual(balance(self.reviewers[2]), 0)
+        self.assertEqual([balance(reviewer) for reviewer in self.reviewers], [2, 2, 2])
 
-    def test_second_validated_solution_gets_no_first_bonus(self):
-        first = self.publish()
-        self.review(first, self.reviewers[0], Verdict.CORRECT)
-        self.review(first, self.reviewers[1], Verdict.CORRECT)
-        other = make_user("yanis", level="L1")
-        second = self.publish(author=other)
-        self.review(second, self.reviewers[0], Verdict.CORRECT)
-        self.review(second, self.reviewers[1], Verdict.CORRECT)
-        self.assertEqual(balance(other), 2 + 23)
-
-    def test_disagreement_is_contested_until_an_expert_decides(self):
+    def test_correct_with_gaps_still_counts_for_the_consensus(self):
         solution = self.publish()
         self.review(solution, self.reviewers[0], Verdict.CORRECT)
-        status = self.review(solution, self.reviewers[1], Verdict.INCORRECT)
-        self.assertEqual(status, Solution.Status.CONTESTED)
+        self.review(solution, self.reviewers[1], Verdict.GAPS)
+        self.assertEqual(self.review(solution, self.reviewers[2], Verdict.CORRECT), Solution.Status.VALIDATED)
 
-        with self.assertRaises(PermissionDenied):
-            resolve_contested(solution, self.reviewers[2], validate=True)
+    def test_second_validated_solution_gets_no_first_bonus(self):
+        self.validate(self.publish())
+        other = make_user("yanis", level="L1")
+        self.validate(self.publish(author=other))
+        self.assertEqual(balance(other), 23)
 
-        expert = make_user("expert", trust=TL.EXPERT)
-        self.assertEqual(
-            resolve_contested(solution, expert, validate=True), Solution.Status.VALIDATED
-        )
-        self.assertEqual(balance(self.reviewers[0]), 2)
-        self.assertEqual(balance(self.reviewers[1]), 0)
-
-    def test_reviews_with_gaps_only_ask_for_more_work(self):
+    def test_without_consensus_the_copy_is_to_rework_and_pays_nothing(self):
         solution = self.publish()
-        for reviewer in self.reviewers:
-            status = self.review(solution, reviewer, Verdict.GAPS)
-        self.assertEqual(status, Solution.Status.NEEDS_WORK)
-        # L'effort reste payé, la validation non.
-        self.assertEqual(balance(self.student), 2)
-        self.assertEqual(balance(self.reviewers[0]), 2)
+        self.review(solution, self.reviewers[0], Verdict.CORRECT)
+        self.review(solution, self.reviewers[1], Verdict.CORRECT)
+        status = self.review(solution, self.reviewers[2], Verdict.INCORRECT)
 
-    def test_two_incorrect_reviews_close_the_solution(self):
+        self.assertEqual(status, Solution.Status.NEEDS_WORK)
+        self.assertEqual(balance(self.student), 0)
+        # Les relecteurs de la majorité sont rémunérés, pas le troisième.
+        self.assertEqual([balance(reviewer) for reviewer in self.reviewers], [2, 2, 0])
+
+    def test_a_majority_of_incorrect_reviews_pays_those_reviewers(self):
         solution = self.publish()
         self.review(solution, self.reviewers[0], Verdict.INCORRECT)
-        status = self.review(solution, self.reviewers[1], Verdict.INCORRECT)
+        self.review(solution, self.reviewers[1], Verdict.GAPS)
+        status = self.review(solution, self.reviewers[2], Verdict.INCORRECT)
         self.assertEqual(status, Solution.Status.NEEDS_WORK)
+        self.assertEqual([balance(reviewer) for reviewer in self.reviewers], [2, 0, 2])
 
-    def test_a_verified_teacher_validates_alone(self):
+    def test_an_expert_still_decides_a_solution_contested_under_the_former_rule(self):
+        solution = self.publish()
+        Solution.objects.filter(pk=solution.pk).update(status=Solution.Status.CONTESTED)
+        solution.refresh_from_db()
+        with self.assertRaises(PermissionDenied):
+            resolve_contested(solution, self.reviewers[2], validate=True)
+        expert = make_user("expert", trust=TL.EXPERT)
+        self.assertEqual(resolve_contested(solution, expert, validate=True), Solution.Status.VALIDATED)
+
+    def test_a_verified_teacher_counts_as_one_reviewer(self):
         solution = self.publish()
         teacher = make_user("prof", verified_teacher=True)
         review = Review.objects.create(solution=solution, reviewer=teacher, assigned=True)
-        self.assertEqual(submit_review(review, Verdict.CORRECT), Solution.Status.VALIDATED)
+        self.assertEqual(submit_review(review, Verdict.CORRECT), Solution.Status.UNDER_REVIEW)
+
+    def test_a_short_draw_is_completed_when_reviewers_appear(self):
+        lone = Solution.objects.create(exercise=self.exercise, author=self.student, body="Ma preuve, seule.")
+        Review.objects.filter(solution=lone).delete()
+        for reviewer in self.reviewers[1:]:
+            reviewer.is_active = False
+            reviewer.save()
+        publish_solution(lone, rng=random.Random(0))
+        self.assertEqual(lone.reviews.count(), 1)
+        for reviewer in self.reviewers[1:]:
+            reviewer.is_active = True
+            reviewer.save()
+        review_deadlines()
+        self.assertEqual(lone.reviews.filter(assigned=True, expired_at=None).count(), 3)
 
     def test_generated_solution_is_validated_without_points(self):
         solution = self.publish(ai_usage=Solution.AiUsage.GENERATED)
-        self.review(solution, self.reviewers[0], Verdict.CORRECT)
-        self.review(solution, self.reviewers[1], Verdict.CORRECT)
+        self.validate(solution)
+        solution.refresh_from_db()
         self.assertEqual(solution.status, Solution.Status.VALIDATED)
-        self.assertEqual(balance(self.student), 2)
+        self.assertEqual(balance(self.student), 0)
         self.assertEqual(balance(self.author), 5)
 
     def test_nobody_reviews_their_own_solution(self):
@@ -182,18 +208,17 @@ class ReviewQuorumTests(ContentTestCase):
 
 
 class ApiTests(ContentTestCase):
-    def test_exercise_list_counts_only_validated_solutions(self):
-        validated = self.publish()
-        self.review(validated, self.reviewers[0], Verdict.CORRECT)
-        self.review(validated, self.reviewers[1], Verdict.CORRECT)
+    def test_exercise_list_counts_the_solutions_sent(self):
+        self.validate(self.publish())
         self.publish(author=make_user("yanis", level="L1"))
 
         response = self.client.get("/api/exercises", {"level": "L1"})
 
         self.assertEqual(response.status_code, 200)
         [item] = response.json()
-        self.assertEqual(item["validated_solutions"], 1)
+        self.assertEqual((item["validated_solutions"], item["submitted_solutions"]), (1, 2))
         self.assertEqual(item["primary_level"], "L1")
+        self.assertEqual(self.client.get("/api/exercises", {"sort": "unsolved"}).json(), [])
 
     def test_exercise_list_filters_by_chapter(self):
         algebra = self.make_exercise()
@@ -203,8 +228,8 @@ class ApiTests(ContentTestCase):
 
         self.assertEqual([item["id"] for item in response.json()], [algebra.pk])
 
-    def test_exercise_detail_hides_drafts_and_unvalidated_solutions(self):
-        self.publish()
+    def test_exercise_detail_shows_no_solution_and_hides_drafts(self):
+        self.validate(self.publish())
         draft = Exercise.objects.create(
             author=self.author,
             title="Brouillon",
@@ -215,7 +240,8 @@ class ApiTests(ContentTestCase):
 
         detail = self.client.get(f"/api/exercises/{self.exercise.pk}").json()
 
-        self.assertEqual(detail["solutions"], [])
+        self.assertNotIn("solutions", detail)
+        self.assertEqual(detail["submitted_solutions"], 1)
         self.assertEqual(self.client.get(f"/api/exercises/{draft.pk}").status_code, 404)
 
 
@@ -301,21 +327,37 @@ class WriteApiTests(ContentTestCase):
         [task] = self.client.get("/api/reviews").json()
         self.assertNotIn("author", task)  # relecture anonyme
         self.post(f"/api/reviews/{task['id']}", {"verdict": "correcte", "feedback": "Clair."})
-        self.client.force_login(self.reviewers[1])
-        [task] = self.client.get("/api/reviews").json()
-        result = self.post(f"/api/reviews/{task['id']}", {"verdict": "correcte"})
+
+        # L'auteur lit le premier commentaire aussitôt, et en est prévenu.
+        self.client.force_login(self.student)
+        [mine] = self.client.get(f"/api/exercises/{self.exercise.pk}/my-solutions").json()
+        self.assertEqual(mine["status"], "under_review")
+        self.assertEqual(
+            [(r["verdict_label"], r["comment"]) for r in mine["reviews"]], [("Correcte", "Clair.")]
+        )
+        self.assertEqual(mine["reviews_expected"], 3)
+        self.assertTrue(self.student.notifications.filter(kind="solution_relue").exists())
+
+        for reviewer, comment in ((self.reviewers[1], "Bien rédigé."), (self.reviewers[2], "Juste.")):
+            self.client.force_login(reviewer)
+            [task] = self.client.get("/api/reviews").json()
+            result = self.post(f"/api/reviews/{task['id']}", {"verdict": "correcte", "feedback": comment})
         self.assertEqual(result.json(), {"solution_status": "validated"})
 
         self.client.force_login(self.student)
         [mine] = self.client.get(f"/api/exercises/{self.exercise.pk}/my-solutions").json()
         self.assertEqual(mine["status"], "validated")
-        self.assertEqual(mine["feedback"], ["Clair."])
+        self.assertEqual([r["comment"] for r in mine["reviews"]], ["Clair.", "Bien rédigé.", "Juste."])
+        # Les autres ne voient ni la solution ni ses photos.
+        self.client.force_login(self.author)
+        self.assertNotIn("solutions", self.client.get(f"/api/exercises/{self.exercise.pk}").json())
 
-    def test_a_negative_verdict_needs_an_explanation(self):
+    def test_every_verdict_needs_a_comment_for_the_author(self):
         review = self.publish().reviews.first()
         url = f"/api/reviews/{review.pk}"
         self.client.force_login(review.reviewer)
         self.assertEqual(self.post(url, {"verdict": "lacunes"}).status_code, 422)
+        self.assertEqual(self.post(url, {"verdict": "correcte", "feedback": "   "}).status_code, 422)
         response = self.post(url, {"verdict": "lacunes", "feedback": "Justifier la majoration."})
         self.assertEqual(response.status_code, 200)
 
@@ -351,10 +393,11 @@ class VoteTests(ContentTestCase):
         self.assertEqual(vote.weight, 0)
         self.assertEqual(balance(self.author), 5)
 
-    def test_a_solution_upvote_pays_two_points(self):
+    def test_solutions_are_private_so_nobody_votes_for_them(self):
         solution = self.publish()
-        cast_vote(self.author, solution=solution)
-        self.assertEqual(balance(self.student), 2 + 2)
+        with self.assertRaises(RuleError):
+            cast_vote(self.author, solution=solution)
+        self.assertEqual(balance(self.student), 0)
 
     def test_nobody_votes_for_themselves(self):
         with self.assertRaises(PermissionDenied):

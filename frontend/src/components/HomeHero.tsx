@@ -268,8 +268,8 @@ const STEPS = [
     text: "Puis photographie ta copie avec ton téléphone, en scannant un QR code : trois pages au plus.",
   },
   {
-    title: "Trois pairs la relisent.",
-    text: "Validée, elle rapporte des points, des badges et une place au classement de la semaine.",
+    title: "Trois pairs la corrigent.",
+    text: "Tu lis leurs commentaires. S'ils la jugent tous juste, elle rapporte des points, des badges et une place au classement.",
   },
 ];
 

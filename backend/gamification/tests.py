@@ -336,12 +336,12 @@ class BadgeTests(ContentTestCase):
         solution = self.publish()
         self.assertEqual(self.owned(self.student), {"premier-pas"})
 
-        for reviewer in self.reviewers[:2]:
+        for reviewer in self.reviewers:
             self.review(solution, reviewer, Review.Verdict.CORRECT)
 
         self.assertEqual(self.owned(self.student), {"premier-pas", "valide", "pionnier"})
         second = self.publish(author=make_user("yanis", level="L1"))
-        for reviewer in self.reviewers[:2]:
+        for reviewer in self.reviewers:
             self.review(second, reviewer, Review.Verdict.CORRECT)
         self.assertEqual(self.owned(second.author), {"premier-pas", "valide"})
 

@@ -29,7 +29,7 @@ class ModerationTestCase(ContentTestCase):
 
     def validated_solution(self, author=None):
         solution = self.publish(author=author)
-        for reviewer in self.reviewers[:2]:
+        for reviewer in self.reviewers:
             self.review(solution, reviewer, Review.Verdict.CORRECT)
         return solution
 

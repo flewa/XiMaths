@@ -8,6 +8,7 @@ class Notification(models.Model):
     class Kind(models.TextChoices):
         REVIEW_ASSIGNED = "relecture_attribuee", "Relecture attribuée"
         REVIEW_REMINDER = "relecture_relance", "Relecture en attente"
+        SOLUTION_REVIEWED = "solution_relue", "Copie relue"
         SOLUTION_VALIDATED = "solution_validee", "Solution validée"
         SOLUTION_NEEDS_WORK = "solution_a_completer", "Solution à compléter"
         SOLUTION_HELD = "solution_en_verification", "Solution en vérification"

@@ -187,8 +187,8 @@ export function CopyPhotoPicker({
         </div>
       )}
       <p className="text-sm text-mute">
-        Une page par photo, à plat et bien éclairée, 3 au plus. N&apos;y laisse pas ton nom : les relecteurs voient
-        tes photos, puis tout le monde si ta solution est validée.
+        Une page par photo, à plat et bien éclairée, 3 au plus. N&apos;y laisse pas ton nom. Ta copie reste privée :
+        seuls tes relecteurs, tirés au sort, et la modération la voient.
         {timed && " Les photos doivent arriver avant la fin du temps : garde une minute pour les prendre."}
       </p>
 

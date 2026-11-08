@@ -113,7 +113,7 @@ export default async function LevelPage({ params }: Props) {
               Les plus populaires
             </Link>
             <Link href={`${browse}&tri=sans-solution`} className="hover:text-ink">
-              Sans solution validée
+              Sans solution
             </Link>
           </p>
         </div>

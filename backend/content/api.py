@@ -41,6 +41,7 @@ from .services import (
     publish_solution,
     recommend_solution,
     resolve_contested,
+    review_progress,
     revise_solution,
     submit_review,
     volunteer_review,
@@ -90,6 +91,9 @@ class ExerciseSummary(Schema):
     topics: list[str]
     notions: list[str]
     validated_solutions: int
+    # Solutions envoyées (en relecture, validées ou à reprendre) : le compteur affiché. Les
+    # solutions elles-mêmes restent privées.
+    submitted_solutions: int
     votes: int
     published_at: datetime
     # Publié depuis moins de NEW_FOR : le site l'affiche « Nouveau ».
@@ -129,35 +133,6 @@ class PhotoOut(Schema):
     height: int
 
 
-class SolutionOut(Schema):
-    id: int
-    author: str | None
-    body: str
-    photos: list[PhotoOut]
-    # Solution d'un défi paramétré : l'énoncé avec les paramètres de l'auteur.
-    variant_statement: str
-    ai_usage: str
-    votes: int
-    validated_at: datetime | None
-    recommended: bool
-
-    @staticmethod
-    def resolve_author(obj):
-        return obj.author.username if obj.author else None
-
-    @staticmethod
-    def resolve_photos(obj):
-        return photos.described(obj)
-
-    @staticmethod
-    def resolve_votes(obj):
-        return obj.vote_count
-
-    @staticmethod
-    def resolve_recommended(obj):
-        return obj.recommended_at is not None
-
-
 class ExerciseLinkOut(Schema):
     id: int
     title: str
@@ -172,7 +147,6 @@ class ExerciseDetail(ExerciseSummary):
     license: str
     merged_into: int | None
     variants: list[ExerciseLinkOut]
-    solutions: list[SolutionOut]
 
     @staticmethod
     def resolve_author(obj):
@@ -186,18 +160,6 @@ class ExerciseDetail(ExerciseSummary):
     def resolve_variants(obj):
         return variants_of(obj)
 
-    @staticmethod
-    def resolve_solutions(obj):
-        return (
-            obj.solutions.filter(status=Solution.Status.VALIDATED)
-            # Les solutions d'un défi restent cachées jusqu'à la fermeture de sa fenêtre.
-            .exclude(timed_session__challenge__closes_at__gt=timezone.now())
-            .select_related("author")
-            .prefetch_related("photos")
-            .annotate(vote_count=Count("votes"))
-            # La solution recommandée par l'auteur de l'exercice en premier.
-            .order_by(F("recommended_at").desc(nulls_last=True), "-validated_at")
-        )
 
 
 def published_exercises(statuses=(Exercise.Status.PUBLISHED,)):
@@ -210,6 +172,12 @@ def published_exercises(statuses=(Exercise.Status.PUBLISHED,)):
             validated_solutions=Count(
                 "solutions",
                 filter=Q(solutions__status=Solution.Status.VALIDATED),
+                distinct=True,
+            ),
+            submitted_solutions=Count(
+                "solutions",
+                filter=Q(solutions__published_at__isnull=False)
+                & ~Q(solutions__status__in=[Solution.Status.DRAFT, Solution.Status.HIDDEN]),
                 distinct=True,
             ),
             vote_count=Count("votes", distinct=True),
@@ -266,7 +234,7 @@ def list_exercises(
     q: str | None = None,
 ):
     """Exercices publiés : les plus récents, les plus populaires (score P), ceux dont on parle
-    en ce moment (score T), ou ceux qui attendent encore une solution validée. `topic` : slug
+    en ce moment (score T), ou ceux auxquels personne n'a encore envoyé de solution. `topic` : slug
     d'un chapitre ou d'une notion ; `q` : mots cherchés dans le titre, l'énoncé et les chapitres."""
     exercises = at_level(published_exercises(), level)
     if topic:
@@ -274,7 +242,7 @@ def list_exercises(
     if q and q.strip():
         exercises = matching(exercises, q)
     if sort == "unsolved":
-        return exercises.filter(validated_solutions=0)
+        return exercises.filter(submitted_solutions=0)
     if sort in ("popular", "trending"):
         exercises = list(exercises)
         scores = compute_scores(exercises)
@@ -393,6 +361,21 @@ def pending_upload(user, exercise, token):
     return upload
 
 
+class AuthorReviewOut(Schema):
+    verdict: str
+    verdict_label: str
+    comment: str
+    submitted_at: datetime
+
+    @staticmethod
+    def resolve_verdict_label(obj):
+        return obj.get_verdict_display()
+
+    @staticmethod
+    def resolve_comment(obj):
+        return obj.feedback
+
+
 class MySolutionOut(Schema):
     id: int
     body: str
@@ -401,7 +384,10 @@ class MySolutionOut(Schema):
     status: str
     published_at: datetime | None
     validated_at: datetime | None
-    feedback: list[str]
+    # Relectures rendues du tour en cours, anonymes : verdict et commentaire, lisibles par
+    # l'auteur dès qu'elles arrivent ; et le nombre de relectures attendues.
+    reviews: list[AuthorReviewOut]
+    reviews_expected: int
     # Solution en vérification : la question neutre, et la réponse déjà donnée.
     integrity_signal_id: int | None
     integrity_question: str | None
@@ -430,15 +416,14 @@ class MySolutionOut(Schema):
         return signal.author_answer if signal else None
 
     @staticmethod
-    def resolve_feedback(obj):
-        # Les retours des relecteurs ne sont visibles qu'une fois la relecture close.
-        if obj.status not in (Solution.Status.VALIDATED, Solution.Status.NEEDS_WORK):
-            return []
-        return [
-            review.feedback
-            for review in obj.reviews.filter(round=obj.review_round).exclude(submitted_at=None)
-            if review.feedback
-        ]
+    def resolve_reviews(obj):
+        return obj.reviews.filter(round=obj.review_round).exclude(submitted_at=None).order_by("submitted_at")
+
+    @staticmethod
+    def resolve_reviews_expected(obj):
+        if obj.status in (Solution.Status.DRAFT, Solution.Status.HELD):
+            return 0
+        return review_progress(obj)[1]
 
 
 class VoteOut(Schema):
@@ -883,11 +868,12 @@ def review_solution(request, review_id: int, payload: ReviewIn):
     if review.solution.status != Solution.Status.UNDER_REVIEW:
         raise HttpError(409, "Cette solution n'est plus en relecture.")
     feedback = payload.feedback.strip()
-    if payload.verdict != Review.Verdict.CORRECT and not feedback:
+    if not feedback:
+        # C'est la seule correction que l'auteur recevra : aucune solution n'est publique.
         raise HttpError(
             422,
-            "Explique en quelques mots ce qui manque ou ce qui est faux : "
-            "c'est ce qui aide l'auteur à progresser.",
+            "Laisse un commentaire à l'auteur : ce qui est juste, ce qui manque ou ce qui est faux. "
+            "C'est la seule correction qu'il recevra.",
         )
     status = submit_review(review, payload.verdict, feedback=feedback)
     return {"solution_status": status}

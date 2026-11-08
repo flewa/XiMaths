@@ -200,14 +200,8 @@ def is_note(solution):
 
 
 def can_view(user, solution, *, now=None):
-    """Qui lit le texte d'une solution en voit aussi les photos."""
-    now = now or timezone.now()
-    if solution.status == Solution.Status.VALIDATED:
-        # Les solutions d'un défi restent cachées jusqu'à la fermeture de sa fenêtre.
-        session = getattr(solution, "timed_session", None)
-        challenge = getattr(session, "challenge", None) if session else None
-        if challenge is None or challenge.closes_at <= now:
-            return True
+    """Une copie est privée, même validée : son auteur, ses relecteurs et la modération
+    (dont les experts qui tranchent ou évaluent une question de compréhension) la voient."""
     if not user.is_authenticated:
         return False
     if solution.author_id == user.pk or is_moderator(user):

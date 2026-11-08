@@ -92,8 +92,8 @@ export function PushSettings({ publicKey }: { publicKey: string }) {
   return (
     <div className="space-y-4">
       <p className="text-body">
-        Une notification par jour au plus, jamais entre 22 h et 8 h : relecture attribuée, solution validée ou
-        à compléter, exercice résolu, question de compréhension, bilan de la semaine, et le défi du jour si tu
+        Une notification par jour au plus, jamais entre 22 h et 8 h : relecture attribuée, copie corrigée,
+        validée ou à reprendre, exercice résolu, question de compréhension, bilan de la semaine, et le défi du jour si tu
         l&apos;as demandé. Le reste attend dans tes notifications.
       </p>
       {state === "loading" && <p className="text-mute">…</p>}

@@ -45,6 +45,12 @@ class NotifyTests(ContentTestCase):
         )
         for reviewer in self.reviewers[:2]:
             self.review(solution, reviewer, "correcte")
+        # Chaque relecture rendue prévient l'auteur ; la dernière annonce le résultat.
+        reviewed = Notification.objects.filter(user=self.student, kind=Kind.SOLUTION_REVIEWED)
+        self.assertEqual([n.body.split("(")[1].split(")")[0] for n in reviewed.order_by("pk")],
+                         ["1 relecture sur 3", "2 relectures sur 3"])
+        self.review(solution, self.reviewers[2], "correcte")
+        self.assertEqual(reviewed.count(), 2)
         self.assertTrue(Notification.objects.filter(user=self.student, kind=Kind.SOLUTION_VALIDATED).exists())
         self.assertTrue(Notification.objects.filter(user=self.author, kind=Kind.EXERCISE_SOLVED).exists())
 
