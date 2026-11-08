@@ -50,6 +50,8 @@ export type ExerciseSummary = {
   published_at: string;
   /** Publié depuis moins d'une semaine. */
   is_new: boolean;
+  /** Auteur, quand c'est un membre ; vide pour les exercices de la rédaction. */
+  author_profile: MemberRef | null;
 };
 
 /** Exercice du fil d'accueil, avec la raison de sa présence. */
@@ -250,6 +252,11 @@ export type Skill = {
 /** Avatar d'un membre : nom de couleur (voir AVATAR_TINTS) et symbole, ou son initiale. */
 export type Avatar = { color: string; symbol: string; custom_symbol: boolean };
 
+export type BadgeRef = { slug: string; name: string };
+
+/** Un membre en petit : pseudo, avatar et vitrine (jusqu'à trois badges). */
+export type MemberRef = { username: string; avatar: Avatar; featured_badges: BadgeRef[] };
+
 export type EarnedBadge = { slug: string; name: string; criterion: string; awarded_at: string };
 
 export type LeaderboardEntry = {
@@ -260,7 +267,7 @@ export type LeaderboardEntry = {
   is_me: boolean;
   avatar: Avatar;
   /** Vitrine du membre : jusqu'à trois badges. */
-  featured_badges: { slug: string; name: string }[];
+  featured_badges: BadgeRef[];
 };
 
 export type Leaderboard = {

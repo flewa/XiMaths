@@ -13,6 +13,7 @@ from ninja.security import django_auth
 from pydantic import Field
 
 from accounts.profile import avatar_of
+from accounts.schemas import AvatarOut, BadgeRefOut, featured_refs
 from catalog.models import Level, Topic
 from content.api import ExerciseSummary, published_exercises
 from content.models import Exercise, Review, Solution
@@ -28,17 +29,6 @@ User = get_user_model()
 
 GLOBAL = "global"
 PANTHEON = "pantheon"
-
-
-class AvatarOut(Schema):
-    color: str
-    symbol: str
-    custom_symbol: bool
-
-
-class BadgeRefOut(Schema):
-    slug: str
-    name: str
 
 
 class EntryOut(Schema):
@@ -158,11 +148,7 @@ def leaderboard(request, board: str = GLOBAL, week: str | None = None, peers: bo
             "points": entry.points,
             "is_me": entry.user_id == viewer_id,
             "avatar": avatar_of(profile) if profile else {"color": "sable", "symbol": entry.username[:1].upper(), "custom_symbol": False},
-            "featured_badges": [
-                {"slug": slug, "name": BADGES_BY_SLUG[slug].name}
-                for slug in (profile.featured_badges if profile else [])
-                if slug in BADGES_BY_SLUG
-            ],
+            "featured_badges": featured_refs(profile) if profile else [],
         }
 
     me = None

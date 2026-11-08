@@ -8,6 +8,9 @@ import re
 AVATAR_COLORS = ["corail", "ambre", "jade", "ciel", "lavande", "rose", "menthe", "sable"]
 # Symboles proposés pour l'avatar ; sans symbole, l'initiale du pseudo.
 AVATAR_SYMBOLS = ["∑", "∫", "∂", "∇", "∞", "π", "φ", "λ", "ξ", "ζ", "Ω", "ℵ", "∀", "∃", "√", "ε"]
+# Compte de la rédaction : il publie les exercices du site, ce n'est pas un membre comme
+# les autres (les listes ne le montrent pas comme auteur).
+EDITORIAL_USERNAME = "XiMaths"
 BIO_MAX_LENGTH = 200
 FEATURED_MAX = 3
 FAVORITE_TOPICS_MAX = 3
@@ -27,6 +30,10 @@ def avatar_of(user):
         "symbol": user.avatar_symbol or user.username[:1].upper(),
         "custom_symbol": bool(user.avatar_symbol),
     }
+
+
+def is_editorial(user):
+    return user.username == EDITORIAL_USERNAME
 
 
 def profile_problems(*, bio, avatar_color, avatar_symbol, featured_badges, owned_badges, favorite_topics, known_topics):

@@ -26,7 +26,14 @@ export const AVATAR_COLOR_NAMES: Record<string, string> = {
 
 export type BadgeShape = "circle" | "hexagon" | "shield";
 
-export type BadgeArt = { glyph: string; tint: string; shape: BadgeShape; meaning: string };
+export type BadgeArt = {
+  glyph: string;
+  tint: string;
+  shape: BadgeShape;
+  meaning: string;
+  /** Palier d'une série de badges (bronze, argent, or) : autant de points sous le symbole. */
+  tier?: number;
+};
 
 const METALS = { bronze: "#c58a5a", argent: "#c9ccd1", or: "#e8c15a" };
 
@@ -43,9 +50,9 @@ export const BADGE_ART: Record<string, BadgeArt> = {
   "chasseur-de-doublons": { glyph: "≅", tint: AVATAR_TINTS.sable, shape: "shield", meaning: "isomorphes" },
   "sous-pression": { glyph: "Δt", tint: AVATAR_TINTS.corail, shape: "circle", meaning: "contre la montre" },
   "etudiant-verifie": { glyph: "∈", tint: AVATAR_TINTS.ciel, shape: "shield", meaning: "appartient à un établissement" },
-  "regulier-bronze": { glyph: "∫", tint: METALS.bronze, shape: "circle", meaning: "l'effort qui s'accumule" },
-  "regulier-argent": { glyph: "∫", tint: METALS.argent, shape: "circle", meaning: "l'effort qui s'accumule" },
-  "regulier-or": { glyph: "∫", tint: METALS.or, shape: "circle", meaning: "l'effort qui s'accumule" },
+  "regulier-bronze": { glyph: "∫", tint: METALS.bronze, shape: "circle", meaning: "l'effort qui s'accumule", tier: 1 },
+  "regulier-argent": { glyph: "∫", tint: METALS.argent, shape: "circle", meaning: "l'effort qui s'accumule", tier: 2 },
+  "regulier-or": { glyph: "∫", tint: METALS.or, shape: "circle", meaning: "l'effort qui s'accumule", tier: 3 },
 };
 
 export const FALLBACK_ART: BadgeArt = { glyph: "★", tint: AVATAR_TINTS.sable, shape: "circle", meaning: "" };

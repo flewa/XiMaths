@@ -7,6 +7,7 @@ import { BadgeMedal } from "@/components/BadgeMedal";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { ExerciseList } from "@/components/ExerciseList";
 import { secondaryButtonClass } from "@/components/Form";
+import { ShareProfile } from "@/components/ShareProfile";
 import { type Member, fetchBadges, fetchMember } from "@/lib/api";
 import { dateFormat, plural } from "@/lib/labels";
 import { chapterPath } from "@/lib/seo-pages";
@@ -72,12 +73,16 @@ export default async function MemberPage({ params }: Props) {
               ))}
             </p>
           )}
+          {member.is_me && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link href="/reglages#profil" className={secondaryButtonClass}>
+                Personnaliser mon profil
+              </Link>
+              <ShareProfile username={member.username} />
+            </div>
+          )}
         </div>
-        {member.is_me && (
-          <Link href="/reglages#profil" className={secondaryButtonClass}>
-            Personnaliser mon profil
-          </Link>
-        )}
+
       </header>
 
       {(member.featured_badges.length > 0 || member.is_me) && (
@@ -154,7 +159,7 @@ export default async function MemberPage({ params }: Props) {
         </h2>
         {member.recent_exercises.length > 0 ? (
           <div className="mt-2">
-            <ExerciseList exercises={member.recent_exercises} />
+            <ExerciseList exercises={member.recent_exercises} showAuthor={false} />
           </div>
         ) : (
           <p className="mt-3 text-sm text-mute">

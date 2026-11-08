@@ -8,6 +8,8 @@ import {
   SolutionForm,
   VoteButton,
 } from "@/components/ContributionForms";
+import { Avatar } from "@/components/Avatar";
+import { BadgeMedal } from "@/components/BadgeMedal";
 import { CopyPhotoList } from "@/components/CopyPhotos";
 import { ApiUnavailable, Difficulty, License, logApiError } from "@/components/ExerciseMeta";
 import { ExerciseList } from "@/components/ExerciseList";
@@ -28,6 +30,7 @@ import {
   type ExerciseDetail,
   type ExerciseSummary,
   type Me,
+  type MemberRef,
   type MySolution,
   type Topic,
 } from "@/lib/api";
@@ -205,7 +208,11 @@ export default async function ExercisePage({ params }: Props) {
           </span>
         )}
         {exercise.author && (
-          <Link href={`/membres/${encodeURIComponent(exercise.author)}`} className="hover:underline">
+          <Link
+            href={`/membres/${encodeURIComponent(exercise.author)}`}
+            className="inline-flex items-center gap-1.5 hover:underline"
+          >
+            {exercise.author_profile && <Avatar avatar={exercise.author_profile.avatar} size={18} />}
             par {exercise.author}
           </Link>
         )}
@@ -297,6 +304,8 @@ export default async function ExercisePage({ params }: Props) {
         </section>
       )}
 
+      {exercise.author_profile && <AuthorCard author={exercise.author_profile} />}
+
       {related.length > 0 && (
         <section aria-labelledby="proches" className={section}>
           <h2 id="proches" className={sectionTitle}>
@@ -314,6 +323,35 @@ export default async function ExercisePage({ params }: Props) {
         <Report me={me} author={exercise.author} target="exercise" targetId={exercise.id} />
       </div>
     </article>
+  );
+}
+
+/** L'auteur, quand c'est un membre : une carte vers son profil, avec sa vitrine. */
+function AuthorCard({ author }: { author: MemberRef }) {
+  return (
+    <section aria-label="Auteur de l'exercice" className={section}>
+      <Link
+        href={`/membres/${encodeURIComponent(author.username)}`}
+        className="group flex items-center gap-4 rounded-2xl border border-hairline bg-surface-soft px-4 py-3.5 hover:border-hairline-strong"
+      >
+        <Avatar avatar={author.avatar} size={48} />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm text-mute">Proposé par</span>
+          <span className="block truncate font-medium text-ink group-hover:underline">{author.username}</span>
+        </span>
+        {author.featured_badges.length > 0 && (
+          <span className="flex gap-1.5 max-sm:hidden">
+            {author.featured_badges.map((badge) => (
+              <BadgeMedal key={badge.slug} slug={badge.slug} size={32} />
+            ))}
+          </span>
+        )}
+        <span className="flex items-center gap-1 text-sm text-mute group-hover:text-ink">
+          <span className="max-sm:sr-only">Voir son profil</span>
+          <Icon name="chevron" size={16} className="-rotate-90" />
+        </span>
+      </Link>
+    </section>
   );
 }
 

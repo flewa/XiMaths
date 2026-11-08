@@ -30,8 +30,9 @@ from content.models import Review, Solution
 from gamification.services import balance
 
 from . import academic, google
-from .profile import AVATAR_COLORS, AVATAR_SYMBOLS, avatar_of, profile_problems
 from .models import User
+from .profile import AVATAR_COLORS, AVATAR_SYMBOLS, avatar_of, profile_problems
+from .schemas import AvatarOut
 from .services import (
     delete_account,
     export_user_data,
@@ -44,13 +45,6 @@ from .services import (
 
 router = Router(tags=["comptes"])
 logger = logging.getLogger(__name__)
-
-
-class AvatarOut(Schema):
-    # Nom de couleur (voir accounts/profile.py) et symbole : choisi, ou l'initiale du pseudo.
-    color: str
-    symbol: str
-    custom_symbol: bool
 
 
 class MeOut(Schema):

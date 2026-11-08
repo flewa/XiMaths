@@ -7,7 +7,7 @@ from catalog.models import Topic
 from content.tests import ContentTestCase, make_user
 from gamification.models import UserBadge
 
-from .profile import AVATAR_COLORS, avatar_of, default_color
+from .profile import AVATAR_COLORS, EDITORIAL_USERNAME, avatar_of, default_color
 
 
 class AvatarTests(TestCase):
@@ -95,3 +95,16 @@ class MemberPageTests(ContentTestCase):
         [entry] = [e for e in self.client.get("/api/leaderboards").json()["top"] if e["username"] == "lea"]
         self.assertEqual(entry["avatar"]["symbol"], "π")
         self.assertEqual(entry["featured_badges"], [{"slug": "premier-pas", "name": "Premier pas"}])
+
+    def test_exercises_name_their_member_author_but_not_the_editorial_account(self):
+        self.author.avatar_symbol = "∑"
+        self.author.save()
+        [listed] = [e for e in self.client.get("/api/exercises").json() if e["id"] == self.exercise.pk]
+        self.assertEqual(listed["author_profile"]["username"], "auteur")
+        self.assertEqual(listed["author_profile"]["avatar"]["symbol"], "∑")
+
+        self.author.username = EDITORIAL_USERNAME
+        self.author.save()
+        detail = self.client.get(f"/api/exercises/{self.exercise.pk}").json()
+        self.assertIsNone(detail["author_profile"])
+        self.assertEqual(detail["author"], EDITORIAL_USERNAME)
