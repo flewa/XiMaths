@@ -5,7 +5,16 @@ import { notFound } from "next/navigation";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { ExerciseList } from "@/components/ExerciseList";
 import { JsonLd, breadcrumb } from "@/components/JsonLd";
-import { type ExerciseSummary, type Level, type Topic, fetchExercises, fetchLevels, fetchTopics } from "@/lib/api";
+import {
+  type ExerciseSummary,
+  type Level,
+  type Topic,
+  fetchCourseNotes,
+  fetchExercises,
+  fetchLevels,
+  fetchTopics,
+} from "@/lib/api";
+import { courseNotePath } from "@/lib/course-notes";
 import { plural } from "@/lib/labels";
 import { chapterPath, levelPath, notionsOf, ofChapter, topicIntro } from "@/lib/seo-pages";
 import { SHARE_IMAGE } from "@/lib/site";
@@ -84,16 +93,17 @@ export default async function ChapterPage({ params }: Props) {
   try {
     const found = await load(slug);
     if (!found) notFound();
-    const [exercises, levels] = await Promise.all([
+    const [exercises, levels, courseNotes] = await Promise.all([
       fetchExercises(undefined, "recent", found.topic.slug),
       fetchLevels(),
+      fetchCourseNotes(found.topic.slug),
     ]);
-    data = { ...found, exercises, levels };
+    data = { ...found, exercises, levels, courseNotes };
   } catch (error) {
     logApiError(error);
     return <ApiUnavailable />;
   }
-  const { topic, parent, topics, exercises, levels } = data;
+  const { topic, parent, topics, exercises, levels, courseNotes } = data;
   const reached = levelsOf(exercises, levels);
   const trail: [string, string][] = [
     ["Accueil", "/"],
@@ -126,6 +136,21 @@ export default async function ChapterPage({ params }: Props) {
       {/* Un chapitre s'ouvre sur ses notions, comme un sommaire ; une notion garde ses
           voisines pour après la liste, qui est ce qu'on vient chercher. */}
       {!parent && <TopicChips label="Par notion :" topics={notionsOf(topics, topic.slug)} />}
+
+      {courseNotes.length > 0 && (
+        <p className="mt-6 flex flex-wrap items-center gap-2 text-sm">
+          <span className="mr-1 text-mute">Rappels de cours :</span>
+          {courseNotes.map((note) => (
+            <Link
+              key={note.slug}
+              href={courseNotePath(note.slug)}
+              className="rounded-full bg-surface-card px-3 py-1 text-ink hover:bg-surface-dark-elevated"
+            >
+              {note.title} <span className="text-mute">{note.published ? note.programs : "brouillon"}</span>
+            </Link>
+          ))}
+        </p>
+      )}
 
       {reached.length > 0 && (
         <p className="mt-4 flex flex-wrap items-center gap-2 text-sm">

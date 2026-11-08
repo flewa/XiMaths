@@ -3,6 +3,7 @@ from ninja import NinjaAPI
 
 from accounts.api import router as auth_router
 from content.api import router as content_router
+from courses.api import router as courses_router
 from gamification.api import router as progression_router
 from moderation.api import router as moderation_router
 from notifications.api import router as notifications_router
@@ -17,6 +18,7 @@ api.add_router("/", progression_router)
 api.add_router("/", moderation_router)
 api.add_router("/", training_router)
 api.add_router("/", notifications_router)
+api.add_router("/", courses_router)
 
 
 @api.exception_handler(PermissionDenied)

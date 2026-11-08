@@ -62,6 +62,7 @@ export default async function RootLayout({
     pendingReviews: me.pending_reviews,
     unreadNotifications: me.unread_notifications,
     declaredLevel: me.declared_level,
+    isStaff: me.is_staff,
   };
   // Site déclaré dans Umami (deploy/statistiques.sh), lu au démarrage du serveur : sans lui,
   // aucune mesure d'audience.

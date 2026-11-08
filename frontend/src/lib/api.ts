@@ -123,6 +123,8 @@ export type Me = {
   academic_verified_at: string | null;
   /** Domaine de l'adresse académique vérifiée ; l'adresse elle-même n'est pas gardée. */
   academic_domain: string;
+  /** Équipe du site (accès à l'admin) : relit et publie les rappels de cours. */
+  is_staff: boolean;
 };
 
 export type AppNotification = {
@@ -387,6 +389,27 @@ async function get<T>(path: string): Promise<T | null> {
 
 export type SitemapEntry = { id: number; updated_at: string };
 
+/** Fiche de rappels de cours de prépa. Non publiée, seule l'équipe la voit. */
+export type CourseNoteSummary = {
+  slug: string;
+  title: string;
+  cycle: "sup" | "spe";
+  /** Filières dont le programme couvre la fiche, par exemple « MP, PSI ». */
+  programs: string;
+  position: number;
+  /** Chapitre ou notion du site où la fiche est proposée. */
+  topic: string | null;
+  topic_name: string | null;
+  published: boolean;
+  updated_at: string;
+};
+
+export type CourseNote = CourseNoteSummary & {
+  /** Markdown et LaTeX. */
+  body: string;
+  published_at: string | null;
+};
+
 /** Données publiques, lues sans cookie de session. */
 async function getPublic<T>(path: string): Promise<T> {
   const response = await fetch(`${API_URL}/api${path}`, { cache: "no-store" });
@@ -394,14 +417,25 @@ async function getPublic<T>(path: string): Promise<T> {
   return response.json();
 }
 
-/** Ce que liste le plan du site : exercices publiés, niveaux et chapitres. */
+/** Ce que liste le plan du site : exercices publiés, niveaux, chapitres et rappels de cours
+ * publiés (lus sans session : jamais les brouillons). */
 export async function fetchSitemap() {
-  const [exercises, levels, topics] = await Promise.all([
+  const [exercises, levels, topics, courseNotes] = await Promise.all([
     getPublic<SitemapEntry[]>("/sitemap"),
     getPublic<Level[]>("/levels"),
     getPublic<Topic[]>("/topics"),
+    getPublic<CourseNoteSummary[]>("/course-notes"),
   ]);
-  return { exercises, levels, topics };
+  return { exercises, levels, topics, courseNotes };
+}
+
+/** Rappels de cours visibles du visiteur : publiés, plus les brouillons pour l'équipe. */
+export async function fetchCourseNotes(topic?: string) {
+  return (await get<CourseNoteSummary[]>(`/course-notes${topic ? `?topic=${encodeURIComponent(topic)}` : ""}`)) ?? [];
+}
+
+export function fetchCourseNote(slug: string) {
+  return get<CourseNote>(`/course-notes/${encodeURIComponent(slug)}`);
 }
 
 export async function fetchLevels() {

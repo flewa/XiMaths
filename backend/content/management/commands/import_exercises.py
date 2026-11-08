@@ -12,6 +12,7 @@ notions.
 """
 
 from django.contrib.auth import get_user_model
+from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
@@ -138,6 +139,9 @@ class Command(BaseCommand):
         self.stdout.write(f"Publiés : {published}. Déjà là : {already}. Mis à jour : {updated}.")
         for line in set_aside:
             self.stdout.write(f"Laissé de côté : {line}")
+        # Les rappels de cours de la rédaction suivent le même chemin de mise à jour
+        # (deploy/update.sh), en brouillon jusqu'à ce qu'un admin les publie.
+        call_command("import_course_notes", stdout=self.stdout)
 
     @staticmethod
     def refresh(exercise, spec):
