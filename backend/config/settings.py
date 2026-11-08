@@ -89,6 +89,7 @@ INSTALLED_APPS = [
     "accounts",
     "catalog",
     "content",
+    "courses",
     "duplicates",
     "gamification",
     "moderation",

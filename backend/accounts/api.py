@@ -65,6 +65,8 @@ class MeOut(Schema):
     academic_verified_at: datetime | None
     # Domaine de l'adresse académique vérifiée ; l'adresse elle-même n'est pas gardée.
     academic_domain: str
+    # Équipe du site (accès à l'admin) : relit et publie les rappels de cours.
+    is_staff: bool
 
     @staticmethod
     def resolve_email_verified(obj):

@@ -1,9 +1,10 @@
+import type { Element, ElementContent, Root, RootContent } from "hast";
 import ReactMarkdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";
 
 // Macros fournies aux auteurs, à la place de \def et \newcommand libres.
-const MACROS = {
+export const MACROS = {
   "\\R": "\\mathbb{R}",
   "\\N": "\\mathbb{N}",
   "\\Z": "\\mathbb{Z}",
@@ -24,6 +25,38 @@ export function normalizeMath(source: string) {
     .replace(/\\\((.+?)\\\)/g, (_, body: string) => `$${body}$`);
 }
 
+// Ponctuation haute précédée d'une espace insécable (typographie française).
+const GLUED_PUNCTUATION = /^\u00a0[:;!?]/;
+
+function isFormula(node: RootContent | ElementContent | undefined): node is Element {
+  const className = node?.type === "element" ? node.properties?.className : undefined;
+  return Array.isArray(className) && className.includes("katex");
+}
+
+/** Garde « formule + espace insécable + ponctuation » sur une même ligne : le navigateur
+ * couperait sinon entre la formule et l'espace, et la ligne suivante commencerait par « : ». */
+export function keepPunctuationWithMath() {
+  function glue(node: Root | Element) {
+    const children: (RootContent | ElementContent)[] = node.children;
+    for (let index = 0; index < children.length; index++) {
+      const child = children[index];
+      if (child.type === "element") glue(child);
+      const next = children[index + 1];
+      if (isFormula(child) && next?.type === "text" && GLUED_PUNCTUATION.test(next.value)) {
+        const wrapper: Element = {
+          type: "element",
+          tagName: "span",
+          properties: { className: ["math-glue"] },
+          children: [child, { type: "text", value: next.value.slice(0, 2) }],
+        };
+        const rest = next.value.slice(2);
+        children.splice(index, 2, wrapper, ...(rest ? [{ type: "text" as const, value: rest }] : []));
+      }
+    }
+  }
+  return (tree: Root) => glue(tree);
+}
+
 /** Markdown + LaTeX rendu côté serveur. Le HTML brut est ignoré par react-markdown. */
 export function MathMarkdown({ children }: { children: string }) {
   const katexOptions = {
@@ -37,7 +70,10 @@ export function MathMarkdown({ children }: { children: string }) {
   };
   return (
     <div className="math-markdown">
-      <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[[rehypeKatex, katexOptions]]}>
+      <ReactMarkdown
+        remarkPlugins={[remarkMath]}
+        rehypePlugins={[[rehypeKatex, katexOptions], keepPunctuationWithMath]}
+      >
         {normalizeMath(children)}
       </ReactMarkdown>
     </div>

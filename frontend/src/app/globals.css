@@ -272,6 +272,36 @@
   padding: 0.25rem 0;
 }
 
+/* Rappels de cours : sections, et encadrés pour les définitions et les théorèmes. */
+.course-note h2 {
+  margin: 2.5rem 0 0.75rem;
+}
+
+.course-note h3 {
+  margin: 1.75rem 0 0.5rem;
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  color: var(--ink-deep);
+}
+
+.course-note blockquote {
+  margin: 1rem 0;
+  padding: 0.25rem 1rem;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 0.75rem 0.75rem 0;
+  background: var(--surface-soft);
+}
+
+.course-note strong {
+  font-weight: 600;
+  color: var(--ink-deep);
+}
+
+/* Une formule et la ponctuation qui la suit (« $x$ : ») ne se séparent pas. */
+.math-markdown .math-glue {
+  white-space: nowrap;
+}
+
 /* Une formule courte dans une ligne de liste ne se coupe pas au milieu. */
 .nowrap-math .katex {
   white-space: nowrap;

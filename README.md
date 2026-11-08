@@ -196,6 +196,12 @@ Depuis la fiche d'un exercice : 15, 30, 45 ou 60 minutes, ou le temps conseillé
 - **Sanctions**, toujours humaines et motivées, dans l'admin : avertissement, exclusion des classements (30 jours), suspension (7 jours), bannissement. Un compte suspendu peut se connecter pour faire appel, pas contribuer.
 - **Appels** sous 14 jours, depuis `/decisions` : sanctions, retraits de contenu, plagiats confirmés. Un autre modérateur que l'auteur de la décision les examine, sous 7 jours, et motive sa réponse. Une décision annulée lève la sanction ou rétablit le contenu et ses points.
 
+## Rappels de cours
+
+Fiches de cours de prépa, sup et spé (`backend/courses/notes/sup/` et `spe/`, un fichier Markdown + LaTeX par fiche, avec un en-tête titre, programmes, ordre et notion du site). `import_exercises` les importe aussi (`import_course_notes` seul sinon) : elles arrivent **en brouillon**, visibles de l'équipe seulement (comptes `is_staff`), sur `/rappels`. Un admin relit chaque fiche sur le site et la publie d'un bouton ; publiée, elle est visible de tous, proposée sur la page de sa notion et listée dans le plan du site. Une fiche dont le texte change dans le dépôt repasse en brouillon, pour être relue de nouveau.
+
+Garde-fous : chaque formule passe dans KaTeX (`src/lib/course-notes.test.ts`), les en-têtes et notions sont vérifiés côté serveur (`courses/tests.py`). Conventions d'écriture : notations définies en tête de fiche (« Cadre et notations »), énoncés complets dans des encadrés (`> **Théorème (nom).** …`), `]{-}r, r[` pour un intervalle ouvert à borne négative, pas de tableau Markdown (non rendu).
+
 ## Référencement
 
 - **Pages d'entrée** par niveau (`/niveaux/mpsi`), par chapitre (`/chapitres/algebre-lineaire`) et par notion (`/chapitres/series-entieres`) : ce que tapent les élèves (« exercices MPSI », « exercices de séries entières »), avec un texte d'introduction propre à chacune (`src/lib/seo-pages.ts`). Les 38 notions sont des sous-chapitres (`Topic` avec un parent, migration `catalog/0004_notions`) ; choisir une notion range aussi l'exercice dans son chapitre, et la carte de compétences reste par chapitre. Une notion sans exercice est en `noindex` et hors du plan du site.
