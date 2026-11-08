@@ -116,6 +116,12 @@ export type Me = {
   academic_domain: string;
   /** Équipe du site (accès à l'admin) : relit et publie les rappels de cours. */
   is_staff: boolean;
+  /** Profil public. */
+  bio: string;
+  avatar: Avatar;
+  featured_badges: string[];
+  /** Slugs des chapitres et notions favoris. */
+  favorite_topics: string[];
 };
 
 export type AppNotification = {
@@ -241,12 +247,20 @@ export type Skill = {
   next: { id: number; title: string; difficulty: number } | null;
 };
 
+/** Avatar d'un membre : nom de couleur (voir AVATAR_TINTS) et symbole, ou son initiale. */
+export type Avatar = { color: string; symbol: string; custom_symbol: boolean };
+
+export type EarnedBadge = { slug: string; name: string; criterion: string; awarded_at: string };
+
 export type LeaderboardEntry = {
   rank: number;
   username: string;
   declared_level: string | null;
   points: number;
   is_me: boolean;
+  avatar: Avatar;
+  /** Vitrine du membre : jusqu'à trois badges. */
+  featured_badges: { slug: string; name: string }[];
 };
 
 export type Leaderboard = {
@@ -318,16 +332,27 @@ export type BadgeInfo = {
 
 export type Member = {
   username: string;
+  is_me: boolean;
   declared_level: string | null;
+  declared_level_name: string | null;
   trust_level: string;
   joined: string;
+  bio: string;
+  avatar: Avatar;
+  featured_badges: EarnedBadge[];
+  favorite_topics: { slug: string; name: string }[];
   /** null, comme le niveau, si le membre a masqué sa présence dans les classements. */
   points: number | null;
   contributor_level: number | null;
   exercises_published: number;
   solutions_validated: number;
-  badges: { slug: string; name: string; criterion: string; awarded_at: string }[];
+  reviews_done: number;
+  streak_weeks: number;
+  badges: EarnedBadge[];
+  recent_exercises: ExerciseSummary[];
 };
+
+export type ProfileOptions = { colors: string[]; symbols: string[] };
 
 export type SolutionStatus =
   | "held"
@@ -620,6 +645,11 @@ export function fetchMyDecisions() {
 
 export async function fetchBadges() {
   return (await get<BadgeInfo[]>("/badges")) ?? [];
+}
+
+/** Couleurs et symboles proposés pour l'avatar. */
+export async function fetchProfileOptions() {
+  return (await get<ProfileOptions>("/auth/profile-options")) ?? { colors: [], symbols: [] };
 }
 
 export function fetchMember(username: string) {

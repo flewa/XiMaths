@@ -59,6 +59,12 @@ class User(AbstractUser):
     )
     vacation_from = models.DateField(null=True, blank=True)
     vacation_until = models.DateField(null=True, blank=True)
+    # Profil public, personnalisable dans les réglages (voir accounts/profile.py).
+    bio = models.CharField("présentation", max_length=200, blank=True)
+    avatar_color = models.CharField(max_length=16, blank=True)
+    avatar_symbol = models.CharField(max_length=4, blank=True)
+    featured_badges = models.JSONField(default=list, blank=True)
+    favorite_topics = models.ManyToManyField("catalog.Topic", blank=True, related_name="+")
 
 
 class AccountLink(models.Model):

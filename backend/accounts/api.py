@@ -23,13 +23,14 @@ from ninja.security import django_auth
 from ninja.utils import check_csrf
 from pydantic import Field
 
-from catalog.models import Level
+from catalog.models import Level, Topic
 from config.errors import RuleError
 from config.throttles import AnonRouteThrottle, AuthRouteThrottle
 from content.models import Review, Solution
 from gamification.services import balance
 
 from . import academic, google
+from .profile import AVATAR_COLORS, AVATAR_SYMBOLS, avatar_of, profile_problems
 from .models import User
 from .services import (
     delete_account,
@@ -43,6 +44,13 @@ from .services import (
 
 router = Router(tags=["comptes"])
 logger = logging.getLogger(__name__)
+
+
+class AvatarOut(Schema):
+    # Nom de couleur (voir accounts/profile.py) et symbole : choisi, ou l'initiale du pseudo.
+    color: str
+    symbol: str
+    custom_symbol: bool
 
 
 class MeOut(Schema):
@@ -67,6 +75,19 @@ class MeOut(Schema):
     academic_domain: str
     # Équipe du site (accès à l'admin) : relit et publie les rappels de cours.
     is_staff: bool
+    # Profil public.
+    bio: str
+    avatar: AvatarOut
+    featured_badges: list[str]
+    favorite_topics: list[str]
+
+    @staticmethod
+    def resolve_avatar(obj):
+        return avatar_of(obj)
+
+    @staticmethod
+    def resolve_favorite_topics(obj):
+        return list(obj.favorite_topics.values_list("slug", flat=True))
 
     @staticmethod
     def resolve_email_verified(obj):
@@ -133,6 +154,19 @@ class PreferencesIn(Schema):
     email_notifications: bool | None = None
     weekly_digest: bool | None = None
     daily_challenge_notifications: bool | None = None
+
+
+class ProfileIn(Schema):
+    bio: str = Field(default="", max_length=400)
+    avatar_color: str = Field(default="", max_length=16)
+    avatar_symbol: str = Field(default="", max_length=4)
+    featured_badges: list[str] = Field(default_factory=list, max_length=10)
+    favorite_topics: list[str] = Field(default_factory=list, max_length=10)
+
+
+class ProfileOptionsOut(Schema):
+    colors: list[str]
+    symbols: list[str]
 
 
 class EmailIn(Schema):
@@ -234,6 +268,40 @@ def logout_view(request):
 @router.get("/me", response=MeOut, auth=django_auth)
 def me(request):
     return request.auth
+
+
+@router.get("/profile-options", response=ProfileOptionsOut)
+def profile_options(request):
+    """Couleurs et symboles proposés pour l'avatar."""
+    return {"colors": AVATAR_COLORS, "symbols": AVATAR_SYMBOLS}
+
+
+@router.put("/profile", response=MeOut, auth=django_auth)
+def update_profile(request, payload: ProfileIn):
+    """Profil public : avatar, présentation, vitrine de badges et chapitres favoris."""
+    user = request.auth
+    bio = " ".join(payload.bio.split())
+    featured = list(dict.fromkeys(payload.featured_badges))
+    topics = list(dict.fromkeys(payload.favorite_topics))
+    known = dict(Topic.objects.filter(slug__in=topics).values_list("slug", "pk"))
+    problems = profile_problems(
+        bio=bio,
+        avatar_color=payload.avatar_color,
+        avatar_symbol=payload.avatar_symbol,
+        featured_badges=featured,
+        owned_badges=set(user.badges.values_list("badge", flat=True)),
+        favorite_topics=topics,
+        known_topics=known,
+    )
+    if problems:
+        raise HttpError(422, problems[0])
+    user.bio = bio
+    user.avatar_color = payload.avatar_color
+    user.avatar_symbol = payload.avatar_symbol
+    user.featured_badges = featured
+    user.save(update_fields=["bio", "avatar_color", "avatar_symbol", "featured_badges"])
+    user.favorite_topics.set([known[slug] for slug in topics])
+    return user
 
 
 @router.post("/verify-email", response=MeOut)

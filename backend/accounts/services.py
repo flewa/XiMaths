@@ -142,6 +142,13 @@ def export_user_data(user):
             "resume_hebdomadaire": user.weekly_digest,
             "notification_defi_du_jour": user.daily_challenge_notifications,
             "objectif_jours_actifs": user.weekly_goal_days,
+            "profil": {
+                "presentation": user.bio,
+                "couleur_avatar": user.avatar_color,
+                "symbole_avatar": user.avatar_symbol,
+                "vitrine_de_badges": user.featured_badges,
+                "chapitres_favoris": list(user.favorite_topics.values_list("slug", flat=True)),
+            },
             "vacances": [dates(user.vacation_from), dates(user.vacation_until)] if user.vacation_from else None,
             "compte_google_lie": bool(user.google_sub),
         },

@@ -389,19 +389,18 @@ class BadgeTests(ContentTestCase):
             check_badges(self.student)
         self.assertIn("touche-a-tout", self.owned(self.student))
 
-    def test_elegance_needs_twenty_votes_that_count(self):
-        solution = self.validated(self.student)
+    def test_elegance_needs_twenty_votes_that_count_on_an_exercise(self):
         voters = [make_user(f"votant{i}") for i in range(20)]
         # Le vote d'un compte de moins de 7 jours pèse 0 et ne compte pas.
         Vote.objects.bulk_create(
-            Vote(voter=voter, solution=solution, weight=1 if i else 0) for i, voter in enumerate(voters)
+            Vote(voter=voter, exercise=self.exercise, weight=1 if i else 0) for i, voter in enumerate(voters)
         )
-        check_badges(self.student)
-        self.assertNotIn("elegance", self.owned(self.student))
+        check_badges(self.author)
+        self.assertNotIn("elegance", self.owned(self.author))
 
         Vote.objects.filter(weight=0).update(weight=1)
-        check_badges(self.student)
-        self.assertIn("elegance", self.owned(self.student))
+        check_badges(self.author)
+        self.assertIn("elegance", self.owned(self.author))
 
     def test_badges_are_awarded_once_and_listed_publicly(self):
         self.validated(self.student)

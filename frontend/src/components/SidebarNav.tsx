@@ -4,15 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-import type { Level, Topic } from "@/lib/api";
+import type { Avatar as AvatarData, Level, Topic } from "@/lib/api";
 import { chapterPath, levelPath } from "@/lib/seo-pages";
 
 import { LogoutButton } from "./AccountControls";
+import { Avatar } from "./Avatar";
 import { Icon, type IconName } from "./Icon";
 
 /** Ce que la navigation montre du membre connecté. */
 export type NavAccount = {
   username: string;
+  avatar: AvatarData;
   points: number;
   pendingReviews: number;
   unreadNotifications: number;
@@ -149,12 +151,7 @@ function AccountFooter({ account }: { account: NavAccount }) {
   return (
     <details key={pathname} className="plain relative">
       <summary className={`${row} text-ink hover:bg-hover`}>
-        <span
-          aria-hidden="true"
-          className="grid size-6 place-items-center rounded-full bg-surface-card text-[11px] font-semibold"
-        >
-          {account.username.slice(0, 1).toUpperCase()}
-        </span>
+        <Avatar avatar={account.avatar} size={24} />
         <span className="truncate">{account.username}</span>
         <Icon name="gear" size={17} className="ml-auto text-stone" />
       </summary>
