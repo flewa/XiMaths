@@ -11,7 +11,7 @@ from catalog.models import Level, Topic
 from content.models import Exercise, Review, Solution, Vote
 from content.tests import ContentTestCase, make_user
 
-from .badges import check_badges
+from .badges import BADGES_BY_SLUG, check_badges, next_badges
 from .models import PointTransaction, UserBadge
 from .rankings import Week, neighbourhood, standings
 from .scoring import validated_solution_points
@@ -381,13 +381,46 @@ class BadgeTests(ContentTestCase):
         self.assertIn("relecteur-fiable", self.owned(reviewer))  # 22 sur 25 : 88 %
 
     def test_all_rounder_needs_five_topics(self):
-        for topic in Topic.objects.all()[:5]:
+        chapters = list(Topic.objects.filter(parent=None)[:5])
+        for chapter in chapters:
             exercise = self.make_exercise()
-            exercise.topics.add(topic)
+            # Une notion du chapitre ne compte pas comme un chapitre de plus.
+            exercise.topics.add(chapter, *Topic.objects.filter(parent=chapter)[:1])
             self.assertNotIn("touche-a-tout", self.owned(self.student))
             self.validated(self.student, exercise=exercise)
             check_badges(self.student)
+            done, target = BADGES_BY_SLUG["touche-a-tout"].progress(self.student)
+            self.assertEqual((done, target), (chapters.index(chapter) + 1, 5))
         self.assertIn("touche-a-tout", self.owned(self.student))
+
+    def test_next_badges_are_the_closest_and_one_tier_at_a_time(self):
+        self.validated(self.student)
+        check_badges(self.student)
+        upcoming = next_badges(self.student, limit=20)
+        slugs = [badge.slug for badge, _, _ in upcoming]
+        self.assertNotIn("valide", slugs)  # déjà obtenu
+        self.assertNotIn("pionnier", slugs)  # ne se mesure pas
+        self.assertIn("regulier-bronze", slugs)
+        self.assertNotIn("regulier-argent", slugs)  # un palier à la fois
+        ratios = [done / target for _, done, target in upcoming]
+        self.assertEqual(ratios, sorted(ratios, reverse=True))
+
+    def test_the_progress_page_follows_each_copy(self):
+        self.client.force_login(self.student)
+        solution = self.publish()
+        data = self.client.get("/api/progress").json()
+        self.assertEqual(data["summary"]["copies_sent"], 1)
+        self.assertEqual(data["summary"]["in_review"], 1)
+        [copy] = data["copies"]
+        self.assertEqual((copy["status"], copy["reviews_done"], copy["reviews_expected"]), ("under_review", 0, 3))
+
+        self.validate(solution)
+        data = self.client.get("/api/progress").json()
+        self.assertEqual(data["summary"]["validated_exercises"], 1)
+        self.assertEqual(data["summary"]["in_review"], 0)
+        self.assertGreater(data["summary"]["points_week"], 0)
+        self.assertEqual(data["copies"][0]["status"], "validated")
+        self.assertNotIn("valide", [badge["slug"] for badge in data["next_badges"]])
 
     def test_elegance_needs_twenty_votes_that_count_on_an_exercise(self):
         voters = [make_user(f"votant{i}") for i in range(20)]

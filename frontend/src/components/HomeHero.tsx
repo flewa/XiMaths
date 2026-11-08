@@ -20,7 +20,7 @@ const cardTitle = "font-sans text-[13px] font-semibold uppercase tracking-[0.04e
 const pill = "rounded-full bg-surface-card px-2 py-px text-xs font-medium text-body";
 
 /** La semaine en sept cases : pleine si active, cerclée pour aujourd'hui, pâle pour les jours à venir. */
-function WeekSquares({ days }: { days: Progress["days"] }) {
+export function WeekSquares({ days }: { days: Progress["days"] }) {
   const today = days.findLastIndex((day) => !day.future);
   const active = days.flatMap((day, index) => (day.active ? [DAY_NAMES[index]] : []));
   return (

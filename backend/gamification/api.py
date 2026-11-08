@@ -17,11 +17,12 @@ from accounts.schemas import AvatarOut, BadgeRefOut, featured_refs
 from catalog.models import Level, Topic
 from content.api import ExerciseSummary, published_exercises
 from content.models import Exercise, Review, Solution
+from content.services import review_progress
 
 from . import skills, streaks
-from .badges import BADGES, BADGES_BY_SLUG
+from .badges import BADGES, BADGES_BY_SLUG, next_badges
 from .models import Goal, UserBadge, WeeklyStreak
-from .rankings import TOP_SIZE, Week, absence_reason, neighbourhood, standings
+from .rankings import TOP_SIZE, Week, absence_reason, neighbourhood, points_by_user, standings
 from .services import balance
 
 router = Router(tags=["progression"])
@@ -314,6 +315,38 @@ class SkillOut(Schema):
         return round(obj["mastery"], 1)
 
 
+class SummaryOut(Schema):
+    # Exercices différents réussis (solution validée, hors solution générée par IA).
+    validated_exercises: int
+    copies_sent: int
+    # En relecture, en vérification ou en arbitrage.
+    in_review: int
+    needs_work: int
+    points_week: int
+    reviews_done: int
+
+
+class CopyOut(Schema):
+    """Une copie envoyée, vue par son auteur : où elle en est."""
+
+    id: int
+    exercise_id: int
+    exercise_title: str
+    status: str
+    reviews_done: int
+    reviews_expected: int
+    published_at: datetime | None
+    validated_at: datetime | None
+
+
+class BadgeProgressOut(Schema):
+    slug: str
+    name: str
+    criterion: str
+    done: int
+    target: int
+
+
 class ProgressOut(Schema):
     week: str
     goal_days: int
@@ -327,6 +360,65 @@ class ProgressOut(Schema):
     goals: list[GoalOut]
     contributor: ContributorOut
     skills: list[SkillOut]
+    summary: SummaryOut
+    copies: list[CopyOut]
+    next_badges: list[BadgeProgressOut]
+
+
+# Copies montrées : d'abord celles à reprendre, puis celles en cours, puis les validées.
+COPIES_SHOWN = 8
+COPY_ORDER = {
+    Solution.Status.NEEDS_WORK: 0,
+    Solution.Status.UNDER_REVIEW: 1,
+    Solution.Status.CONTESTED: 1,
+    Solution.Status.HELD: 1,
+    Solution.Status.VALIDATED: 2,
+}
+IN_REVIEW = (Solution.Status.UNDER_REVIEW, Solution.Status.CONTESTED, Solution.Status.HELD)
+
+
+def _summary(user, week):
+    sent = Solution.objects.filter(author=user).exclude(status__in=[Solution.Status.DRAFT, Solution.Status.HIDDEN])
+    by_status = dict(sent.values_list("status").annotate(count=Count("pk")))
+    validated = (
+        sent.filter(status=Solution.Status.VALIDATED)
+        .exclude(ai_usage=Solution.AiUsage.GENERATED)
+        .values_list("exercise_id", "exercise__merged_into_id")
+    )
+    return {
+        # Un exercice fusionné compte avec son canonique : deux doublons, un exercice.
+        "validated_exercises": len({merged or exercise for exercise, merged in validated}),
+        "copies_sent": sum(by_status.values()),
+        "in_review": sum(by_status.get(status, 0) for status in IN_REVIEW),
+        "needs_work": by_status.get(Solution.Status.NEEDS_WORK, 0),
+        "points_week": points_by_user(week=week, user=user).get(user.pk, 0),
+        "reviews_done": Review.objects.filter(reviewer=user).exclude(submitted_at=None).count(),
+    }
+
+
+def _copies(user):
+    recent = (
+        Solution.objects.filter(author=user, status__in=list(COPY_ORDER))
+        .select_related("exercise")
+        .order_by("-published_at")[: COPIES_SHOWN * 3]
+    )
+    shown = sorted(recent, key=lambda solution: COPY_ORDER[solution.status])[:COPIES_SHOWN]
+    copies = []
+    for solution in shown:
+        done, expected = (0, 0) if solution.status == Solution.Status.HELD else review_progress(solution)
+        copies.append(
+            {
+                "id": solution.pk,
+                "exercise_id": solution.exercise_id,
+                "exercise_title": solution.exercise.title,
+                "status": solution.status,
+                "reviews_done": done,
+                "reviews_expected": expected,
+                "published_at": solution.published_at,
+                "validated_at": solution.validated_at,
+            }
+        )
+    return copies
 
 
 def _goal_out(goal, now):
@@ -385,6 +477,12 @@ def progress(request):
         ],
         "contributor": skills.contributor_level(balance(user)),
         "skills": skills.skills_map(user),
+        "summary": _summary(user, week),
+        "copies": _copies(user),
+        "next_badges": [
+            {"slug": badge.slug, "name": badge.name, "criterion": badge.criterion, "done": done, "target": target}
+            for badge, done, target in next_badges(user)
+        ],
     }
 
 

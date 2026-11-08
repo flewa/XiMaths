@@ -229,7 +229,36 @@ export type Progress = {
   goals: PersonalGoal[];
   contributor: ContributorLevel;
   skills: Skill[];
+  summary: ProgressSummary;
+  /** Copies récentes : celles à reprendre, puis en cours, puis validées. */
+  copies: MyCopy[];
+  /** Badges pas encore obtenus, les plus avancés d'abord. */
+  next_badges: BadgeProgress[];
 };
+
+export type ProgressSummary = {
+  /** Exercices différents réussis (solution validée). */
+  validated_exercises: number;
+  copies_sent: number;
+  /** En relecture, en vérification ou en arbitrage. */
+  in_review: number;
+  needs_work: number;
+  points_week: number;
+  reviews_done: number;
+};
+
+export type MyCopy = {
+  id: number;
+  exercise_id: number;
+  exercise_title: string;
+  status: SolutionStatus;
+  reviews_done: number;
+  reviews_expected: number;
+  published_at: string | null;
+  validated_at: string | null;
+};
+
+export type BadgeProgress = { slug: string; name: string; criterion: string; done: number; target: number };
 
 /** Niveau de contributeur, de 1 à 30 ; `next` est null au niveau 30. */
 export type ContributorLevel = {

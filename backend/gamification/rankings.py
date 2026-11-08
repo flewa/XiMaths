@@ -106,9 +106,10 @@ def ranked_users():
     ).exclude(pk__in=excluded_ids())
 
 
-def points_by_user(*, week=None, level=None):
-    """{user_id: points} sur la semaine (ou depuis toujours), tous niveaux ou un seul."""
-    transactions = PointTransaction.objects.all()
+def points_by_user(*, week=None, level=None, user=None):
+    """{user_id: points} sur la semaine (ou depuis toujours), tous niveaux ou un seul ;
+    tous les membres, ou seulement `user`."""
+    transactions = PointTransaction.objects.all() if user is None else PointTransaction.objects.filter(user=user)
     if week is not None:
         transactions = transactions.annotate(
             counted_at=Coalesce("reverses__created_at", "created_at")
