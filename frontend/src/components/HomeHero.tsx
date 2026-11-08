@@ -168,8 +168,9 @@ export function MemberHero({
 export function VisitorHero() {
   return (
     <section aria-labelledby="accroche">
-      <h1 id="accroche" className="max-w-[20ch]">
-        Des maths du supérieur, résolues et relues par la communauté.
+      {/* Le nom du site dans le titre : il aide les moteurs à associer « XiMaths » à ce site. */}
+      <h1 id="accroche" className="max-w-[22ch]">
+        XiMaths : des maths du supérieur, résolues et relues par la communauté.
       </h1>
       <p className="mt-5 max-w-[58ch] text-lg text-body">
         De la L1 au M2 et en prépa : publie des exercices, propose tes solutions, et fais-les relire par trois
@@ -193,8 +194,8 @@ const STEPS = [
     text: "Un fil par niveau, de la L1 au M2 et en prépa, avec les exercices qui attendent leur première solution.",
   },
   {
-    title: "Rédige ta solution.",
-    text: "En Markdown et LaTeX, avec l'aperçu en direct, ou en photographiant ta copie manuscrite.",
+    title: "Écris ta solution à la main.",
+    text: "Puis photographie ta copie avec ton téléphone, en scannant un QR code : trois pages au plus.",
   },
   {
     title: "Trois pairs la relisent.",
