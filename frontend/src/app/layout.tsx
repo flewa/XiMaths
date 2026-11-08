@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
 import Link from "next/link";
+import Script from "next/script";
 import "katex/dist/katex.min.css";
 
 import { VerifyBanner } from "@/components/AccountControls";
