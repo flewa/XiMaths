@@ -1,7 +1,16 @@
 import { unstable_rethrow } from "next/navigation";
 
-/** Difficulté en cinq barres croissantes ; `withLabel` l'écrit aussi en toutes lettres. */
-export function Difficulty({ value, withLabel = false }: { value: number; withLabel?: boolean }) {
+/** Difficulté en cinq barres croissantes ; `withLabel` l'écrit aussi en toutes lettres,
+ * `short` en chiffres (« 2/5 »). */
+export function Difficulty({
+  value,
+  withLabel = false,
+  short = false,
+}: {
+  value: number;
+  withLabel?: boolean;
+  short?: boolean;
+}) {
   return (
     <span
       role="img"
@@ -19,6 +28,7 @@ export function Difficulty({ value, withLabel = false }: { value: number; withLa
         ))}
       </span>
       {withLabel && <span className="text-mute">difficulté {value}/5</span>}
+      {short && !withLabel && <span>{value}/5</span>}
     </span>
   );
 }

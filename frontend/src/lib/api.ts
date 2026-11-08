@@ -43,6 +43,8 @@ export type ExerciseSummary = {
   validated_solutions: number;
   votes: number;
   published_at: string;
+  /** Publié depuis moins d'une semaine. */
+  is_new: boolean;
 };
 
 /** Exercice du fil d'accueil, avec la raison de sa présence. */
@@ -51,7 +53,7 @@ export type FeedItem = ExerciseSummary & {
   reason_label: string;
 };
 
-export type ExerciseSort = "recent" | "popular" | "unsolved";
+export type ExerciseSort = "recent" | "popular" | "trending" | "unsolved";
 
 export type AiUsage = "aucune" | "relecture" | "aide_idee" | "generee";
 
@@ -446,10 +448,12 @@ export async function fetchTopics() {
   return (await get<Topic[]>("/topics")) ?? [];
 }
 
-export async function fetchExercises(level?: string, sort: ExerciseSort = "recent", topic?: string) {
+/** Exercices publiés ; `search` : mots cherchés dans le titre, l'énoncé et les chapitres. */
+export async function fetchExercises(level?: string, sort: ExerciseSort = "recent", topic?: string, search?: string) {
   const query = new URLSearchParams({ sort });
   if (level) query.set("level", level);
   if (topic) query.set("topic", topic);
+  if (search) query.set("q", search);
   return (await get<ExerciseSummary[]>(`/exercises?${query}`)) ?? [];
 }
 

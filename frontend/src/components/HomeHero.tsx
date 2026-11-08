@@ -1,14 +1,20 @@
 import Link from "next/link";
 
-import type { DailyChallenge, Me, Progress } from "@/lib/api";
-import { nextSkill, openChallenge } from "@/lib/home";
+import type { CourseNoteSummary, DailyChallenge, Me, Progress } from "@/lib/api";
+import { courseNotePath } from "@/lib/course-notes";
+import { nextSkill } from "@/lib/home";
 import { plural } from "@/lib/labels";
 
 import { primaryButtonClass, secondaryButtonClass } from "./Form";
 import { Icon, type IconName } from "./Icon";
+import { SearchBox } from "./SearchBox";
 
 const DAY_LETTERS = ["L", "M", "M", "J", "V", "S", "D"];
 const DAY_NAMES = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
+
+const card = "rounded-2xl border border-hairline bg-surface-soft p-5";
+const cardTitle = "font-sans text-[13px] font-semibold uppercase tracking-[0.04em] text-ink";
+const pill = "rounded-full bg-surface-card px-2 py-px text-xs font-medium text-body";
 
 /** La semaine en sept cases : pleine si active, cerclée pour aujourd'hui, pâle pour les jours à venir. */
 function WeekSquares({ days }: { days: Progress["days"] }) {
@@ -18,18 +24,14 @@ function WeekSquares({ days }: { days: Progress["days"] }) {
     <span
       role="img"
       aria-label={active.length ? `Jours actifs : ${active.join(", ")}` : "Aucun jour actif cette semaine"}
-      className="flex gap-1.5"
+      className="mt-4 flex justify-between gap-1"
     >
       {days.map((day, index) => (
         <span
           key={day.date}
-          className={`grid size-[22px] place-items-center rounded-md text-[10px] font-semibold ${
-            day.active
-              ? "bg-ink text-canvas"
-              : index === today
-                ? "text-ink ring-[1.5px] ring-mute ring-inset"
-                : "bg-surface-card text-stone"
-          }`}
+          className={`grid size-8 place-items-center rounded-lg text-[11px] font-semibold ${
+            day.active ? "bg-ink text-canvas" : "bg-surface-card text-mute"
+          } ${index === today ? "ring-[1.5px] ring-accent ring-offset-2 ring-offset-surface-soft" : ""}`}
         >
           {DAY_LETTERS[index]}
         </span>
@@ -57,7 +59,7 @@ function actionsFor(me: Me, progress: Progress | null): Action[] {
       icon: "chart",
       href: `/exercices/${skill.next.id}`,
       label: `Progresser en ${skill.topic.toLowerCase()} avec « ${skill.next.title} »`,
-      detail: `difficulté ${skill.next.difficulty}`,
+      detail: `Difficulté ${skill.next.difficulty}/5`,
     });
   }
   if (me.unread_notifications > 0) {
@@ -70,97 +72,165 @@ function actionsFor(me: Me, progress: Progress | null): Action[] {
   return actions;
 }
 
-/** Le défi du jour, mis en page comme un énoncé de manuel : tête en gras, filet à gauche. */
-function ChallengeBlock({ challenge }: { challenge: DailyChallenge }) {
+/** En-tête de l'accueil d'un membre : la date, son niveau, et la recherche. */
+export function MemberHeader({ me, levelName, today }: { me: Me; levelName: string | null; today: string }) {
   return (
-    <section aria-labelledby="defi" className="mt-10 rounded-r-xl border-l-2 border-accent bg-surface-soft px-5 py-5 sm:px-6">
-      <p id="defi" className="font-serif text-xl text-ink-deep">
-        <b className="font-bold">Défi du jour.</b>{" "}
-        <span className="ml-1 font-sans text-sm text-mute">
-          {challenge.level}, {challenge.minutes} minutes
-        </span>
-      </p>
-      <p className="mt-2 font-serif text-2xl text-ink-deep">{challenge.exercise_title}</p>
-      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
-        <Link href="/defi" className={primaryButtonClass}>
+    <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+      <div>
+        <p className="text-sm text-mute">
+          {today}
+          {levelName && ` · ${levelName}`}
+        </p>
+        <h1 id="accroche" className="mt-1 text-[2rem] sm:text-[2.25rem]">
+          Bonjour, {me.username}.
+        </h1>
+      </div>
+      <SearchBox id="recherche-accueil" className="w-full sm:w-[22rem]" />
+    </header>
+  );
+}
+
+/** Le défi du jour du niveau déclaré, s'il reste à relever. */
+export function ChallengeCard({ challenge }: { challenge: DailyChallenge }) {
+  return (
+    <section aria-labelledby="defi" className="rounded-2xl border border-hairline bg-surface-soft px-5 py-6 sm:px-7">
+      <div className="flex flex-wrap items-center gap-2.5 text-[13px] text-mute">
+        <span className="grid size-7 place-items-center rounded-lg bg-accent-soft text-accent-text">
           <Icon name="timer" size={16} />
+        </span>
+        <h2 id="defi" className={cardTitle}>
+          Défi du jour
+        </h2>
+        <span className={pill}>{challenge.level}</span>
+        <span className={pill}>{challenge.minutes} minutes</span>
+        <span className="sm:ml-auto">Ferme à minuit</span>
+      </div>
+      <p className="mt-4 font-serif text-[1.5rem] leading-snug text-ink-deep sm:text-[1.625rem]">
+        {challenge.exercise_title}
+      </p>
+      <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3">
+        <Link href="/defi" className={`${primaryButtonClass} min-h-11 px-5`}>
           Commencer le défi
         </Link>
-        <span className="text-sm text-mute">
-          Jusqu&apos;à {challenge.points_max} points, ouvert jusqu&apos;à minuit.
+        <span className="text-sm text-body">
+          Jusqu&apos;à <strong className="font-semibold text-ink-deep">{challenge.points_max} points</strong>, comptés
+          quand ta copie est validée.
         </span>
       </div>
     </section>
   );
 }
 
-/** Accueil d'un membre : sa semaine, le défi du jour, puis ce qui l'attend. */
-export function MemberHero({
-  me,
-  progress,
-  challenges,
-}: {
-  me: Me;
-  progress: Progress | null;
-  challenges: DailyChallenge[];
-}) {
-  const actions = actionsFor(me, progress);
-  const challenge = openChallenge(challenges, me.declared_level);
+/** Ta semaine : jours actifs face à l'objectif, et la série en cours. */
+export function WeekCard({ progress }: { progress: Progress }) {
   return (
-    <>
-      <section aria-labelledby="accroche">
-        <h1 id="accroche">Bonjour, {me.username}.</h1>
-        {progress && (
-          <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 text-mute">
-            <WeekSquares days={progress.days} />
-            <p>
-              <strong className="font-medium text-ink">
-                {progress.active_days} {progress.active_days > 1 ? "jours" : "jour"} sur {progress.goal_days}
-              </strong>{" "}
-              cette semaine
-              {progress.streak > 0 && <>, série de {plural(progress.streak, "semaine")}</>}.{" "}
-              <Link href="/progression" className="underline decoration-stone underline-offset-4 hover:text-ink">
-                Ta progression
-              </Link>
-            </p>
-          </div>
+    <section aria-labelledby="semaine" className={card}>
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 id="semaine" className={cardTitle}>
+          Ta semaine
+        </h2>
+        <Link href="/progression" className="text-[13px] text-mute hover:text-ink">
+          Progression →
+        </Link>
+      </div>
+      <p className="mt-3.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <span className="font-serif text-[2.125rem] leading-none text-ink-deep">
+          {progress.active_days}/{progress.goal_days}
+        </span>
+        <span className="text-sm text-body">{progress.active_days > 1 ? "jours actifs" : "jour actif"}</span>
+        {progress.achieved && (
+          <span className="ml-auto inline-flex items-center gap-1 text-[13px] text-success">
+            <Icon name="check" size={14} />
+            objectif atteint
+          </span>
         )}
-      </section>
+      </p>
+      <WeekSquares days={progress.days} />
+      <p className="mt-3.5 text-[13px] text-mute">
+        {progress.vacation ? (
+          "Mode vacances : ta série est en pause."
+        ) : progress.streak > 0 ? (
+          <>
+            Série de <strong className="font-semibold text-ink">{plural(progress.streak, "semaine")}</strong>.
+          </>
+        ) : (
+          "Atteins ton objectif pour lancer une série."
+        )}
+      </p>
+    </section>
+  );
+}
 
-      {challenge && <ChallengeBlock challenge={challenge} />}
-
-      <section aria-labelledby="a-faire" className="mt-12">
-        <h2 id="a-faire">À faire</h2>
-        {actions.length > 0 ? (
-          <ul className="mt-3">
-            {actions.map((action) => (
-              <li key={action.href}>
-                <Link
-                  href={action.href}
-                  className="-mx-3 flex items-center gap-3.5 rounded-lg px-3 py-2.5 hover:bg-hover"
+/** Ce qui attend le membre : relectures, prochain exercice de sa carte, notifications. */
+export function TodoCard({ me, progress }: { me: Me; progress: Progress | null }) {
+  const actions = actionsFor(me, progress);
+  return (
+    <section aria-labelledby="a-faire" className={card}>
+      <h2 id="a-faire" className={cardTitle}>
+        À faire
+      </h2>
+      {actions.length > 0 ? (
+        <ul className="mt-2">
+          {actions.map((action) => (
+            <li key={action.href}>
+              <Link href={action.href} className="-mx-2 flex gap-3 rounded-xl px-2 py-2.5 hover:bg-hover">
+                <span
+                  className={`grid size-8 shrink-0 place-items-center rounded-lg ${
+                    action.urgent ? "bg-accent-soft text-accent-text" : "bg-surface-card text-body"
+                  }`}
                 >
-                  <Icon name={action.icon} className={action.urgent ? "text-accent-text" : "text-mute"} />
-                  <span className="min-w-0 flex-1">{action.label}</span>
+                  <Icon name={action.icon} size={16} />
+                </span>
+                <span className="min-w-0 text-sm leading-snug">
+                  <span className="text-ink">{action.label}</span>
                   {action.detail && (
-                    <span className={`hidden whitespace-nowrap text-sm sm:inline ${action.urgent ? "text-accent-text" : "text-mute"}`}>
+                    <span className={`mt-0.5 block text-[13px] ${action.urgent ? "text-accent-text" : "text-mute"}`}>
                       {action.detail}
                     </span>
                   )}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-3 text-mute">
-            Rien ne t&apos;attend. Choisis un exercice ci-dessous, ou{" "}
-            <Link href="/exercices/nouveau" className="text-ink underline decoration-stone underline-offset-4">
-              publies-en un
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 text-sm text-mute">
+          Rien ne t&apos;attend. Choisis un exercice, ou{" "}
+          <Link href="/exercices/nouveau" className="text-ink underline decoration-stone underline-offset-4">
+            publies-en un
+          </Link>
+          .
+        </p>
+      )}
+    </section>
+  );
+}
+
+/** Rappels de cours publiés, proches du fil : de quoi revoir le cours avant de chercher. */
+export function CourseNotesCard({ notes }: { notes: CourseNoteSummary[] }) {
+  return (
+    <section aria-labelledby="cours" className={card}>
+      <h2 id="cours" className={cardTitle}>
+        Revoir le cours
+      </h2>
+      <p className="mb-2 mt-1 text-[13px] text-mute">Les rappels des notions de ton fil.</p>
+      <ul>
+        {notes.map((note) => (
+          <li key={note.slug} className="border-t border-hairline">
+            <Link
+              href={courseNotePath(note.slug)}
+              className="flex min-h-10 items-center justify-between gap-3 py-2 text-sm text-ink hover:text-ink-deep"
+            >
+              <span>{note.title}</span>
+              <span className="shrink-0 text-[13px] text-mute">{note.programs}</span>
             </Link>
-            .
-          </p>
-        )}
-      </section>
-    </>
+          </li>
+        ))}
+      </ul>
+      <Link href="/rappels" className="mt-2 inline-block text-[13px] text-mute underline underline-offset-4 hover:text-ink">
+        Tous les rappels
+      </Link>
+    </section>
   );
 }
 

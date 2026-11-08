@@ -46,6 +46,12 @@ const PATHS = {
     </>
   ),
   check: <path d="m5 10.5 3.25 3.25L15 7" />,
+  search: (
+    <>
+      <circle cx="9" cy="9" r="5.5" />
+      <path d="m13 13 3.5 3.5" />
+    </>
+  ),
   camera: (
     <>
       <path d="M3.5 7h3l1.5-2h4l1.5 2h3v8.5h-13z" />

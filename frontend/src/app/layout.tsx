@@ -83,16 +83,17 @@ export default async function RootLayout({
             <SidebarContent account={account} levels={levels} topics={topics} />
           </aside>
           <MobileBar account={account} levels={levels} topics={topics} />
-          <div className="min-w-0">
+          {/* Une page qui contient .page-wide (l'accueil) prend plus de largeur, pied de page compris. */}
+          <div className="group/colonne min-w-0">
             {me && !me.email_verified && <VerifyBanner email={me.email} />}
             <main
               id="contenu"
               tabIndex={-1}
-              className="mx-auto max-w-[860px] px-5 py-8 outline-none sm:px-10 sm:py-14"
+              className="mx-auto max-w-[860px] px-5 py-8 outline-none has-[.page-wide]:max-w-[1180px] sm:px-10 sm:py-14"
             >
               {children}
             </main>
-            <footer className="mx-auto max-w-[860px] px-5 pb-10 text-sm text-stone sm:px-10">
+            <footer className="mx-auto max-w-[860px] px-5 pb-10 text-sm text-stone group-has-[.page-wide]/colonne:max-w-[1180px] sm:px-10">
               <nav
                 aria-label="Pied de page"
                 className="flex flex-wrap gap-x-5 gap-y-1 border-t border-hairline pt-5"
