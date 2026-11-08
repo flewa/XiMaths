@@ -1,10 +1,12 @@
 import Link from "next/link";
 
-import type { CourseNoteSummary, DailyChallenge, Me, Progress } from "@/lib/api";
+import type { CourseNoteSummary, DailyChallenge, Leaderboard, Me, Progress } from "@/lib/api";
 import { courseNotePath } from "@/lib/course-notes";
 import { nextSkill } from "@/lib/home";
-import { plural } from "@/lib/labels";
+import { ordinal, plural } from "@/lib/labels";
+import { PODIUM_TINTS } from "@/lib/profile-art";
 
+import { Avatar } from "./Avatar";
 import { primaryButtonClass, secondaryButtonClass } from "./Form";
 import { Icon, type IconName } from "./Icon";
 import { SearchBox } from "./SearchBox";
@@ -207,6 +209,63 @@ export function TodoCard({ me, progress }: { me: Me; progress: Progress | null }
           .
         </p>
       )}
+    </section>
+  );
+}
+
+/** Les trois premiers de la semaine (ou de la précédente, `lastWeek`, tant que celle-ci est
+ * vide) : on voit qui est actif, et on va voir leur profil. */
+export function LeadersCard({ board, lastWeek = false }: { board: Leaderboard; lastWeek?: boolean }) {
+  const leaders = board.top.slice(0, 3);
+  const mine = board.me?.rank ?? null;
+  return (
+    <section aria-labelledby="cette-semaine" className={card}>
+      <h2 id="cette-semaine" className={cardTitle}>
+        {lastWeek ? "En tête la semaine dernière" : "En tête cette semaine"}
+      </h2>
+      {leaders.length > 0 ? (
+        <ol className="mt-2">
+          {leaders.map((entry) => (
+            <li key={entry.username}>
+              <Link
+                href={`/membres/${encodeURIComponent(entry.username)}`}
+                className="-mx-2 flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-hover"
+              >
+                <span
+                  aria-hidden="true"
+                  className="grid size-5 shrink-0 place-items-center rounded-full text-[11px] font-semibold text-[#1c1c1c]"
+                  style={{ background: PODIUM_TINTS[entry.rank - 1] ?? PODIUM_TINTS[2] }}
+                >
+                  {entry.rank}
+                </span>
+                <Avatar avatar={entry.avatar} size={32} />
+                <span className="min-w-0 flex-1 truncate text-sm text-ink">
+                  <span className="sr-only">{ordinal(entry.rank)} : </span>
+                  {entry.username}
+                  {entry.is_me && <span className="text-mute"> (toi)</span>}
+                </span>
+                <span className="shrink-0 text-sm tabular-nums text-body">
+                  {entry.points}
+                  <span className="text-mute"> pts</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="mt-2 text-sm text-mute">Le podium est libre : personne n&apos;a encore marqué de points.</p>
+      )}
+      {mine !== null && mine > 3 && (
+        <p className="mt-1 text-[13px] text-mute">
+          Toi : {ordinal(mine)} sur {board.total}.
+        </p>
+      )}
+      <Link
+        href={lastWeek && board.week ? `/classements?semaine=${board.week}` : "/classements"}
+        className="mt-2 inline-block text-[13px] text-mute underline underline-offset-4 hover:text-ink"
+      >
+        Voir le classement
+      </Link>
     </section>
   );
 }

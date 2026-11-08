@@ -19,6 +19,7 @@ from django.utils import timezone
 from ninja.errors import HttpError
 from pydantic import ValidationError
 
+from accounts.profile import EDITORIAL_USERNAME
 from content.api import ExerciseIn, draft_fields
 from content.editorial import EXERCISES
 from content.models import Exercise
@@ -29,7 +30,6 @@ from training.models import ChallengeTemplate
 
 User = get_user_model()
 
-EDITORIAL_USERNAME = "XiMaths"
 # Adresse jamais distribuée (domaine réservé .invalid) : le compte ne reçoit aucun email,
 # et toutes ses notifications par email sont coupées.
 EDITORIAL_EMAIL = "redaction@ximaths.invalid"

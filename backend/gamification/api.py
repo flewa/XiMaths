@@ -12,8 +12,11 @@ from ninja.errors import HttpError
 from ninja.security import django_auth
 from pydantic import Field
 
+from accounts.profile import avatar_of
+from accounts.schemas import AvatarOut, BadgeRefOut, featured_refs
 from catalog.models import Level, Topic
-from content.models import Exercise, Solution
+from content.api import ExerciseSummary, published_exercises
+from content.models import Exercise, Review, Solution
 
 from . import skills, streaks
 from .badges import BADGES, BADGES_BY_SLUG
@@ -34,6 +37,9 @@ class EntryOut(Schema):
     declared_level: str | None
     points: int
     is_me: bool
+    avatar: AvatarOut
+    # Vitrine du membre : jusqu'à trois badges, affichés en petit à côté du pseudo.
+    featured_badges: list[BadgeRefOut]
 
 
 class MyPositionOut(Schema):
@@ -75,17 +81,33 @@ class EarnedBadgeOut(Schema):
     awarded_at: datetime
 
 
+class TopicLinkOut(Schema):
+    slug: str
+    name: str
+
+
 class MemberOut(Schema):
     username: str
+    is_me: bool
     declared_level: str | None
+    declared_level_name: str | None
     trust_level: str
     joined: date
+    bio: str
+    avatar: AvatarOut
+    # Vitrine choisie par le membre, puis tous ses badges.
+    featured_badges: list[EarnedBadgeOut]
+    favorite_topics: list[TopicLinkOut]
     # Absents si le membre a masqué sa présence dans les classements.
     points: int | None
     contributor_level: int | None
     exercises_published: int
     solutions_validated: int
+    reviews_done: int
+    streak_weeks: int
     badges: list[EarnedBadgeOut]
+    # Ses derniers exercices publiés : les solutions, elles, restent privées.
+    recent_exercises: list[ExerciseSummary]
 
 
 def _viewer(request):
@@ -112,14 +134,21 @@ def leaderboard(request, board: str = GLOBAL, week: str | None = None, peers: bo
     entries = standings(week=current, level=level, peers_level=peers_level)
 
     viewer_id = viewer.pk if viewer else None
+    shown = [entry.user_id for entry in entries[:TOP_SIZE]]
+    if viewer:
+        shown += [entry.user_id for entry in neighbourhood(entries, viewer.pk)[1]]
+    profiles = {user.pk: user for user in User.objects.filter(pk__in=shown).only("username", "avatar_color", "avatar_symbol", "featured_badges")}
 
     def out(entry):
+        profile = profiles.get(entry.user_id)
         return {
             "rank": entry.rank,
             "username": entry.username,
             "declared_level": entry.declared_level,
             "points": entry.points,
             "is_me": entry.user_id == viewer_id,
+            "avatar": avatar_of(profile) if profile else {"color": "sable", "symbol": entry.username[:1].upper(), "custom_symbol": False},
+            "featured_badges": featured_refs(profile) if profile else [],
         }
 
     me = None
@@ -173,15 +202,32 @@ def list_badges(request):
     ]
 
 
+# Derniers exercices publiés montrés sur un profil.
+RECENT_EXERCISES = 6
+
+
+def _earned_out(earned):
+    badge = BADGES_BY_SLUG[earned.badge]
+    return {"slug": earned.badge, "name": badge.name, "criterion": badge.criterion, "awarded_at": earned.awarded_at}
+
+
 @router.get("/members/{username}", response=MemberOut)
 def member(request, username: str):
     user = get_object_or_404(User.objects.select_related("declared_level"), username=username, is_active=True)
+    viewer = _viewer(request)
     points = balance(user) if user.leaderboard_visible else None
+    earned = {badge.badge: badge for badge in user.badges.all() if badge.badge in BADGES_BY_SLUG}
     return {
         "username": user.username,
+        "is_me": viewer is not None and viewer.pk == user.pk,
         "declared_level": user.declared_level.code if user.declared_level else None,
+        "declared_level_name": user.declared_level.name if user.declared_level else None,
         "trust_level": User.TrustLevel(user.trust_level).label,
         "joined": user.date_joined.date(),
+        "bio": user.bio,
+        "avatar": avatar_of(user),
+        "featured_badges": [_earned_out(earned[slug]) for slug in user.featured_badges if slug in earned],
+        "favorite_topics": list(user.favorite_topics.values("slug", "name")),
         "points": points,
         # Le niveau trahirait les points : masqué avec eux.
         "contributor_level": skills.contributor_level(points)["level"] if points is not None else None,
@@ -191,16 +237,12 @@ def member(request, username: str):
         "solutions_validated": Solution.objects.filter(
             author=user, status=Solution.Status.VALIDATED
         ).count(),
-        "badges": [
-            {
-                "slug": earned.badge,
-                "name": BADGES_BY_SLUG[earned.badge].name,
-                "criterion": BADGES_BY_SLUG[earned.badge].criterion,
-                "awarded_at": earned.awarded_at,
-            }
-            for earned in user.badges.all()
-            if earned.badge in BADGES_BY_SLUG
-        ],
+        "reviews_done": Review.objects.filter(reviewer=user).exclude(submitted_at=None).count(),
+        "streak_weeks": streaks.streak_length(user),
+        "badges": [_earned_out(badge) for badge in sorted(earned.values(), key=lambda b: b.awarded_at)],
+        "recent_exercises": list(
+            published_exercises().filter(author=user).order_by("-published_at")[:RECENT_EXERCISES]
+        ),
     }
 
 

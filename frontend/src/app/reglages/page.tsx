@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
+import { ProfileForm } from "@/components/ProfileForm";
 import { ProseSection } from "@/components/Prose";
 import { PushSettings } from "@/components/PushSettings";
 import {
@@ -12,7 +13,7 @@ import {
   PreferencesForm,
   ThemeChoice,
 } from "@/components/Settings";
-import { fetchLevels, fetchMe, fetchPushKey } from "@/lib/api";
+import { fetchBadges, fetchLevels, fetchMe, fetchProfileOptions, fetchPushKey, fetchTopics } from "@/lib/api";
 import { DEFAULT_THEME, THEME_COOKIE, type Theme } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Réglages", robots: { index: false } };
@@ -20,12 +21,12 @@ export const metadata: Metadata = { title: "Réglages", robots: { index: false }
 export default async function SettingsPage() {
   let data;
   try {
-    data = await Promise.all([fetchMe(), fetchLevels(), fetchPushKey()]);
+    data = await Promise.all([fetchMe(), fetchLevels(), fetchPushKey(), fetchProfileOptions(), fetchBadges(), fetchTopics()]);
   } catch (error) {
     logApiError(error);
     return <ApiUnavailable />;
   }
-  const [me, levels, pushKey] = data;
+  const [me, levels, pushKey, profileOptions, badges, topics] = data;
   if (!me) redirect("/connexion?suivant=/reglages");
   const theme = ((await cookies()).get(THEME_COOKIE)?.value ?? DEFAULT_THEME) as Theme;
 
@@ -36,6 +37,20 @@ export default async function SettingsPage() {
         {me.username} · {me.email}
         {me.google_linked && <span className="text-mute"> · compte Google lié</span>}
       </p>
+
+      <section id="profil" className="mt-10 scroll-mt-20">
+        <h2>Profil public</h2>
+        <p className="mt-2 text-sm text-body">
+          Ce que les autres voient sur{" "}
+          <a href={`/membres/${encodeURIComponent(me.username)}`} className="underline underline-offset-4">
+            ton profil
+          </a>{" "}
+          et dans les classements.
+        </p>
+        <div className="mt-5">
+          <ProfileForm me={me} options={profileOptions} badges={badges} topics={topics} />
+        </div>
+      </section>
 
       <ProseSection title="Préférences">
         <PreferencesForm me={me} levels={levels} />

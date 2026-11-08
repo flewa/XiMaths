@@ -58,6 +58,7 @@ export default async function RootLayout({
   ]);
   const account: NavAccount | null = me && {
     username: me.username,
+    avatar: me.avatar,
     points: me.points,
     pendingReviews: me.pending_reviews,
     unreadNotifications: me.unread_notifications,

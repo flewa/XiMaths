@@ -8,6 +8,7 @@ import {
   ChallengeCard,
   CourseNotesCard,
   HowItWorks,
+  LeadersCard,
   MemberHeader,
   TodoCard,
   VisitorHero,
@@ -23,6 +24,7 @@ import {
   fetchDailyChallenges,
   fetchExercises,
   fetchFeed,
+  fetchLeaderboard,
   fetchLevels,
   fetchMe,
   fetchProgress,
@@ -114,6 +116,21 @@ function ExerciseFeed({
   );
 }
 
+/** Classement de la semaine pour l'accueil ; tant que personne n'a marqué (en début de
+ * semaine), celui de la semaine passée. Secondaire : sans lui, l'accueil s'affiche quand même. */
+async function weekLeaders() {
+  try {
+    const current = await fetchLeaderboard({ board: "global" });
+    if (current && current.total === 0 && current.previous_week) {
+      const previous = await fetchLeaderboard({ board: "global", week: current.previous_week });
+      if (previous && previous.total > 0) return { board: previous, lastWeek: true };
+    }
+    return current && { board: current, lastWeek: false };
+  } catch {
+    return null;
+  }
+}
+
 export default async function Home({
   searchParams,
 }: {
@@ -126,18 +143,19 @@ export default async function Home({
     const [levels, me] = await Promise.all([fetchLevels(), fetchMe()]);
     // Par défaut, les exercices du niveau déclaré.
     const level = niveau === ALL_LEVELS ? undefined : (niveau ?? me?.declared_level ?? undefined);
-    const [exercises, progress, challenges, notes] = await Promise.all([
+    const [exercises, progress, challenges, notes, leaders] = await Promise.all([
       view.sort ? fetchExercises(level, view.sort).then((list) => list.slice(0, VIEW_SIZE)) : fetchFeed(level),
       me ? fetchProgress() : null,
       me ? fetchDailyChallenges() : [],
       me ? fetchCourseNotes().catch(() => []) : [],
+      me ? weekLeaders() : null,
     ]);
-    data = { levels, me, level, exercises, progress, challenges, notes };
+    data = { levels, me, level, exercises, progress, challenges, notes, leaders };
   } catch (error) {
     logApiError(error);
     return <ApiUnavailable />;
   }
-  const { levels, me, level, exercises, progress, challenges, notes } = data;
+  const { levels, me, level, exercises, progress, challenges, notes, leaders } = data;
   // Un niveau inconnu dans l'adresse : le fil n'existe pas.
   if (!exercises) notFound();
 
@@ -162,7 +180,7 @@ export default async function Home({
   const courseNotes = suggestedNotes(notes, { year: declared?.year ?? null, topics });
 
   // Deux colonnes sur grand écran : le défi et les exercices, puis le suivi à droite. Sur
-  // téléphone, une seule : la semaine, le défi, l'à-faire, les exercices, le cours.
+  // téléphone, une seule : la semaine, le défi, l'à-faire, les exercices, le cours, le classement.
   return (
     <div className="page-wide">
       <JsonLd data={SITE_DATA} />
@@ -188,6 +206,11 @@ export default async function Home({
           {courseNotes.length > 0 && (
             <div className="order-5 xl:order-none">
               <CourseNotesCard notes={courseNotes} />
+            </div>
+          )}
+          {leaders && (
+            <div className="order-6 xl:order-none">
+              <LeadersCard board={leaders.board} lastWeek={leaders.lastWeek} />
             </div>
           )}
         </div>

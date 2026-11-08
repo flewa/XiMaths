@@ -85,9 +85,10 @@ def _all_rounder(user):
 
 
 def _elegance(user):
-    # Seuls les votes qui pèsent comptent : pas ceux des comptes de moins de 7 jours.
+    # Les solutions étant privées, on vote pour les exercices. Seuls les votes qui pèsent
+    # comptent : pas ceux des comptes de moins de 7 jours.
     return (
-        Solution.objects.filter(author=user)
+        Exercise.objects.filter(author=user, status=Exercise.Status.PUBLISHED)
         .annotate(useful=Count("votes", filter=Q(votes__weight__gt=0)))
         .filter(useful__gte=ELEGANCE_VOTES)
         .exists()
@@ -133,7 +134,7 @@ BADGES = [
     Badge(
         "relecteur-fiable",
         "Relecteur fiable",
-        f"Rendre {RELIABLE_REVIEWS} relectures, dont au moins {RELIABLE_AGREEMENT * 100:.0f} % "
+        f"Rendre {RELIABLE_REVIEWS} relectures, dont au moins {RELIABLE_AGREEMENT * 100:.0f}\u00a0% "
         "conformes au verdict final.",
         _reliable_reviewer,
     ),
@@ -146,7 +147,7 @@ BADGES = [
     Badge(
         "elegance",
         "Élégance",
-        f"Recevoir {ELEGANCE_VOTES} votes « utile » sur une même solution.",
+        f"Publier un exercice qui reçoit {ELEGANCE_VOTES} votes «\u00a0utile\u00a0».",
         _elegance,
     ),
     Badge(

@@ -18,6 +18,8 @@ from pydantic import Field
 
 from accounts.links import linked_ids
 from accounts.permissions import contributor, is_moderator
+from accounts.profile import is_editorial
+from accounts.schemas import MemberRefOut
 from catalog.models import Level, Topic
 from config.errors import RuleError
 from config.throttles import AnonRouteThrottle, AuthRouteThrottle
@@ -100,6 +102,12 @@ class ExerciseSummary(Schema):
     published_at: datetime
     # Publié depuis moins de NEW_FOR : le site l'affiche « Nouveau ».
     is_new: bool
+    # Auteur, quand c'est un membre : vide pour les exercices de la rédaction.
+    author_profile: MemberRefOut | None
+
+    @staticmethod
+    def resolve_author_profile(obj):
+        return obj.author if obj.author and not is_editorial(obj.author) else None
 
     @staticmethod
     def resolve_primary_level(obj):

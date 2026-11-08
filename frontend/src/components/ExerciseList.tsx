@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import type { ExerciseSummary, FeedItem } from "@/lib/api";
 
+import { Avatar } from "./Avatar";
 import { Difficulty } from "./ExerciseMeta";
 import { MathText } from "./MathText";
 
@@ -26,23 +27,48 @@ const PHONE_LEVELS = 2;
 
 const levelPill = "rounded-full bg-surface-card px-2 py-px text-xs font-medium text-body";
 
-/** Liste d'exercices : titre, puis chapitre, niveaux et difficulté ; à droite, ce qui le
- * distingue et le nombre de solutions envoyées, en gris : rien n'y crie. */
-export function ExerciseList({ exercises }: { exercises: (ExerciseSummary | FeedItem)[] }) {
+/** Liste d'exercices : titre, puis auteur (quand c'est un membre), chapitre, niveaux et
+ * difficulté ; à droite, ce qui le distingue et le nombre de solutions envoyées, en gris : rien
+ * n'y crie. Toute la ligne mène à l'exercice ; le pseudo de l'auteur, à son profil.
+ * `showAuthor` à faux : la liste d'un seul auteur (sur son profil). */
+export function ExerciseList({
+  exercises,
+  showAuthor = true,
+}: {
+  exercises: (ExerciseSummary | FeedItem)[];
+  showAuthor?: boolean;
+}) {
   return (
     <ul className="divide-y divide-hairline">
       {exercises.map((exercise) => {
         const tag = tagOf(exercise);
         const moreLevels = exercise.levels.length - PHONE_LEVELS;
+        const author = showAuthor ? exercise.author_profile : null;
         return (
           <li key={exercise.id}>
-            <Link
-              href={`/exercices/${exercise.id}`}
-              className="-mx-3 flex items-center gap-5 rounded-xl px-3 py-4 hover:bg-hover"
-            >
+            <div className="relative -mx-3 flex items-center gap-5 rounded-xl px-3 py-4 hover:bg-hover">
               <span className="min-w-0 flex-1">
-                <span className="block font-serif text-[1.1875rem] leading-snug text-ink-deep"><MathText>{exercise.title}</MathText></span>
+                {/* Le lien s'étend à toute la ligne (after:) ; le pseudo de l'auteur passe au-dessus. */}
+                <Link
+                  href={`/exercices/${exercise.id}`}
+                  className="block font-serif text-[1.1875rem] leading-snug text-ink-deep after:absolute after:inset-0 after:rounded-xl"
+                >
+                  <MathText>{exercise.title}</MathText>
+                </Link>
                 <span className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px] text-mute">
+                  {author && (
+                    <>
+                      <Link
+                        href={`/membres/${encodeURIComponent(author.username)}`}
+                        className="relative z-10 inline-flex items-center gap-1.5 text-body hover:text-ink hover:underline"
+                      >
+                        <Avatar avatar={author.avatar} size={18} />
+                        <span className="sr-only">Par </span>
+                        {author.username}
+                      </Link>
+                      <span aria-hidden="true">·</span>
+                    </>
+                  )}
                   {exercise.topics.length > 0 && (
                     <>
                       <span>{exercise.topics.join(", ")}</span>
@@ -76,7 +102,7 @@ export function ExerciseList({ exercises }: { exercises: (ExerciseSummary | Feed
                 {tag && <span className={`block ${tag.className}`}>{tag.label}</span>}
                 <span className="block text-mute">{solutionsLabel(exercise.submitted_solutions)}</span>
               </span>
-            </Link>
+            </div>
           </li>
         );
       })}
