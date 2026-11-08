@@ -106,11 +106,13 @@ Clés VAPID : `uv run python manage.py generate_vapid_keys`, à copier dans `.en
 
 ## Relecture par les pairs
 
-- 3 relecteurs tirés au sort, anonymes et à l'aveugle. Relance à 48 h, réattribution à 72 h, sans pénalité.
-- Relecture volontaire possible depuis `/relectures`, avec un poids de 0,5.
-- Les solutions contestées (relecteurs en désaccord) sont tranchées par un expert ou un modérateur, sur `/arbitrages`.
+- **Les solutions sont privées.** Une copie n'est vue que de son auteur, de ses relecteurs et de la modération, même validée ; le site n'affiche que le nombre de solutions envoyées. Pas de vote ni de recommandation de solution.
+- 3 relecteurs tirés au sort, anonymes et à l'aveugle. Relance à 48 h, réattribution à 72 h, sans pénalité ; un tirage incomplet (pas assez de relecteurs possibles) est complété dès que possible.
+- Chaque relecteur laisse un verdict et un **commentaire obligatoire** : c'est la seule correction que reçoit l'auteur. Il la lit dès qu'elle arrive, et en est prévenu par une notification (« Ta copie a été relue », 1 sur 3, 2 sur 3).
+- **Consensus** : une fois toutes les relectures tirées au sort rendues, la copie est validée si tous les relecteurs la jugent juste (« correcte » ou « correcte avec lacunes »). Elle rapporte alors ses points ; sinon elle est à reprendre, et ne rapporte rien. Une copie envoyée ne rapporte rien en soi. Les relecteurs de la majorité gagnent leurs points de relecture.
+- Relecture volontaire possible depuis `/relectures` ; son verdict compte dans le consensus.
+- Les solutions contestées sous l'ancienne règle restent tranchées par un expert ou un modérateur, sur `/arbitrages`.
 - Une solution validée puis modifiée de plus de 20 % repart en relecture, pour un nouveau tour.
-- L'auteur d'un exercice peut recommander une solution validée (+5 pour son auteur).
 
 ## Photo de copie
 

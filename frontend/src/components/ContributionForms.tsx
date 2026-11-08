@@ -96,7 +96,6 @@ export function ReviewForm({ reviewId }: { reviewId: number }) {
   const [feedback, setFeedback] = useState("");
   const [result, setResult] = useState<{ error?: string; success?: string }>({});
   const [pending, setPending] = useState(false);
-  const needsFeedback = verdict !== "correcte";
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -135,13 +134,13 @@ export function ReviewForm({ reviewId }: { reviewId: number }) {
         ))}
       </fieldset>
       <Field
-        label={needsFeedback ? "Ce qui manque ou ce qui est faux" : "Commentaire (facultatif)"}
+        label="Ton commentaire pour l'auteur"
         htmlFor={`feedback-${reviewId}`}
-        hint="Visible par l'auteur une fois la relecture close. Reste factuel et bienveillant."
+        hint="Ce qui est juste, ce qui manque, ce qui est faux. L'auteur le lit dès que tu l'envoies : aucune solution n'étant publique, c'est la seule correction qu'il recevra. Reste factuel et bienveillant."
       >
         <textarea
           id={`feedback-${reviewId}`}
-          required={needsFeedback}
+          required
           rows={3}
           maxLength={5000}
           value={feedback}
@@ -340,29 +339,6 @@ export function ReviseSolution({
         </button>
       </div>
     </form>
-  );
-}
-
-/** L'auteur de l'exercice recommande une solution validée : +5 pour son auteur, une fois. */
-export function RecommendButton({ solutionId }: { solutionId: number }) {
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-  return (
-    <span className="inline-flex items-center gap-2">
-      <button
-        type="button"
-        onClick={async () => {
-          if (!window.confirm("Recommander cette solution ? Tu ne pourras en recommander qu'une.")) return;
-          const result = await apiPost(`/solutions/${solutionId}/recommend`);
-          if (result.ok) router.refresh();
-          else setError(result.error);
-        }}
-        className="text-sm underline underline-offset-4"
-      >
-        [★] Recommander
-      </button>
-      {error && <span role="alert" className="text-sm text-danger-text">{error}</span>}
-    </span>
   );
 }
 

@@ -41,6 +41,8 @@ export type ExerciseSummary = {
   /** Noms des notions (sous-chapitres). */
   notions: string[];
   validated_solutions: number;
+  /** Solutions envoyées (en relecture, validées ou à reprendre) : les solutions restent privées. */
+  submitted_solutions: number;
   votes: number;
   published_at: string;
   /** Publié depuis moins d'une semaine. */
@@ -60,21 +62,6 @@ export type AiUsage = "aucune" | "relecture" | "aide_idee" | "generee";
 /** Photo d'une page de copie manuscrite. L'adresse, sur /api, vérifie qui la demande. */
 export type CopyPhoto = { id: number; url: string; width: number; height: number };
 
-export type Solution = {
-  id: number;
-  author: string | null;
-  body: string;
-  /** Photos de la copie : avec elles, le texte est facultatif. */
-  photos: CopyPhoto[];
-  ai_usage: AiUsage;
-  votes: number;
-  validated_at: string | null;
-  /** Recommandée par l'auteur de l'exercice. */
-  recommended: boolean;
-  /** Solution d'un défi paramétré : l'énoncé tiré pour son auteur. */
-  variant_statement: string;
-};
-
 export type ExerciseLink = { id: number; title: string };
 
 export type ExerciseDetail = ExerciseSummary & {
@@ -87,7 +74,6 @@ export type ExerciseDetail = ExerciseSummary & {
   /** Exercice canonique, si celui-ci a été fusionné comme doublon. */
   merged_into: number | null;
   variants: ExerciseLink[];
-  solutions: Solution[];
 };
 
 export type SimilarityBand = "quasi_copie" | "tres_similaire" | "variante" | "peut_etre_lie";
@@ -348,6 +334,13 @@ export type SolutionStatus =
   | "needs_work"
   | "hidden";
 
+export type AuthorReview = {
+  verdict: "correcte" | "lacunes" | "incorrecte";
+  verdict_label: string;
+  comment: string;
+  submitted_at: string;
+};
+
 export type MySolution = {
   id: number;
   body: string;
@@ -356,7 +349,10 @@ export type MySolution = {
   status: SolutionStatus;
   published_at: string | null;
   validated_at: string | null;
-  feedback: string[];
+  /** Relectures rendues du tour en cours, anonymes : l'auteur les lit dès qu'elles arrivent. */
+  reviews: AuthorReview[];
+  /** Relectures attendues (trois au moins) ; 0 tant que la copie n'est pas en relecture. */
+  reviews_expected: number;
   /** Solution en vérification : la question neutre, et la réponse déjà donnée. */
   integrity_signal_id: number | null;
   integrity_question: string | null;

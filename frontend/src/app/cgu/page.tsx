@@ -33,7 +33,7 @@ export default function TermsPage() {
 
       <ProseSection title="Licence de tes contributions">
         <p>
-          Exercices, solutions et relectures sont publiés sous licence{" "}
+          Les exercices sont publiés sous licence{" "}
           <a
             href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr"
             rel="license"
@@ -44,6 +44,11 @@ export default function TermsPage() {
           , avec ton pseudo comme attribution. Chacun peut les réutiliser, y compris commercialement,
           à condition de te citer et de partager ses modifications sous la même licence. Si tu supprimes
           ton compte, tes contributions restent publiées sans ton pseudo.
+        </p>
+        <p>
+          Tes solutions et tes relectures ne sont pas publiées. Une copie n&apos;est vue que de son auteur, de
+          ses relecteurs tirés au sort et de la modération ; un commentaire de relecture, de l&apos;auteur de la
+          copie et de la modération. Le site affiche seulement le nombre de solutions envoyées.
         </p>
         <p>
           La licence autorise aussi la réutilisation pour entraîner des modèles d&apos;IA, dans le

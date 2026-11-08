@@ -4,8 +4,9 @@ import type { ExerciseSummary, FeedItem } from "@/lib/api";
 
 import { Difficulty } from "./ExerciseMeta";
 
+/** Solutions envoyées : un compteur, les solutions elles-mêmes restent privées. */
 function solutionsLabel(count: number) {
-  return count === 0 ? "aucune solution" : `${count} solution${count > 1 ? "s" : ""}`;
+  return count === 0 ? "aucune solution" : `${count} solution${count > 1 ? "s" : ""} envoyée${count > 1 ? "s" : ""}`;
 }
 
 type Tag = { label: string; className: string };
@@ -25,7 +26,7 @@ const PHONE_LEVELS = 2;
 const levelPill = "rounded-full bg-surface-card px-2 py-px text-xs font-medium text-body";
 
 /** Liste d'exercices : titre, puis chapitre, niveaux et difficulté ; à droite, ce qui le
- * distingue et ses solutions validées, en gris : rien n'y crie. */
+ * distingue et le nombre de solutions envoyées, en gris : rien n'y crie. */
 export function ExerciseList({ exercises }: { exercises: (ExerciseSummary | FeedItem)[] }) {
   return (
     <ul className="divide-y divide-hairline">
@@ -66,13 +67,13 @@ export function ExerciseList({ exercises }: { exercises: (ExerciseSummary | Feed
                   <Difficulty value={exercise.difficulty} short />
                   <span className="ml-auto flex gap-2 sm:hidden">
                     {tag && <span className={tag.className}>{tag.label}</span>}
-                    <span>{solutionsLabel(exercise.validated_solutions)}</span>
+                    <span>{solutionsLabel(exercise.submitted_solutions)}</span>
                   </span>
                 </span>
               </span>
-              <span className="hidden w-28 shrink-0 text-right text-[13px] sm:block">
+              <span className="hidden w-36 shrink-0 text-right text-[13px] sm:block">
                 {tag && <span className={`block ${tag.className}`}>{tag.label}</span>}
-                <span className="block text-mute">{solutionsLabel(exercise.validated_solutions)}</span>
+                <span className="block text-mute">{solutionsLabel(exercise.submitted_solutions)}</span>
               </span>
             </Link>
           </li>

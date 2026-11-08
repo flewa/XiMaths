@@ -4,7 +4,6 @@ import { notFound, permanentRedirect } from "next/navigation";
 
 import {
   IntegrityAnswer,
-  RecommendButton,
   ReviseSolution,
   SolutionForm,
   VoteButton,
@@ -25,14 +24,14 @@ import {
   fetchRelated,
   fetchTopics,
   nullOnError,
+  type AuthorReview,
   type ExerciseDetail,
   type ExerciseSummary,
   type Me,
   type MySolution,
-  type Solution,
   type Topic,
 } from "@/lib/api";
-import { AI_USAGE_BADGES, SOLUTION_STATUS_LABELS, dateFormat } from "@/lib/labels";
+import { SOLUTION_STATUS_LABELS, dateFormat } from "@/lib/labels";
 import { excerpt } from "@/lib/seo";
 import { chapterPath, levelPath, ofChapter } from "@/lib/seo-pages";
 import { SHARE_IMAGE, SITE_URL } from "@/lib/site";
@@ -161,11 +160,8 @@ export default async function ExercisePage({ params }: Props) {
   // Doublon fusionné : son adresse redirige vers l'exercice canonique, qui a repris ses solutions.
   if (exercise.merged_into) permanentRedirect(`/exercices/${exercise.merged_into}`);
 
-  const count = exercise.solutions.length;
+  const count = exercise.submitted_solutions;
   const pending = mySolutions.some((s) => ["held", "under_review", "contested"].includes(s.status));
-  // L'auteur de l'exercice peut recommander une solution validée, une seule fois.
-  const canRecommend =
-    me !== null && me.username === exercise.author && !exercise.solutions.some((s) => s.recommended);
 
   return (
     <article>
@@ -210,6 +206,8 @@ export default async function ExercisePage({ params }: Props) {
             par {exercise.author}
           </Link>
         )}
+        {/* Les solutions restent privées : seul leur nombre est public. */}
+        <span>{count === 0 ? "aucune solution envoyée" : `${count} solution${count > 1 ? "s" : ""} envoyée${count > 1 ? "s" : ""}`}</span>
         <VoteButton
           path={`/exercises/${exercise.id}/vote`}
           count={exercise.votes}
@@ -278,28 +276,6 @@ export default async function ExercisePage({ params }: Props) {
         )}
       </section>
 
-      <section aria-labelledby="solutions" className={section}>
-        <h2 id="solutions" className={sectionTitle}>
-          {count === 0
-            ? "Solutions validées"
-            : `${count} solution${count > 1 ? "s" : ""} validée${count > 1 ? "s" : ""}`}
-        </h2>
-        {count === 0 ? (
-          <p className="mt-3 text-body">
-            Aucune solution validée pour l&apos;instant : cet exercice attend sa première.
-          </p>
-        ) : (
-          <details className="py-3">
-            <summary className="font-medium">
-              Afficher les solutions <span className="font-normal text-mute">· essaie d&apos;abord !</span>
-            </summary>
-            {exercise.solutions.map((solution) => (
-              <SolutionCard key={solution.id} solution={solution} me={me} canRecommend={canRecommend} />
-            ))}
-          </details>
-        )}
-      </section>
-
       {exercise.variants.length > 0 && (
         <section aria-labelledby="variantes" className={section}>
           <h2 id="variantes" className={sectionTitle}>
@@ -338,39 +314,6 @@ export default async function ExercisePage({ params }: Props) {
   );
 }
 
-function SolutionCard({ solution, me, canRecommend }: { solution: Solution; me: Me | null; canRecommend: boolean }) {
-  const aiBadge = AI_USAGE_BADGES[solution.ai_usage];
-  return (
-    <article className="mt-3 border border-hairline px-4 py-3">
-      <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-mute">
-        <span className="font-medium text-ink">{solution.author ?? "Compte supprimé"}</span>
-        {solution.validated_at && (
-          <span>validée le {dateFormat.format(new Date(solution.validated_at))}</span>
-        )}
-        {solution.recommended && <Tag strong>recommandée par l&apos;auteur</Tag>}
-        {aiBadge && <Tag>{aiBadge}</Tag>}
-        <VoteButton
-          path={`/solutions/${solution.id}/vote`}
-          count={solution.votes}
-          disabledReason={voteBlocker(me, solution.author)}
-        />
-      </p>
-      {solution.variant_statement && (
-        <div className="mt-3 border-l-2 border-hairline-strong bg-surface-soft px-4 text-sm">
-          <p className="pt-2 text-mute">Défi du jour · énoncé tiré pour cette solution</p>
-          <MathMarkdown>{solution.variant_statement}</MathMarkdown>
-        </div>
-      )}
-      <CopyPhotoList photos={solution.photos} />
-      {solution.body && <MathMarkdown>{solution.body}</MathMarkdown>}
-      <div className="mb-1 flex flex-wrap justify-end gap-x-6">
-        {canRecommend && solution.author !== me?.username && <RecommendButton solutionId={solution.id} />}
-        <Report me={me} author={solution.author} target="solution" targetId={solution.id} />
-      </div>
-    </article>
-  );
-}
-
 function MySolutionCard({ solution, exerciseId }: { solution: MySolution; exerciseId: number }) {
   return (
     <article className="mt-3 border border-hairline px-4 py-3">
@@ -393,19 +336,7 @@ function MySolutionCard({ solution, exerciseId }: { solution: MySolution; exerci
           <IntegrityAnswer signalId={solution.integrity_signal_id} initial={solution.integrity_answer} />
         </div>
       )}
-      {solution.feedback.length > 0 && (
-        <div className="mt-3 text-sm">
-          <p className="font-medium">Retours des relecteurs</p>
-          <ul className="mt-1 space-y-1 text-body">
-            {solution.feedback.map((feedback, index) => (
-              <li key={index}>
-                
-                {feedback}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <ReviewsReceived solution={solution} />
       {(solution.status === "needs_work" || solution.status === "validated") && (
         <ReviseSolution
           solutionId={solution.id}
@@ -414,5 +345,43 @@ function MySolutionCard({ solution, exerciseId }: { solution: MySolution; exerci
         />
       )}
     </article>
+  );
+}
+
+const VERDICT_STYLES: Record<AuthorReview["verdict"], string> = {
+  correcte: "text-success",
+  lacunes: "text-warning",
+  incorrecte: "text-danger-text",
+};
+
+/** Les corrections reçues : verdict et commentaire de chaque relecteur, anonymes, lus dès
+ * qu'ils arrivent. C'est la seule correction de l'exercice : aucune solution n'est publique. */
+function ReviewsReceived({ solution }: { solution: MySolution }) {
+  if (solution.reviews_expected === 0) return null;
+  const done = solution.reviews.length;
+  return (
+    <div className="mt-3 text-sm">
+      <p className="font-medium">
+        Corrections reçues{" "}
+        <span className="font-normal text-mute">
+          · {done} sur {solution.reviews_expected}
+          {solution.status === "under_review" && " — les points viennent si tous tes relecteurs la jugent juste"}
+        </span>
+      </p>
+      {done === 0 ? (
+        <p className="mt-1 text-mute">Tes relecteurs ont 72 heures. Tu seras prévenu à chaque correction.</p>
+      ) : (
+        <ol className="mt-2 space-y-2">
+          {solution.reviews.map((review, index) => (
+            <li key={review.submitted_at} className="rounded-lg bg-surface-soft px-3 py-2">
+              <p className="text-mute">
+                Relecteur {index + 1} · <span className={VERDICT_STYLES[review.verdict]}>{review.verdict_label}</span>
+              </p>
+              <p className="mt-1 whitespace-pre-line text-body">{review.comment}</p>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
   );
 }

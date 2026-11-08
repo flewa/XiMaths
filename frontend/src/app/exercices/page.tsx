@@ -17,7 +17,7 @@ export async function generateMetadata({
   return {
     title: "Parcourir les exercices",
     description:
-      "Tous les exercices de maths du supérieur publiés sur XiMaths, de la L1 au M2 et en prépa : récents, populaires, ou sans solution validée.",
+      "Tous les exercices de maths du supérieur publiés sur XiMaths, de la L1 au M2 et en prépa : récents, populaires, ou sans solution envoyée.",
     // Les variantes filtrées ou triées renvoient à une seule adresse : la page du niveau, ou le catalogue.
     alternates: { canonical: niveau ? levelPath(niveau) : "/exercices" },
   };
@@ -27,7 +27,7 @@ export async function generateMetadata({
 const SORTS: { value: string; sort: ExerciseSort; label: string }[] = [
   { value: "recents", sort: "recent", label: "Récents" },
   { value: "populaires", sort: "popular", label: "Populaires" },
-  { value: "sans-solution", sort: "unsolved", label: "Sans solution validée" },
+  { value: "sans-solution", sort: "unsolved", label: "Sans solution" },
 ];
 
 function browseHref(niveau: string | undefined, tri: string, q?: string) {

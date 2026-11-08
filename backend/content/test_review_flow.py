@@ -97,15 +97,15 @@ class RevisionTests(ReviewFlowTestCase):
         current = {r.reviewer_id for r in self.assigned(revised)}
         self.assertEqual(len(current), 3)
         self.assertFalse(current & previous)
-        for review in self.assigned(revised)[:2]:
-            submit_review(review, Verdict.CORRECT)
+        for review in self.assigned(revised):
+            submit_review(review, Verdict.CORRECT, feedback="Juste.")
         revised.refresh_from_db()
         self.assertEqual(revised.status, Solution.Status.VALIDATED)
 
     def test_a_small_edit_of_a_validated_solution_stays_validated(self):
         solution = self.publish()
-        for review in self.assigned(solution)[:2]:
-            submit_review(review, Verdict.CORRECT)
+        for review in self.assigned(solution):
+            submit_review(review, Verdict.CORRECT, feedback="Juste.")
         solution.refresh_from_db()
 
         _, new_round = revise_solution(solution, solution.body + " Fin.")
@@ -122,39 +122,26 @@ class RevisionTests(ReviewFlowTestCase):
 
 
 class RecommendationTests(ReviewFlowTestCase):
-    def validated(self, author=None):
-        solution = self.publish(author=author)
-        for review in self.assigned(solution)[:2]:
-            submit_review(review, Verdict.CORRECT)
+    def test_solutions_are_private_so_recommendations_are_closed(self):
+        solution = self.publish()
+        for review in self.assigned(solution):
+            submit_review(review, Verdict.CORRECT, feedback="Juste.")
         solution.refresh_from_db()
-        return solution
-
-    def test_the_exercise_author_recommends_one_solution(self):
-        solution = self.validated()
-        before = balance(self.student)
-
-        recommend_solution(solution, self.author)
-
-        self.assertEqual(balance(self.student), before + 5)
-        detail = self.client.get(f"/api/exercises/{self.exercise.pk}").json()
-        self.assertTrue(detail["solutions"][0]["recommended"])
-        other = self.validated(author=make_user("yanis", level="L1"))
         with self.assertRaises(RuleError):
-            recommend_solution(other, self.author)
-
-    def test_only_the_exercise_author_recommends(self):
-        with self.assertRaises(PermissionDenied):
-            recommend_solution(self.validated(), self.reviewers[0])
+            recommend_solution(solution, self.author)
 
 
 class ArbitrationApiTests(ReviewFlowTestCase):
     def contested(self):
+        """Solution contestée sous l'ancienne règle (deux avis opposés), avant le consensus :
+        un expert la tranche toujours."""
         solution = self.publish()
         reviews = self.assigned(solution)
-        submit_review(reviews[0], Verdict.CORRECT)
-        submit_review(reviews[1], Verdict.INCORRECT, feedback="Faux.")
+        now = timezone.now()
+        for review, verdict in ((reviews[0], Verdict.CORRECT), (reviews[1], Verdict.INCORRECT)):
+            Review.objects.filter(pk=review.pk).update(verdict=verdict, feedback="Avis.", weight=1, submitted_at=now)
+        Solution.objects.filter(pk=solution.pk).update(status=Solution.Status.CONTESTED)
         solution.refresh_from_db()
-        self.assertEqual(solution.status, Solution.Status.CONTESTED)
         return solution
 
     def test_an_expert_sees_the_verdicts_and_decides(self):

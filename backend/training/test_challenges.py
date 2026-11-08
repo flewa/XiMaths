@@ -224,16 +224,13 @@ class ChallengeApiTests(ChallengeTestCase):
         self.assertEqual(task["expected_answer"], f"({session.parameters['b']})")
         self.assertEqual(len(task["solution_photos"]), 1)
 
-    def test_challenge_solutions_stay_hidden_until_the_window_closes(self):
+    def test_challenge_solutions_stay_private_even_after_the_window_closes(self):
         session = self.submitted()
         Solution.objects.filter(pk=session.solution_id).update(status=Solution.Status.VALIDATED, validated_at=self.now)
-
-        detail = self.client.get(f"/api/exercises/{self.exercise.pk}").json()
-        self.assertEqual(detail["solutions"], [])
         Challenge.objects.filter(pk=self.challenge.pk).update(closes_at=self.now - timedelta(seconds=1))
         detail = self.client.get(f"/api/exercises/{self.exercise.pk}").json()
-        self.assertEqual(len(detail["solutions"]), 1)
-        self.assertIn("^n", detail["solutions"][0]["variant_statement"])
+        self.assertNotIn("solutions", detail)
+        self.assertEqual(detail["submitted_solutions"], 1)
 
 
 class TemplateAdminFormTests(ChallengeTestCase):

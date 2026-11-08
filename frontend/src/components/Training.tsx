@@ -468,8 +468,8 @@ function TrainingResult({ session }: { session: TrainingSession }) {
       </section>
 
       <p className="mt-12 flex flex-wrap gap-x-6 gap-y-2">
-        <Link href={`/exercices/${session.exercise_id}#solutions`} className="underline underline-offset-4">
-          Voir les solutions validées
+        <Link href={`/exercices/${session.exercise_id}#ta-solution`} className="underline underline-offset-4">
+          Suivre la correction de ma copie
         </Link>
         <Link href={ranked ? "/defi" : "/"} className="underline underline-offset-4">
           {ranked ? "Les autres défis" : "Un autre exercice"}
@@ -480,7 +480,6 @@ function TrainingResult({ session }: { session: TrainingSession }) {
 }
 
 const bonusFormat = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 });
-const timeFormat = new Intl.DateTimeFormat("fr-FR", { weekday: "long", hour: "2-digit", minute: "2-digit" });
 
 /** Barème du défi : tous les points quand la copie est validée par les pairs. */
 function ChallengePoints({ session }: { session: TrainingSession }) {
@@ -489,16 +488,10 @@ function ChallengePoints({ session }: { session: TrainingSession }) {
     <>
       {session.solution_status && (
         <li>
-          +{session.justification_points} points quand ta copie sera validée par les pairs{bonus}.
+          +{session.justification_points} points si tes trois relecteurs la jugent juste{bonus}.
         </li>
       )}
-      {session.challenge_closes_at && (
-        <li className="text-mute">
-          {/* Fermeture à minuit : « mercredi 23:59 » plutôt que « jeudi 00:00 ». */}
-          Les solutions des autres seront visibles à la fermeture du défi,{" "}
-          {timeFormat.format(new Date(Date.parse(session.challenge_closes_at) - 60_000))}.
-        </li>
-      )}
+
     </>
   );
 }

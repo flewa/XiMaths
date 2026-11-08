@@ -31,8 +31,8 @@ export const SOLUTION_STATUS_LABELS: Record<SolutionStatus, string> = {
   held: "En vérification",
   under_review: "En relecture par des pairs",
   contested: "Avis partagés : un expert tranche",
-  validated: "Validée",
-  needs_work: "À compléter",
+  validated: "Validée par les trois relecteurs",
+  needs_work: "À reprendre",
   hidden: "Masquée",
 };
 

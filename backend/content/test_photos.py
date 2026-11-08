@@ -295,15 +295,16 @@ class VisibilityTests(PhotoTestCase):
         self.assertEqual(self.status_for(make_user("expert", trust=TL.EXPERT)), 404)
         self.assertEqual(self.status_for(None), 404)
 
-    def test_experts_see_a_contested_solution_and_everyone_a_validated_one(self):
+    def test_experts_see_a_contested_solution_but_nobody_else_a_validated_one(self):
         expert = make_user("expert", trust=TL.EXPERT)
         Solution.objects.filter(pk=self.solution.pk).update(status=Solution.Status.CONTESTED)
         self.assertEqual(self.status_for(expert), 200)
 
+        # Validée, la copie reste privée : son auteur et ses relecteurs seulement.
         Solution.objects.filter(pk=self.solution.pk).update(status=Solution.Status.VALIDATED)
-        self.assertEqual(self.status_for(None), 200)
-        page = self.client.get(f"/api/exercises/{self.exercise.pk}").json()
-        self.assertEqual(page["solutions"][0]["photos"][0]["url"], self.url)
+        self.assertEqual(self.status_for(None), 404)
+        self.assertEqual(self.status_for(make_user("curieux", level="L1")), 404)
+        self.assertEqual(self.status_for(self.student), 200)
 
     def test_a_missing_file_is_not_found_rather_than_an_error(self):
         self.stored(self.solution.photos.get()).unlink()

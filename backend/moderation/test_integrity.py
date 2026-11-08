@@ -49,7 +49,7 @@ class IntegrityTests(ContentTestCase):
         signal = IntegritySignal.objects.get(solution=copy)
         self.assertGreaterEqual(signal.value, 0.7)
         self.assertTrue(Notification.objects.filter(user=copier, kind=Notification.Kind.SOLUTION_HELD).exists())
-        self.assertEqual(balance(copier), 2)  # l'effort reste payé tant que rien n'est confirmé
+        self.assertEqual(balance(copier), 0)  # une copie envoyée ne rapporte rien sans consensus
 
     def test_different_proofs_and_the_same_author_are_not_flagged(self):
         self.propose(self.student, LONG_PROOF)

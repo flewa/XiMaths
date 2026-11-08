@@ -31,7 +31,7 @@ export const HOME_VIEWS: { value: string; label: string; sort: ExerciseSort | nu
     value: "sans-solution",
     label: "Sans solution",
     sort: "unsolved",
-    intro: "Personne ne les a encore résolus : à toi d'ouvrir la voie.",
+    intro: "Personne n'y a encore envoyé de solution : à toi d'ouvrir la voie.",
   },
   {
     value: "tendance",
