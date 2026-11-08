@@ -3,8 +3,8 @@
 EXERCISES = [
     # ------------------------------------------------------------------ L1
     {
-        "title": "Limite de sin(3x)/(2x) en 0",
-        "former_titles": ["Une limite usuelle"],
+        "title": r"Limite de $\sin(3x)/(2x)$ en 0",
+        "former_titles": ["Une limite usuelle", "Limite de sin(3x)/(2x) en 0"],
         "statement": r"Déterminer $\displaystyle\lim_{x \to 0} \frac{\sin(3x)}{2x}$.",
         "hints": [
             r"Faire apparaître le quotient $\dfrac{\sin(3x)}{3x}$.",
@@ -22,8 +22,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Somme des cubes des n premiers entiers, par récurrence",
-        "former_titles": ["Somme des cubes"],
+        "title": r"Somme des cubes des $n$ premiers entiers, par récurrence",
+        "former_titles": ["Somme des cubes", "Somme des cubes des n premiers entiers, par récurrence"],
         "statement": (
             r"Montrer que pour tout entier $n \geq 1$,"
             "\n\n"
@@ -39,8 +39,8 @@ EXERCISES = [
         "topics": ["algebre", "sommes-recurrence"],
     },
     {
-        "title": "Injectivité d'une composée g∘f",
-        "former_titles": ["Composée injective"],
+        "title": r"Injectivité d'une composée $g \circ f$",
+        "former_titles": ["Composée injective", "Injectivité d'une composée g∘f"],
         "statement": (
             r"Soit $f : E \to F$ et $g : F \to G$ deux applications."
             "\n\n"
@@ -58,8 +58,8 @@ EXERCISES = [
         "topics": ["algebre", "ensembles-applications"],
     },
     {
-        "title": "Équation fonctionnelle de Cauchy f(x + y) = f(x) + f(y) sur les rationnels",
-        "former_titles": ["Fonctions additives sur les rationnels"],
+        "title": r"Équation fonctionnelle de Cauchy $f(x + y) = f(x) + f(y)$ sur les rationnels",
+        "former_titles": ["Fonctions additives sur les rationnels", "Équation fonctionnelle de Cauchy f(x + y) = f(x) + f(y) sur les rationnels"],
         "statement": (
             r"Soit $f : \R \to \R$ telle que $f(x + y) = f(x) + f(y)$ pour tous réels $x$ et $y$."
             "\n\n"
@@ -75,8 +75,8 @@ EXERCISES = [
         "topics": ["analyse", "algebre", "nombres-reels"],
     },
     {
-        "title": "Partie entière : ⌊2x⌋ = ⌊x⌋ + ⌊x + 1/2⌋",
-        "former_titles": ["Partie entière du double"],
+        "title": r"Partie entière : $\lfloor 2x \rfloor = \lfloor x \rfloor + \lfloor x + 1/2 \rfloor$",
+        "former_titles": ["Partie entière du double", "Partie entière : ⌊2x⌋ = ⌊x⌋ + ⌊x + 1/2⌋"],
         "statement": (
             r"On note $\lfloor x \rfloor$ la partie entière du réel $x$. Montrer que pour tout réel $x$,"
             "\n\n"
@@ -92,8 +92,8 @@ EXERCISES = [
         "topics": ["analyse", "nombres-reels", "fonctions-usuelles"],
     },
     {
-        "title": "Les sous-groupes de Z sont les nZ",
-        "former_titles": ["Sous-groupes de Z"],
+        "title": r"Les sous-groupes de $\Z$ sont les $n\Z$",
+        "former_titles": ["Sous-groupes de Z", "Les sous-groupes de Z sont les nZ"],
         "statement": (
             r"Montrer que tout sous-groupe $H$ du groupe $(\Z, +)$ est de la forme $n\Z$"
             r" pour un unique entier $n \geq 0$."
@@ -109,8 +109,8 @@ EXERCISES = [
     },
     # ------------------------------------------------------------------ L2
     {
-        "title": "Somme de la série de terme général n/2ⁿ",
-        "former_titles": ["Une série dérivée"],
+        "title": r"Somme de la série de terme général $n/2^n$",
+        "former_titles": ["Une série dérivée", "Somme de la série de terme général n/2ⁿ"],
         "statement": r"Justifier la convergence de la série $\displaystyle\sum_{n \geq 1} \frac{n}{2^n}$ et calculer sa somme.",
         "hints": [
             r"Pour $|x| < 1$, dériver terme à terme $\displaystyle\sum_{n \geq 0} x^n = \frac{1}{1-x}$.",
@@ -128,8 +128,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Noyau, image et rang de la dérivation sur Rₙ[X]",
-        "former_titles": ["La dérivation sur les polynômes"],
+        "title": r"Noyau, image et rang de la dérivation sur $\R_n[X]$",
+        "former_titles": ["La dérivation sur les polynômes", "Noyau, image et rang de la dérivation sur Rₙ[X]"],
         "statement": (
             r"Soit $n \geq 1$ et $E = \R_n[X]$ l'espace des polynômes réels de degré au plus $n$."
             r" On note $D : E \to E$ l'application $P \mapsto P'$."
@@ -147,8 +147,8 @@ EXERCISES = [
         "topics": ["algebre-lineaire", "applications-lineaires", "polynomes"],
     },
     {
-        "title": "Convergence simple mais non uniforme de xⁿ sur [0, 1]",
-        "former_titles": ["Convergence uniforme de x puissance n"],
+        "title": r"Convergence simple mais non uniforme de $x^n$ sur $[0, 1]$",
+        "former_titles": ["Convergence uniforme de x puissance n", "Convergence simple mais non uniforme de xⁿ sur [0, 1]"],
         "statement": (
             r"Pour $n \in \N$ et $x \in [0, 1]$, on pose $f_n(x) = x^n$."
             "\n\n"
@@ -168,8 +168,8 @@ EXERCISES = [
         "topics": ["analyse", "suites-series-fonctions"],
     },
     {
-        "title": "Puissances de la matrice I + J, J remplie de 1",
-        "former_titles": ["Puissances d'une matrice de rang un augmentée"],
+        "title": r"Puissances de la matrice $I + J$, $J$ remplie de 1",
+        "former_titles": ["Puissances d'une matrice de rang un augmentée", "Puissances de la matrice I + J, J remplie de 1"],
         "statement": (
             r"On pose $J$ la matrice de $\mathcal{M}_3(\R)$ dont tous les coefficients valent $1$,"
             r" et $A = I_3 + J$."
@@ -191,8 +191,8 @@ EXERCISES = [
     },
     # ------------------------------------------------------------------ L3
     {
-        "title": "Intégrale de e⁻²ˣ sin(3x) sur [0, +∞[ : transformée de Laplace",
-        "former_titles": ["Transformée de Laplace d'un sinus"],
+        "title": r"Intégrale de $e^{-2x} \sin(3x)$ sur $[0, +\infty[$ : transformée de Laplace",
+        "former_titles": ["Transformée de Laplace d'un sinus", "Intégrale de e⁻²ˣ sin(3x) sur [0, +∞[ : transformée de Laplace"],
         "statement": (
             r"Justifier la convergence de l'intégrale $\displaystyle\int_0^{+\infty} e^{-2x} \sin(3x)\,dx$,"
             " puis calculer sa valeur."
@@ -213,8 +213,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "La boule unité de ℓ² n'est pas compacte",
-        "former_titles": ["La boule unité de l'espace des suites de carré sommable"],
+        "title": r"La boule unité de $\ell^2$ n'est pas compacte",
+        "former_titles": ["La boule unité de l'espace des suites de carré sommable", "La boule unité de ℓ² n'est pas compacte"],
         "statement": (
             r"On note $\ell^2$ l'espace des suites réelles $u = (u_n)_{n \in \N}$ telles que"
             r" $\sum u_n^2 < +\infty$, muni de la norme $\|u\|_2 = \left(\sum_{n} u_n^2\right)^{1/2}$."
@@ -231,8 +231,8 @@ EXERCISES = [
         "topics": ["topologie", "espaces-vectoriels-normes"],
     },
     {
-        "title": "Q n'est pas un G-delta de R (théorème de Baire)",
-        "former_titles": ["Les rationnels ne sont pas un G-delta"],
+        "title": r"$\Q$ n'est pas un $G_\delta$ de $\R$ (théorème de Baire)",
+        "former_titles": ["Les rationnels ne sont pas un G-delta", "Q n'est pas un G-delta de R (théorème de Baire)"],
         "statement": (
             r"Montrer que $\Q$ n'est pas une intersection dénombrable d'ouverts de $\R$."
         ),
@@ -268,8 +268,8 @@ EXERCISES = [
     },
     # ------------------------------------------------------------------ M1
     {
-        "title": "Intégrale de 1/(x² + 4)² par le théorème des résidus",
-        "former_titles": ["Une intégrale par les résidus"],
+        "title": r"Intégrale de $1/(x^2 + 4)^2$ par le théorème des résidus",
+        "former_titles": ["Une intégrale par les résidus", "Intégrale de 1/(x² + 4)² par le théorème des résidus"],
         "statement": r"Calculer $\displaystyle\int_{-\infty}^{+\infty} \frac{dx}{(x^2 + 4)^2}$ à l'aide du théorème des résidus.",
         "hints": [
             r"Intégrer $f(z) = \dfrac{1}{(z^2 + 4)^2}$ sur le bord du demi-disque supérieur de rayon $R$, puis faire tendre $R$ vers $+\infty$.",
@@ -304,8 +304,8 @@ EXERCISES = [
         "topics": ["analyse", "integration-lebesgue"],
     },
     {
-        "title": "Idéaux premiers et maximaux de Z[X] : (X) et (2, X)",
-        "former_titles": ["Un idéal maximal de Z[X]"],
+        "title": r"Idéaux premiers et maximaux de $\Z[X]$ : $(X)$ et $(2, X)$",
+        "former_titles": ["Un idéal maximal de Z[X]", "Idéaux premiers et maximaux de Z[X] : (X) et (2, X)"],
         "statement": (
             r"Dans l'anneau $\Z[X]$ :"
             "\n\n"
@@ -371,8 +371,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Injection de Sobolev en dimension 1 : H¹ et fonctions höldériennes",
-        "former_titles": ["Injection de Sobolev en dimension un"],
+        "title": r"Injection de Sobolev en dimension 1 : $H^1$ et fonctions höldériennes",
+        "former_titles": ["Injection de Sobolev en dimension un", "Injection de Sobolev en dimension 1 : H¹ et fonctions höldériennes"],
         "statement": (
             r"Soit $u \in C^1([0, 1])$. Montrer que pour tous $x, y \in [0, 1]$,"
             "\n\n"
@@ -391,8 +391,8 @@ EXERCISES = [
         "topics": ["analyse", "analyse-fonctionnelle"],
     },
     {
-        "title": "Problème de Dirichlet −u'' + u = f par le théorème de Lax-Milgram",
-        "former_titles": ["Problème de Dirichlet par Lax-Milgram"],
+        "title": r"Problème de Dirichlet $-u'' + u = f$ par le théorème de Lax-Milgram",
+        "former_titles": ["Problème de Dirichlet par Lax-Milgram", "Problème de Dirichlet −u'' + u = f par le théorème de Lax-Milgram"],
         "statement": (
             r"Soit $f \in L^2(0, 1)$. On cherche $u \in H^1_0(0, 1)$ telle que $-u'' + u = f$ au sens faible :"
             "\n\n"
@@ -448,8 +448,8 @@ EXERCISES = [
     },
     # ------------------------------------------------------------------ MPSI
     {
-        "title": "Formule du binôme : somme des k parmi 5 fois 2ᵏ",
-        "former_titles": ["Somme binomiale"],
+        "title": r"Formule du binôme : somme des $\binom{5}{k} 2^k$",
+        "former_titles": ["Somme binomiale", "Formule du binôme : somme des k parmi 5 fois 2ᵏ"],
         "statement": r"Calculer $\displaystyle\sum_{k=0}^{5} \binom{5}{k}\, 2^k$.",
         "hints": [r"Reconnaître le développement de $(1 + x)^5$ par la formule du binôme."],
         "final_answer": "243",
@@ -464,8 +464,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Racines n-ièmes de l'unité : somme, et produit des 1 − ωᵏ",
-        "former_titles": ["Produit autour des racines de l'unité"],
+        "title": r"Racines $n$-ièmes de l'unité : somme, et produit des $1 - \omega^k$",
+        "former_titles": ["Produit autour des racines de l'unité", "Racines n-ièmes de l'unité : somme, et produit des 1 − ωᵏ"],
         "statement": (
             r"Soit $n \geq 2$ et $\omega = e^{2i\pi/n}$."
             "\n\n"
@@ -484,8 +484,8 @@ EXERCISES = [
         "topics": ["algebre", "nombres-complexes", "polynomes"],
     },
     {
-        "title": "Suite récurrente u(n+1) = √(2 + u(n)) : convergence et limite",
-        "former_titles": ["Racines carrées emboîtées"],
+        "title": r"Suite récurrente $u_{n+1} = \sqrt{2 + u_n}$ : convergence et limite",
+        "former_titles": ["Racines carrées emboîtées", "Suite récurrente u(n+1) = √(2 + u(n)) : convergence et limite"],
         "statement": (
             r"On définit la suite $(u_n)$ par $u_0 = 0$ et $u_{n+1} = \sqrt{2 + u_n}$ pour tout $n \in \N$."
             "\n\n"
@@ -502,8 +502,8 @@ EXERCISES = [
         "topics": ["analyse", "suites-numeriques"],
     },
     {
-        "title": "Intégrales de Wallis : relation de récurrence et valeur de W4",
-        "former_titles": ["Intégrales de Wallis"],
+        "title": r"Intégrales de Wallis : relation de récurrence et valeur de $W_4$",
+        "former_titles": ["Intégrales de Wallis", "Intégrales de Wallis : relation de récurrence et valeur de W4"],
         "statement": (
             r"Pour $n \in \N$, on pose $W_n = \displaystyle\int_0^{\pi/2} \sin^n t\,dt$."
             "\n\n"
@@ -557,8 +557,8 @@ EXERCISES = [
         "topics": ["arithmetique", "divisibilite-pgcd"],
     },
     {
-        "title": "Reste de 3¹⁰⁰ modulo 7",
-        "former_titles": ["Une puissance modulo 7"],
+        "title": r"Reste de $3^{100}$ modulo 7",
+        "former_titles": ["Une puissance modulo 7", "Reste de 3¹⁰⁰ modulo 7"],
         "statement": r"Déterminer le reste de la division euclidienne de $3^{100}$ par $7$.",
         "hints": [
             r"D'après le petit théorème de Fermat, $3^6 \equiv 1 \pmod 7$.",
@@ -571,8 +571,8 @@ EXERCISES = [
         "topics": ["arithmetique", "congruences"],
     },
     {
-        "title": "Nombre de surjections de {1, …, n} sur {1, 2}",
-        "former_titles": ["Surjections vers un ensemble à deux éléments"],
+        "title": r"Nombre de surjections de $\{1, \dots, n\}$ sur $\{1, 2\}$",
+        "former_titles": ["Surjections vers un ensemble à deux éléments", "Nombre de surjections de {1, …, n} sur {1, 2}"],
         "statement": (
             r"Soit $n \geq 1$. Combien y a-t-il de surjections de $\{1, \dots, n\}$ sur $\{1, 2\}$ ?"
             r" Donner la valeur pour $n = 4$."
@@ -589,8 +589,8 @@ EXERCISES = [
     },
     # ------------------------------------------------------------------ PCSI
     {
-        "title": "Module du nombre complexe (1 + i√3)⁵",
-        "former_titles": ["Module d'une puissance"],
+        "title": r"Module du nombre complexe $(1 + i\sqrt{3})^5$",
+        "former_titles": ["Module d'une puissance", "Module du nombre complexe (1 + i√3)⁵"],
         "statement": r"Calculer le module du nombre complexe $(1 + i\sqrt{3})^5$.",
         "hints": [r"Le module d'un produit est le produit des modules : calculer $|1 + i\sqrt{3}|$."],
         "final_answer": "32",
@@ -605,8 +605,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Équation différentielle y'' − 3y' + 2y = 0 avec conditions initiales",
-        "former_titles": ["Équation différentielle du second ordre"],
+        "title": r"Équation différentielle $y'' - 3y' + 2y = 0$ avec conditions initiales",
+        "former_titles": ["Équation différentielle du second ordre", "Équation différentielle y'' − 3y' + 2y = 0 avec conditions initiales"],
         "statement": (
             r"Déterminer la solution $y$ de l'équation $y'' - 3y' + 2y = 0$ vérifiant $y(0) = 1$ et $y'(0) = 0$,"
             r" puis calculer $y(1)$."
@@ -622,8 +622,8 @@ EXERCISES = [
         "topics": ["analyse", "equations-differentielles"],
     },
     {
-        "title": "Développement limité de tan x à l'ordre 5",
-        "former_titles": ["Développement limité de la tangente"],
+        "title": r"Développement limité de $\tan x$ à l'ordre 5",
+        "former_titles": ["Développement limité de la tangente", "Développement limité de tan x à l'ordre 5"],
         "statement": (
             r"Déterminer le développement limité à l'ordre $5$ en $0$ de la fonction tangente."
             r" Quel est le coefficient de $x^5$ ?"
@@ -639,8 +639,8 @@ EXERCISES = [
         "topics": ["analyse", "developpements-limites"],
     },
     {
-        "title": "Aire entre les courbes y = x² et y = √x",
-        "former_titles": ["Aire entre deux courbes"],
+        "title": r"Aire entre les courbes $y = x^2$ et $y = \sqrt{x}$",
+        "former_titles": ["Aire entre deux courbes", "Aire entre les courbes y = x² et y = √x"],
         "statement": r"Calculer l'aire du domaine compris entre les courbes d'équations $y = x^2$ et $y = \sqrt{x}$.",
         "hints": [
             r"Les courbes se coupent en $x = 0$ et $x = 1$, et $\sqrt{x} \geq x^2$ sur $[0, 1]$.",
@@ -654,8 +654,8 @@ EXERCISES = [
     },
     # ------------------------------------------------------------------ PTSI
     {
-        "title": "Distance du point A(1, 2) à la droite 3x + 4y = 0",
-        "former_titles": ["Distance d'un point à une droite"],
+        "title": r"Distance du point $A(1, 2)$ à la droite $3x + 4y = 0$",
+        "former_titles": ["Distance d'un point à une droite", "Distance du point A(1, 2) à la droite 3x + 4y = 0"],
         "statement": (
             r"Dans un repère orthonormé du plan, calculer la distance du point $A(1, 2)$ à la droite"
             r" d'équation $3x + 4y = 0$."
@@ -693,8 +693,8 @@ EXERCISES = [
         "topics": ["geometrie", "geometrie-plan-espace"],
     },
     {
-        "title": "Axe et angle d'une rotation de R³ donnée par sa matrice",
-        "former_titles": ["Axe et angle d'une rotation"],
+        "title": r"Axe et angle d'une rotation de $\R^3$ donnée par sa matrice",
+        "former_titles": ["Axe et angle d'une rotation", "Axe et angle d'une rotation de R³ donnée par sa matrice"],
         "statement": (
             r"Soit $f$ l'endomorphisme de $\R^3$ canoniquement associé à la matrice"
             "\n\n"
@@ -775,8 +775,8 @@ EXERCISES = [
         "topics": ["algebre-lineaire", "calcul-matriciel", "reduction"],
     },
     {
-        "title": "Rayon et somme de la série entière de terme général n² xⁿ",
-        "former_titles": ["Une série entière à coefficients polynomiaux"],
+        "title": r"Rayon et somme de la série entière de terme général $n^2 x^n$",
+        "former_titles": ["Une série entière à coefficients polynomiaux", "Rayon et somme de la série entière de terme général n² xⁿ"],
         "statement": (
             r"1. Déterminer le rayon de convergence $R$ de la série entière $\displaystyle\sum_{n \geq 1} n^2 x^n$,"
             r" puis calculer sa somme sur $]-R, R[$."
@@ -794,8 +794,8 @@ EXERCISES = [
         "topics": ["analyse", "series-entieres"],
     },
     {
-        "title": "Intégrale de Dirichlet : convergence et valeur de l'intégrale de sin x / x",
-        "former_titles": ["Intégrale de Dirichlet"],
+        "title": r"Intégrale de Dirichlet : convergence et valeur de l'intégrale de $\sin x / x$",
+        "former_titles": ["Intégrale de Dirichlet", "Intégrale de Dirichlet : convergence et valeur de l'intégrale de sin x / x"],
         "statement": (
             r"1. Montrer que l'intégrale $\displaystyle\int_0^{+\infty} \frac{\sin x}{x}\,dx$ converge,"
             " mais pas absolument."
@@ -816,8 +816,8 @@ EXERCISES = [
         "topics": ["analyse", "integrales-generalisees", "integrales-a-parametre"],
     },
     {
-        "title": "Meilleure approximation affine de x² dans L², par projection orthogonale",
-        "former_titles": ["Meilleure approximation affine dans L2"],
+        "title": r"Meilleure approximation affine de $x^2$ dans $L^2$, par projection orthogonale",
+        "former_titles": ["Meilleure approximation affine dans L2", "Meilleure approximation affine de x² dans L², par projection orthogonale"],
         "statement": (
             r"On munit $C([0, 1])$ du produit scalaire $\langle f, g \rangle = \displaystyle\int_0^1 f g$."
             "\n\n"
@@ -835,8 +835,8 @@ EXERCISES = [
     },
     # ------------------------------------------------------------------ PC
     {
-        "title": "Équation différentielle y' + 2y = 0 avec condition initiale",
-        "former_titles": ["Équation différentielle linéaire du premier ordre"],
+        "title": r"Équation différentielle $y' + 2y = 0$ avec condition initiale",
+        "former_titles": ["Équation différentielle linéaire du premier ordre", "Équation différentielle y' + 2y = 0 avec condition initiale"],
         "statement": r"Déterminer la solution $y$ de $y' + 2y = 0$ telle que $y(0) = 3$, puis calculer $y(1)$.",
         "hints": [r"Les solutions sont les fonctions $x \mapsto C e^{-2x}$."],
         "final_answer": "3*exp(-2)",
@@ -853,8 +853,8 @@ EXERCISES = [
         },
     },
     {
-        "title": "Diagonalisation d'une matrice symétrique et trace de A¹⁰",
-        "former_titles": ["Trace d'une puissance d'une matrice symétrique"],
+        "title": r"Diagonalisation d'une matrice symétrique et trace de $A^{10}$",
+        "former_titles": ["Trace d'une puissance d'une matrice symétrique", "Diagonalisation d'une matrice symétrique et trace de A¹⁰"],
         "statement": (
             r"Soit $A = \begin{pmatrix} 1 & 2 \\ 2 & 1 \end{pmatrix}$."
             "\n\n"
@@ -873,8 +873,8 @@ EXERCISES = [
         "topics": ["algebre-lineaire", "reduction", "espaces-euclidiens"],
     },
     {
-        "title": "Intégrale double de exp(−x² − y²) sur le disque unité, en coordonnées polaires",
-        "former_titles": ["Intégrale double en coordonnées polaires"],
+        "title": r"Intégrale double de $e^{-x^2 - y^2}$ sur le disque unité, en coordonnées polaires",
+        "former_titles": ["Intégrale double en coordonnées polaires", "Intégrale double de exp(−x² − y²) sur le disque unité, en coordonnées polaires"],
         "statement": r"Calculer $\displaystyle\iint_{x^2 + y^2 \leq 1} e^{-(x^2 + y^2)}\,dx\,dy$.",
         "hints": [
             r"Passer en coordonnées polaires : $dx\,dy = r\,dr\,d\theta$.",
@@ -887,8 +887,8 @@ EXERCISES = [
         "topics": ["analyse", "fonctions-plusieurs-variables", "calcul-integral"],
     },
     {
-        "title": "Minimum de f(x, y) = x² + xy + y² − 3x",
-        "former_titles": ["Minimum d'une fonction de deux variables"],
+        "title": r"Minimum de $f(x, y) = x^2 + xy + y^2 - 3x$",
+        "former_titles": ["Minimum d'une fonction de deux variables", "Minimum de f(x, y) = x² + xy + y² − 3x"],
         "statement": (
             r"Soit $f : \R^2 \to \R$ définie par $f(x, y) = x^2 + xy + y^2 - 3x$."
             "\n\n"
@@ -906,8 +906,8 @@ EXERCISES = [
     },
     # ------------------------------------------------------------------ PSI
     {
-        "title": "Moment d'ordre 2 d'une loi géométrique : calcul de E(X²)",
-        "former_titles": ["Moment d'ordre 2 d'une loi géométrique"],
+        "title": r"Moment d'ordre 2 d'une loi géométrique : calcul de $E(X^2)$",
+        "former_titles": ["Moment d'ordre 2 d'une loi géométrique", "Moment d'ordre 2 d'une loi géométrique : calcul de E(X²)"],
         "statement": (
             r"Soit $X$ une variable aléatoire suivant la loi géométrique de paramètre $p = \frac{1}{4}$ :"
             r" $P(X = k) = p(1 - p)^{k-1}$ pour $k \geq 1$. Calculer $E[X^2]$."
@@ -983,8 +983,8 @@ EXERCISES = [
     },
     # ------------------------------------------------------------------ PT
     {
-        "title": "Intégrale de x² ln x sur ]0, 1]",
-        "former_titles": ["Une intégrale avec un logarithme"],
+        "title": r"Intégrale de $x^2 \ln x$ sur $]0, 1]$",
+        "former_titles": ["Une intégrale avec un logarithme", "Intégrale de x² ln x sur ]0, 1]"],
         "statement": (
             r"Justifier la convergence de l'intégrale $\displaystyle\int_0^1 x^2 \ln x\,dx$ et calculer sa valeur."
         ),
@@ -1036,8 +1036,8 @@ EXERCISES = [
         "topics": ["geometrie", "geometrie-plan-espace"],
     },
     {
-        "title": "Équation différentielle y' + y = x e⁻ˣ",
-        "former_titles": ["Équation différentielle avec second membre"],
+        "title": r"Équation différentielle $y' + y = x e^{-x}$",
+        "former_titles": ["Équation différentielle avec second membre", "Équation différentielle y' + y = x e⁻ˣ"],
         "statement": (
             r"Déterminer la solution $y$ de l'équation $y' + y = x e^{-x}$ telle que $y(0) = 1$, puis calculer $y(1)$."
         ),

@@ -32,7 +32,10 @@ export type Topic = {
 
 export type ExerciseSummary = {
   id: number;
+  /** Titre ; ses formules sont écrites entre $…$ (voir MathText). */
   title: string;
+  /** Le même titre en texte, formules en clair : pour l'onglet, les moteurs, les partages. */
+  title_text: string;
   difficulty: number;
   primary_level: string;
   levels: string[];

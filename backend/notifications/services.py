@@ -11,6 +11,8 @@ from django.core.mail import EmailMessage
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
+from content.latex import plain_math
+
 from . import push
 from .models import DigestLog, Notification
 
@@ -37,8 +39,9 @@ def notify(user, kind, title, body="", url="", *, email=None, now=None):
     notification = Notification.objects.create(
         user=user,
         kind=kind,
-        title=title,
-        body=body,
+        # Les titres d'exercices portent des formules $…$ : en clair dans une notification.
+        title=plain_math(title),
+        body=plain_math(body),
         url=url,
         email_pending=wants_email and user.email_notifications,
     )

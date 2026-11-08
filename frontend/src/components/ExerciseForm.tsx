@@ -10,6 +10,7 @@ import { DuplicateScreen, SimilarPanel, type PublishChoice } from "./Duplicates"
 import { Field, FormMessage, SubmitButton, inputClass } from "./Form";
 import { MathEditor } from "./MathEditor";
 import { MathMarkdown } from "./MathMarkdown";
+import { MathText } from "./MathText";
 
 const DIFFICULTIES = [
   { value: 1, label: "1 · Application directe du cours" },
@@ -59,6 +60,7 @@ export function ExerciseForm({
 }) {
   const router = useRouter();
   const [statement, setStatement] = useState("");
+  const [title, setTitle] = useState("");
   const preview = useDeferredValue(statement);
   const [primaryLevel, setPrimaryLevel] = useState(defaultLevel ?? levels[0]?.code ?? "");
   const [sourceType, setSourceType] = useState("personnel");
@@ -156,9 +158,27 @@ export function ExerciseForm({
       )}
       {/* Masqué et non démonté pendant l'écran des doublons : les champs gardent leur saisie. */}
       <form onSubmit={onSubmit} hidden={candidates !== null} className="space-y-6">
-        <Field label="Titre" htmlFor="title">
-          <input id="title" name="title" required minLength={3} maxLength={200} className={inputClass} />
+        <Field
+          label="Titre"
+          htmlFor="title"
+          hint="Les formules entre $…$, comme dans l'énoncé : « Reste de $3^{100}$ modulo 7 »."
+        >
+          <input
+            id="title"
+            name="title"
+            required
+            minLength={3}
+            maxLength={200}
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            className={inputClass}
+          />
         </Field>
+        {title.includes("$") && (
+          <p aria-label="Aperçu du titre" className="-mt-3 font-serif text-xl text-ink-deep">
+            <MathText>{title}</MathText>
+          </p>
+        )}
 
         <Field label="Énoncé" htmlFor="statement" hint={LATEX_HELP}>
           <MathEditor id="statement" label="Énoncé" value={statement} onChange={setStatement} />

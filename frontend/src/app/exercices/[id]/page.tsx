@@ -35,6 +35,7 @@ import { SOLUTION_STATUS_LABELS, dateFormat } from "@/lib/labels";
 import { excerpt } from "@/lib/seo";
 import { chapterPath, levelPath, ofChapter } from "@/lib/seo-pages";
 import { SHARE_IMAGE, SITE_URL } from "@/lib/site";
+import { MathText } from "@/components/MathText";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -88,12 +89,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Un doublon fusionné reste lisible, mais l'adresse de référence est celle du canonique.
   const canonical = `/exercices/${exercise.merged_into ?? exercise.id}`;
   // « Intégrales de Wallis : exercice de calcul intégral (MPSI) » : ce que l'élève tape.
-  const title = `${exercise.title} : ${kindOf(exercise)} (${exercise.primary_level})`;
+  const title = `${exercise.title_text} : ${kindOf(exercise)} (${exercise.primary_level})`;
   return {
     title,
     description,
     alternates: { canonical },
-    openGraph: { title: exercise.title, description, type: "article", url: canonical, images: [SHARE_IMAGE] },
+    openGraph: { title: exercise.title_text, description, type: "article", url: canonical, images: [SHARE_IMAGE] },
   };
 }
 
@@ -104,7 +105,7 @@ function exerciseData(exercise: ExerciseDetail, topics: Topic[]) {
   return {
     "@context": "https://schema.org",
     "@type": "LearningResource",
-    name: exercise.title,
+    name: exercise.title_text,
     description: excerpt(exercise.statement),
     url,
     inLanguage: "fr",
@@ -134,7 +135,7 @@ function trail(exercise: ExerciseDetail, topics: Topic[]): [string, string][] {
           [notion.name, chapterPath(notion.slug)],
         ]
       : [[exercise.primary_level, levelPath(exercise.primary_level)]];
-  return [["Accueil", "/"], ...middle, [exercise.title, `/exercices/${exercise.id}`]];
+  return [["Accueil", "/"], ...middle, [exercise.title_text, `/exercices/${exercise.id}`]];
 }
 
 export default async function ExercisePage({ params }: Props) {
@@ -168,7 +169,9 @@ export default async function ExercisePage({ params }: Props) {
       <Link href="/exercices" className="text-sm text-mute hover:text-ink">
         ← Tous les exercices
       </Link>
-      <h1 className="mt-3">{exercise.title}</h1>
+      <h1 className="mt-3">
+        <MathText>{exercise.title}</MathText>
+      </h1>
       <JsonLd data={exerciseData(exercise, topics)} />
       <JsonLd data={breadcrumb(trail(exercise, topics))} />
       <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-body">
@@ -286,7 +289,7 @@ export default async function ExercisePage({ params }: Props) {
               <li key={variant.id}>
                 
                 <Link href={`/exercices/${variant.id}`} className="underline underline-offset-4">
-                  {variant.title}
+                  <MathText>{variant.title}</MathText>
                 </Link>
               </li>
             ))}

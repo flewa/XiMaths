@@ -8,7 +8,8 @@ import { unified } from "unified";
 import { visit } from "unist-util-visit";
 import { describe, expect, it } from "vitest";
 
-import { MACROS, normalizeMath } from "@/components/MathMarkdown";
+import { normalizeMath } from "@/components/MathMarkdown";
+import { MACROS } from "@/lib/katex-macros";
 
 import type { CourseNoteSummary } from "./api";
 import { CONVENTIONS, frenchSpacing, neighbours } from "./course-notes";

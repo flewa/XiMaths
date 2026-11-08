@@ -6,6 +6,7 @@ import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { FormMessage } from "@/components/Form";
 import { TrainingStart } from "@/components/Training";
 import { fetchExercise, fetchMe, fetchTrainingOptions } from "@/lib/api";
+import { MathText } from "@/components/MathText";
 
 export const metadata: Metadata = { title: "Entraînement chronométré", robots: { index: false } };
 
@@ -36,7 +37,7 @@ export default async function TrainingRulesPage({ params }: Props) {
   return (
     <div className="max-w-[640px]">
       <Link href={`/exercices/${exercise.id}`} className="text-sm text-mute hover:text-ink">
-        ← {exercise.title}
+        ← <MathText>{exercise.title}</MathText>
       </Link>
       <h1 className="mt-3">S&apos;entraîner en temps limité</h1>
       <ul className="mt-6 space-y-2 text-body">

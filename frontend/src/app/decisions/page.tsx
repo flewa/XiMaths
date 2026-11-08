@@ -6,6 +6,7 @@ import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { Tag } from "@/components/Tag";
 import { fetchMyDecisions } from "@/lib/api";
 import { dateFormat } from "@/lib/labels";
+import { MathText } from "@/components/MathText";
 
 export const metadata: Metadata = { title: "Mes décisions" };
 
@@ -38,7 +39,9 @@ export default async function MyDecisionsPage() {
           {decisions.map((decision) => (
             <li key={`${decision.type}-${decision.id}`} className="py-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-medium">{decision.title}</span>
+                <span className="font-medium">
+                  <MathText>{decision.title}</MathText>
+                </span>
                 {decision.appeal_status_label && (
                   <Tag strong={decision.appeal_status === "annulee"}>Appel : {decision.appeal_status_label}</Tag>
                 )}

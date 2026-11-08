@@ -6,6 +6,7 @@ import { FormMessage } from "@/components/Form";
 import { Tag } from "@/components/Tag";
 import { ChallengeStart } from "@/components/Training";
 import { type DailyChallenge, type Me, fetchDailyChallenges, fetchMe } from "@/lib/api";
+import { MathText } from "@/components/MathText";
 
 export const metadata: Metadata = {
   title: "Défi du jour",
@@ -54,7 +55,7 @@ function ChallengeCard({ challenge, me }: { challenge: DailyChallenge; me: Me | 
     <li className="py-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2>
-          {challenge.level_name} <span className="font-normal text-mute">· {challenge.exercise_title}</span>
+          {challenge.level_name} <span className="font-normal text-mute">· <MathText>{challenge.exercise_title}</MathText></span>
         </h2>
         {challenge.attempt && <Tag strong>{ATTEMPT_LABELS[challenge.attempt.status]}</Tag>}
       </div>

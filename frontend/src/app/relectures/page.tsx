@@ -10,6 +10,7 @@ import { ProseSection } from "@/components/Prose";
 import { Tag } from "@/components/Tag";
 import { fetchMe, fetchOpenSolutions, fetchReviewTasks } from "@/lib/api";
 import { AI_USAGE_BADGES, dateFormat } from "@/lib/labels";
+import { MathText } from "@/components/MathText";
 
 export const metadata: Metadata = { title: "Relectures", robots: { index: false } };
 
@@ -59,7 +60,7 @@ export default async function ReviewsPage() {
               <p className="text-sm text-mute">
                 [{task.primary_level}]{" "}
                 <Link href={`/exercices/${task.exercise_id}`} className="font-medium text-ink hover:underline">
-                  {task.exercise_title}
+                  <MathText>{task.exercise_title}</MathText>
                 </Link>
               </p>
               <MathMarkdown>{task.exercise_statement}</MathMarkdown>
@@ -94,7 +95,7 @@ export default async function ReviewsPage() {
                 <li key={item.solution_id} className="flex flex-wrap items-center justify-between gap-3 py-3">
                   <span>
                     <span className="text-mute">[{item.primary_level}] </span>
-                    {item.exercise_title}
+                    <MathText>{item.exercise_title}</MathText>
                     {item.published_at && (
                       <span className="block text-sm text-mute">
                         envoyée le {dateFormat.format(new Date(item.published_at))}

@@ -10,6 +10,7 @@ import { Tag } from "@/components/Tag";
 import { type ContributorLevel, type Skill, type WeekStatus, fetchProgress, fetchTopics } from "@/lib/api";
 import { dateFormat, oneDecimal, weekRange } from "@/lib/labels";
 import { chaptersOf } from "@/lib/seo-pages";
+import { MathText } from "@/components/MathText";
 
 export const metadata: Metadata = { title: "Ma progression" };
 
@@ -64,7 +65,7 @@ function SkillRow({ skill }: { skill: Skill }) {
           <>
             Prochain :{" "}
             <Link href={`/exercices/${skill.next.id}`} className="text-ink underline underline-offset-4">
-              {skill.next.title}
+              <MathText>{skill.next.title}</MathText>
             </Link>{" "}
             · difficulté {skill.next.difficulty}
           </>

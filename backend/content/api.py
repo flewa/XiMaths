@@ -33,7 +33,7 @@ from moderation.integrity import NEUTRAL_QUESTION
 
 from . import photos
 from .feed import FEED_LABELS, build_feed, compute_scores, record_impressions
-from .latex import forbidden_commands
+from .latex import forbidden_commands, plain_math, title_problems
 from .models import TEXT_MAX_LENGTH, Exercise, Review, Solution, SolutionPhoto, Vote
 from .services import (
     cast_vote,
@@ -83,7 +83,9 @@ class TopicOut(Schema):
 
 class ExerciseSummary(Schema):
     id: int
+    # Titre, formules entre $…$ ; et le même en texte, pour l'onglet et les moteurs.
     title: str
+    title_text: str
     difficulty: int
     primary_level: str
     levels: list[str]
@@ -102,6 +104,10 @@ class ExerciseSummary(Schema):
     @staticmethod
     def resolve_primary_level(obj):
         return obj.primary_level.code
+
+    @staticmethod
+    def resolve_title_text(obj):
+        return plain_math(obj.title)
 
     @staticmethod
     def resolve_is_new(obj):
@@ -510,6 +516,9 @@ def reject_forbidden_latex(fields):
 
 def draft_fields(payload):
     """Valide un brouillon. Renvoie ses champs, ses niveaux et ses chapitres."""
+    problems = title_problems(payload.title)
+    if problems:
+        raise HttpError(422, problems[0])
     hints = [hint.strip() for hint in payload.hints if hint.strip()]
     reject_forbidden_latex(
         [
