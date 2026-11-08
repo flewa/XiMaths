@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { Bullets, DraftNotice, ProseSection } from "@/components/Prose";
+import { Bullets, ProseSection } from "@/components/Prose";
 
 export const metadata: Metadata = {
   title: "Conditions d'utilisation",
@@ -12,7 +12,6 @@ export default function TermsPage() {
   return (
     <article className="max-w-[720px]">
       <h1>Conditions d&apos;utilisation</h1>
-      <DraftNotice />
 
       <ProseSection title="Ce qu'est XiMaths">
         <p>

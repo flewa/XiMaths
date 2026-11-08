@@ -21,11 +21,3 @@ export function Bullets({ items }: { items: React.ReactNode[] }) {
     </ul>
   );
 }
-
-export function DraftNotice() {
-  return (
-    <p className="mt-4 rounded-lg bg-accent-soft px-3 py-2 text-sm text-accent-text">
-      Version de travail, à faire valider par un juriste avant l&apos;ouverture au public.
-    </p>
-  );
-}
