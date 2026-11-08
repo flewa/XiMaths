@@ -184,6 +184,12 @@ export default async function Home({
   return (
     <div className="page-wide">
       <JsonLd data={SITE_DATA} />
+      <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-K29G3NJ2"></script>
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+      </script>
       <MemberHeader me={me} levelName={declared?.name ?? null} today={dayLabel(new Date())} />
       <div className="mt-7 flex flex-col gap-8 xl:grid xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start xl:gap-10">
         <div className="contents xl:flex xl:min-w-0 xl:flex-col xl:gap-9">
