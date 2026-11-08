@@ -265,7 +265,7 @@ Et les photos des copies, du même jour :
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend tar -C /app/media -xzf - < /var/backups/ximaths/photos-AAAA-MM-JJ.tar.gz
 ```
 
-Avant d'ouvrir au public : compléter les mentions légales (éditeur et hébergeur du site) et, dans la page Confidentialité, le responsable des données et les sous-traitants ; puis retirer l'avertissement « Version de travail » des pages Conditions et Confidentialité.
+Avant d'ouvrir au public : compléter les mentions légales (éditeur et hébergeur du site) et, dans la page Confidentialité, le responsable des données et les sous-traitants.
 
 ### Mesure d'audience
 

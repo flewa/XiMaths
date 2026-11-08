@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AudienceOptOut } from "@/components/Audience";
-import { Bullets, DraftNotice, ProseSection } from "@/components/Prose";
+import { Bullets, ProseSection } from "@/components/Prose";
 
 export const metadata: Metadata = {
   title: "Confidentialité",
@@ -13,7 +13,6 @@ export default function PrivacyPage() {
   return (
     <article className="max-w-[720px]">
       <h1>Confidentialité</h1>
-      <DraftNotice />
 
       <ProseSection title="Ce que nous collectons">
         <Bullets
