@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 
@@ -14,7 +16,7 @@ from duplicates.services import decide, index_exercise
 from gamification.models import UserBadge
 from gamification.services import balance
 
-from .models import Report
+from .models import ComprehensionQuestion, Report, Sanction
 from .services import create_report, resolve_report
 
 Reason = Report.Reason
@@ -219,6 +221,68 @@ class ReportApiTests(ModerationTestCase):
         report.refresh_from_db()
         self.exercise.refresh_from_db()
         self.assertEqual((report.status, self.exercise.status), (Status.CONFIRMED, Exercise.Status.REMOVED))
+
+
+    def test_only_the_reviewers_of_a_copy_can_report_it(self):
+        solution = self.publish()
+        reviewer = Review.objects.filter(solution=solution).first().reviewer
+        reviewer.email_verified_at = timezone.now()
+        reviewer.save()
+        payload = {"target": "solution", "target_id": solution.pk, "reason": "ia_non_declaree"}
+
+        # Les copies sont privées : qui ne la relit pas ne la voit pas, ni ne la signale.
+        self.client.force_login(self.witness)
+        self.assertEqual(self.post(payload).status_code, 404)
+
+        self.client.force_login(reviewer)
+        response = self.post(payload)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()["title"], f"Une copie relue de « {self.exercise.title} »")
+
+    def test_a_confirmed_report_shows_its_points(self):
+        self.client.force_login(self.witness)
+        self.post({"target": "exercise", "target_id": self.exercise.pk, "reason": "erreur"})
+        resolve_report(Report.objects.get(), confirmed=True, moderator=self.moderator, note="Énoncé corrigé.")
+        [mine] = self.client.get("/api/reports/mine").json()
+        self.assertEqual((mine["status"], mine["points"]), ("confirme", 3))
+
+
+class MemberFollowUpTests(ModerationTestCase):
+    def test_waiting_questions_come_first_and_are_counted(self):
+        now = timezone.now()
+        old = self.publish()
+        recent = self.publish(exercise=self.make_exercise())
+        ComprehensionQuestion.objects.create(
+            solution=old, user=self.student, integrity_score=0.9, status="reussie", sent_at=now - timedelta(days=9)
+        )
+        ComprehensionQuestion.objects.create(
+            solution=recent, user=self.student, integrity_score=0.9, status="envoyee", sent_at=now - timedelta(days=20)
+        )
+        self.client.force_login(self.student)
+        statuses = [question["status"] for question in self.client.get("/api/questions/mine").json()]
+        self.assertEqual(statuses, ["envoyee", "reussie"])
+        self.assertEqual(self.client.get("/api/auth/me").json()["pending_questions"], 1)
+
+    def test_a_sanction_says_whether_it_still_runs(self):
+        now = timezone.now()
+        common = {"user": self.student, "reason": "Motif.", "decided_by": self.moderator}
+        Sanction.objects.create(
+            kind=Sanction.Kind.SUSPENSION, starts_at=now - timedelta(days=10), ends_at=now - timedelta(days=3), **common
+        )
+        Sanction.objects.create(
+            kind=Sanction.Kind.LEADERBOARD_BAN, starts_at=now, ends_at=now + timedelta(days=30), **common
+        )
+        Sanction.objects.create(
+            kind=Sanction.Kind.SUSPENSION,
+            starts_at=now,
+            ends_at=now + timedelta(days=7),
+            lifted_at=now,
+            lifted_reason="Appel accepté.",
+            **common,
+        )
+        self.client.force_login(self.student)
+        states = sorted(decision["state"] for decision in self.client.get("/api/decisions/mine").json())
+        self.assertEqual(states, ["en_cours", "levee", "terminee"])
 
 
 class AccountLinkTests(ModerationTestCase):

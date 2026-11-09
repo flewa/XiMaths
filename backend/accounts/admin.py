@@ -44,7 +44,6 @@ class UserAdmin(BaseUserAdmin):
                     "academic_verified_at",
                     "academic_domain",
                     "leaderboard_visible",
-                    "tiers_temps",
                 )
             },
         ),

@@ -1,7 +1,7 @@
 """Entraînement chronométré, non classé.
 
 Règles du document de conception :
-- 15, 30, 45 ou 60 minutes, ou le temps conseillé ; tiers-temps ×1,33 ;
+- 15, 30, 45 ou 60 minutes, ou le temps conseillé ;
 - le serveur fait foi : le temps ne compte que pendant que le navigateur donne
   signe de vie (sauvegarde toutes les 10 s) ; en entraînement, le chrono s'arrête
   donc si l'onglet se ferme, et la session se reprend ;
@@ -29,7 +29,7 @@ from content.services import publish_solution
 from gamification.badges import check_badges
 
 from . import challenges
-from .models import EXTRA_TIME_FACTOR, TimedSession
+from .models import TimedSession
 
 Status = TimedSession.Status
 
@@ -94,7 +94,6 @@ def start(user, exercise, *, minutes, now=None):
                 user=user,
                 exercise=exercise,
                 duration_s=minutes * 60,
-                extra_time_factor=EXTRA_TIME_FACTOR if user.tiers_temps else 1.0,
                 started_at=now,
                 last_tick_at=now,
             )

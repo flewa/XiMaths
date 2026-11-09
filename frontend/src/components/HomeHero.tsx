@@ -47,6 +47,19 @@ type Action = { icon: IconName; href: string; label: React.ReactNode; detail?: s
 
 function actionsFor(me: Me, progress: Progress | null): Action[] {
   const actions: Action[] = [];
+  // Une question de compréhension a un délai (72 h pour l'ouvrir) : elle passe en premier.
+  if (me.pending_questions > 0) {
+    actions.push({
+      icon: "alert",
+      href: "/questions",
+      label:
+        me.pending_questions > 1
+          ? `${me.pending_questions} questions sur tes solutions`
+          : "Une question sur ta solution",
+      detail: "à ouvrir sous 72 h",
+      urgent: true,
+    });
+  }
   if (me.pending_reviews > 0) {
     actions.push({
       icon: "review",

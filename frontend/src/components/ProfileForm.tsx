@@ -16,6 +16,8 @@ const FEATURED_MAX = 3;
 const TOPICS_MAX = 3;
 
 const legend = "mb-2 font-medium";
+const notionSelect =
+  "max-w-full rounded-lg border border-hairline bg-surface-soft px-3 py-1.5 text-ink outline-none focus:border-accent";
 const choice =
   "cursor-pointer rounded-lg ring-offset-2 ring-offset-canvas has-[:checked]:ring-2 has-[:checked]:ring-ink has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent";
 
@@ -42,6 +44,8 @@ export function ProfileForm({
 
   const owned = badges.filter((badge) => badge.awarded_at);
   const chapters = topics.filter((topic) => topic.parent === null);
+  const chosenNotions = topics.filter((topic) => topic.parent !== null && favorites.includes(topic.slug));
+  const favoritesFull = favorites.length >= TOPICS_MAX;
   const initial = me.username.slice(0, 1).toUpperCase();
   const preview = { color, symbol: symbol || initial, custom_symbol: Boolean(symbol) };
 
@@ -166,29 +170,67 @@ export function ProfileForm({
         <legend className={legend}>
           Chapitres favoris <span className="font-normal text-mute">· {favorites.length} sur {TOPICS_MAX}</span>
         </legend>
-        <div className="space-y-3">
-          {chapters.map((chapter) => (
-            <div key={chapter.slug} className="flex flex-wrap items-center gap-1.5 text-sm">
-              {[chapter, ...topics.filter((topic) => topic.parent === chapter.slug)].map((topic) => {
-                const on = favorites.includes(topic.slug);
-                return (
-                  <button
-                    key={topic.slug}
-                    type="button"
-                    aria-pressed={on}
-                    disabled={!on && favorites.length >= TOPICS_MAX}
-                    onClick={() => setFavorites(toggle(favorites, topic.slug, TOPICS_MAX))}
-                    className={`rounded-full px-3 py-1 ${
-                      on ? "bg-ink text-canvas" : "bg-surface-card text-body hover:text-ink"
-                    } ${topic.parent === null ? "font-semibold" : ""} disabled:opacity-40`}
-                  >
-                    {topic.name}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
+        <div className="flex flex-wrap gap-1.5 text-sm">
+          {chapters.map((chapter) => {
+            const on = favorites.includes(chapter.slug);
+            return (
+              <button
+                key={chapter.slug}
+                type="button"
+                aria-pressed={on}
+                disabled={!on && favoritesFull}
+                onClick={() => setFavorites(toggle(favorites, chapter.slug, TOPICS_MAX))}
+                className={`rounded-full px-3 py-1 ${
+                  on ? "bg-ink text-canvas" : "bg-surface-card text-body hover:text-ink"
+                } disabled:opacity-40`}
+              >
+                {chapter.name}
+              </button>
+            );
+          })}
         </div>
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+          <label htmlFor="favorite-notion" className="text-mute">
+            Ou une notion précise :
+          </label>
+          <select
+            id="favorite-notion"
+            value=""
+            disabled={favoritesFull}
+            onChange={(event) => event.target.value && setFavorites(toggle(favorites, event.target.value, TOPICS_MAX))}
+            className={`${notionSelect} disabled:opacity-40`}
+          >
+            <option value="">{favoritesFull ? "Trois favoris déjà choisis" : "Choisir une notion…"}</option>
+            {chapters.map((chapter) => (
+              <optgroup key={chapter.slug} label={chapter.name}>
+                {topics
+                  .filter((topic) => topic.parent === chapter.slug)
+                  .map((notion) => (
+                    <option key={notion.slug} value={notion.slug} disabled={favorites.includes(notion.slug)}>
+                      {notion.name}
+                    </option>
+                  ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+        {chosenNotions.length > 0 && (
+          <ul className="mt-3 flex flex-wrap gap-1.5 text-sm">
+            {chosenNotions.map((notion) => (
+              <li key={notion.slug}>
+                <button
+                  type="button"
+                  onClick={() => setFavorites(favorites.filter((slug) => slug !== notion.slug))}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-canvas"
+                >
+                  {notion.name}
+                  <span aria-hidden="true">×</span>
+                  <span className="sr-only">: retirer des favoris</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </fieldset>
 
       <FormMessage error={result.error} success={result.success} />

@@ -87,10 +87,6 @@ class SessionTests(ContentTestCase):
         with self.assertRaises(RuleError):
             start(make_user("autre"), self.exercise, minutes=20, now=self.t0)
 
-    def test_extra_time_applies_to_the_limit(self):
-        session = self.session(user=make_user("tiers", tiers_temps=True))
-        self.assertAlmostEqual(session.limit_s, 15 * 60 * 1.33)
-
     def test_a_pending_solution_blocks_training_on_the_same_exercise(self):
         self.publish()
         with self.assertRaises(RuleError):
@@ -251,8 +247,9 @@ class TrainingApiTests(ContentTestCase):
         response = self.post("/api/training/sessions", {"exercise_id": self.exercise.pk, "minutes": 7})
         self.assertEqual(response.status_code, 409)
 
-    def test_extra_time_is_declared_in_preferences(self):
-        response = self.post("/api/auth/preferences", {"tiers_temps": True})
-        self.assertTrue(response.json()["tiers_temps"])
+    def test_the_time_limit_is_the_chosen_duration(self):
         options = self.client.get(f"/api/training/options/{self.exercise.pk}").json()
-        self.assertEqual(options["extra_time_factor"], 1.33)
+        self.assertNotIn("extra_time_factor", options)
+        session = self.post("/api/training/sessions", {"exercise_id": self.exercise.pk, "minutes": 15}).json()
+        self.assertEqual((session["duration_s"], session["limit_s"]), (15 * 60, 15 * 60))
+        self.assertNotIn("extra_time_factor", session)

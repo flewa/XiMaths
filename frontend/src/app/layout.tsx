@@ -61,6 +61,8 @@ export default async function RootLayout({
     username: me.username,
     avatar: me.avatar,
     points: me.points,
+    level: me.contributor_level,
+    pendingQuestions: me.pending_questions,
     pendingReviews: me.pending_reviews,
     unreadNotifications: me.unread_notifications,
     declaredLevel: me.declared_level,

@@ -16,6 +16,7 @@ from config.throttles import AuthRouteThrottle
 from content import photos
 from content.api import PhotoOut
 from content.models import Exercise, Solution
+from gamification.models import PointTransaction
 
 from . import comprehension
 from .models import ComprehensionQuestion, IntegritySignal, Report, Sanction
@@ -57,6 +58,8 @@ class ReportOut(Schema):
     status_label: str
     created_at: datetime
     decided_at: datetime | None
+    # Points du signalement confirmé (0 s'il n'en rapporte pas, ou s'ils ont été annulés).
+    points: int = 0
 
     @staticmethod
     def resolve_target(obj):
@@ -69,7 +72,7 @@ class ReportOut(Schema):
     @staticmethod
     def resolve_title(obj):
         exercise = obj.exercise or obj.solution.exercise
-        return exercise.title if obj.exercise_id else f"Une solution de « {exercise.title} »"
+        return exercise.title if obj.exercise_id else f"Une copie relue de « {exercise.title} »"
 
     @staticmethod
     def resolve_reason_label(obj):
@@ -80,6 +83,21 @@ class ReportOut(Schema):
         return obj.get_status_display()
 
 
+def _readable_solution(user, solution_id):
+    """Copie que `user` peut lire, donc signaler : les solutions sont privées, seuls leurs
+    relecteurs tirés au sort (ou volontaires) et la modération les lisent. Une copie
+    invisible pour lui est « introuvable », sans en dire plus."""
+    solution = (
+        Solution.objects.select_related("exercise")
+        .exclude(status__in=[Solution.Status.DRAFT, Solution.Status.HIDDEN])
+        .filter(pk=solution_id)
+        .first()
+    )
+    if solution is None or not (is_moderator(user) or solution.reviews.filter(reviewer=user).exists()):
+        raise HttpError(404, "Copie introuvable.")
+    return solution
+
+
 @router.post(
     "/reports",
     response={201: ReportOut},
@@ -87,18 +105,14 @@ class ReportOut(Schema):
     throttle=[AuthRouteThrottle("signalement", "20/h")],
 )
 def report(request, payload: ReportIn):
-    """Signale un exercice publié ou une solution validée. Un doublon demande le
+    """Signale un exercice publié, ou une copie que l'on relit. Un doublon demande le
     niveau Relecteur et l'exercice d'origine ; il rejoint la file des doublons."""
     user = contributor(request)
     exercise = solution = None
     if payload.target == "exercise":
         exercise = get_object_or_404(Exercise, pk=payload.target_id, status=Exercise.Status.PUBLISHED)
     else:
-        solution = get_object_or_404(
-            Solution.objects.select_related("exercise"),
-            pk=payload.target_id,
-            status=Solution.Status.VALIDATED,
-        )
+        solution = _readable_solution(user, payload.target_id)
     duplicate_of = None
     if payload.duplicate_of is not None:
         duplicate_of = Exercise.objects.filter(
@@ -119,11 +133,23 @@ def report(request, payload: ReportIn):
 
 @router.get("/reports/mine", response=list[ReportOut], auth=django_auth)
 def my_reports(request):
-    return (
+    reports = list(
         Report.objects.filter(reporter=request.auth)
         .select_related("exercise", "solution__exercise")
         .order_by("-created_at")
     )
+    earned = dict(
+        PointTransaction.objects.filter(
+            user=request.auth,
+            reason=PointTransaction.Reason.REPORT_CONFIRMED,
+            source_type=Report._meta.label_lower,
+            source_id__in=[report.pk for report in reports],
+            reversed_by__isnull=True,
+        ).values_list("source_id", "amount")
+    )
+    for report in reports:
+        report.points = earned.get(report.pk, 0)
+    return reports
 
 
 class AnswerIn(Schema):
@@ -149,6 +175,8 @@ class DecisionOut(Schema):
     reason: str
     decided_at: datetime | None
     ends_at: datetime | None = None
+    # Pour une sanction : en cours, terminée ou levée.
+    state: Literal["en_cours", "terminee", "levee"] | None = None
     appeal_deadline: datetime | None
     can_appeal: bool
     appeal_status: str | None
@@ -162,7 +190,18 @@ class AppealIn(Schema):
     statement: str = Field(min_length=10, max_length=3000)
 
 
-def _decision_out(kind, decision, title, reason, decided_at, ends_at=None):
+def _sanction_state(sanction, now):
+    if sanction.lifted_at:
+        return "levee"
+    if sanction.ends_at and sanction.ends_at <= now:
+        return "terminee"
+    # Un avertissement n'a pas de durée : il est donné, donc terminé.
+    if sanction.kind == Sanction.Kind.WARNING:
+        return "terminee"
+    return "en_cours"
+
+
+def _decision_out(kind, decision, title, reason, decided_at, ends_at=None, state=None):
     appeal = getattr(decision, "appeal", None)
     deadline = decided_at + APPEAL_WINDOW if decided_at else None
     return {
@@ -172,6 +211,7 @@ def _decision_out(kind, decision, title, reason, decided_at, ends_at=None):
         "reason": reason,
         "decided_at": decided_at,
         "ends_at": ends_at,
+        "state": state,
         "appeal_deadline": deadline,
         "can_appeal": appeal is None and deadline is not None and timezone.now() <= deadline,
         "appeal_status": appeal.status if appeal else None,
@@ -184,11 +224,18 @@ def _decision_out(kind, decision, title, reason, decided_at, ends_at=None):
 def my_decisions(request):
     """Ce que la modération a décidé à mon sujet, avec le motif et l'appel possible."""
     user = request.auth
+    now = timezone.now()
     items = []
     for decision in Sanction.objects.filter(user=user).select_related("appeal"):
         items.append(
             _decision_out(
-                "sanction", decision, SANCTION_TEXT[decision.kind], decision.reason, decision.created_at, decision.ends_at
+                "sanction",
+                decision,
+                SANCTION_TEXT[decision.kind],
+                decision.reason,
+                decision.created_at,
+                decision.ends_at,
+                state=_sanction_state(decision, now),
             )
         )
     removals = (
@@ -281,8 +328,12 @@ def my_questions(request):
         ComprehensionQuestion.objects.filter(user=request.auth)
         .exclude(status__in=[Question.TO_WRITE, Question.DROPPED])
         .select_related("solution__exercise")
+        .order_by("-sent_at")
     )
-    return [_question_out(question) for question in questions]
+    # Une question ouverte (5 minutes) passe avant une question à ouvrir (72 heures).
+    waiting = {Question.OPENED: 0, Question.SENT: 1}
+    ordered = sorted(questions, key=lambda question: waiting.get(question.status, 2))
+    return [_question_out(question) for question in ordered]
 
 
 @router.post("/questions/{int:question_id}/open", response=QuestionOut, auth=django_auth)

@@ -41,7 +41,6 @@ class User(AbstractUser):
         max_length=16, choices=Status.choices, default=Status.ACTIVE
     )
     leaderboard_visible = models.BooleanField(default=True)
-    tiers_temps = models.BooleanField(default=False)
     google_sub = models.CharField(
         max_length=64, null=True, blank=True, unique=True, help_text="Identifiant du compte Google lié."
     )

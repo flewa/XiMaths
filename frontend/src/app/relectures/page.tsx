@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ReviewForm, VolunteerButton } from "@/components/ContributionForms";
+import { ReportButton } from "@/components/ReportButton";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { CopyPhotoList, ExpectedAnswer } from "@/components/CopyPhotos";
 import { MathMarkdown } from "@/components/MathMarkdown";
@@ -75,6 +76,10 @@ export default async function ReviewsPage() {
               </div>
               <div className="mt-4">
                 <ReviewForm reviewId={task.id} />
+              </div>
+              {/* Plagiat, IA non déclarée : le verdict ne le dit pas, un signalement si. */}
+              <div className="mt-4 flex justify-end border-t border-hairline pt-3">
+                <ReportButton target="solution" targetId={task.solution_id} canReportDuplicates={false} />
               </div>
             </article>
           );

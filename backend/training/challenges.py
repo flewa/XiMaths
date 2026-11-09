@@ -28,7 +28,7 @@ from notifications.models import Notification
 from notifications.services import notify
 
 from .answers import check_answer
-from .models import EXTRA_TIME_FACTOR, Challenge, ChallengeTemplate, TimedSession
+from .models import Challenge, ChallengeTemplate, TimedSession
 
 User = get_user_model()
 
@@ -178,7 +178,6 @@ def start(user, challenge, *, rng=None, now=None):
                 challenge=challenge,
                 parameters=draw(challenge.template, rng or random.Random()),
                 duration_s=MINUTES * 60,
-                extra_time_factor=EXTRA_TIME_FACTOR if user.tiers_temps else 1.0,
                 started_at=now,
                 last_tick_at=now,
             )

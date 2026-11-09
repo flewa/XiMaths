@@ -13,7 +13,6 @@ import { Checkbox, Field, FormMessage, SubmitButton, inputClass } from "./Form";
 export function PreferencesForm({ me, levels }: { me: Me; levels: Level[] }) {
   const router = useRouter();
   const [level, setLevel] = useState(me.declared_level ?? "");
-  const [tiersTemps, setTiersTemps] = useState(me.tiers_temps);
   const [visible, setVisible] = useState(me.leaderboard_visible);
   const [emails, setEmails] = useState(me.email_notifications);
   const [digest, setDigest] = useState(me.weekly_digest);
@@ -26,7 +25,6 @@ export function PreferencesForm({ me, levels }: { me: Me; levels: Level[] }) {
     setPending(true);
     const saved = await apiPost("/auth/preferences", {
       declared_level: level,
-      tiers_temps: tiersTemps,
       leaderboard_visible: visible,
       email_notifications: emails,
       weekly_digest: digest,
@@ -50,10 +48,7 @@ export function PreferencesForm({ me, levels }: { me: Me; levels: Level[] }) {
         </select>
       </Field>
       <fieldset className="space-y-2">
-        <legend className="font-medium">Entraînement et classements</legend>
-        <Checkbox checked={tiersTemps} onChange={setTiersTemps}>
-          Tiers-temps <span className="text-mute">· durée ×1,33 dans tous les modes chronométrés</span>
-        </Checkbox>
+        <legend className="font-medium">Classements</legend>
         <Checkbox checked={visible} onChange={setVisible}>
           Apparaître dans les classements <span className="text-mute">· et montrer mes points sur mon profil</span>
         </Checkbox>

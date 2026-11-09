@@ -103,9 +103,12 @@ export type Me = {
   declared_level: string | null;
   trust_level: number;
   points: number;
+  /** Niveau de contributeur, de 1 à 30. */
+  contributor_level: number;
   pending_reviews: number;
+  /** Questions de compréhension à ouvrir ou à finir : il y a un délai. */
+  pending_questions: number;
   leaderboard_visible: boolean;
-  tiers_temps: boolean;
   email_notifications: boolean;
   weekly_digest: boolean;
   daily_challenge_notifications: boolean;
@@ -139,8 +142,6 @@ export type AppNotification = {
 export type TrainingOptions = {
   durations: number[];
   recommended: number;
-  /** 1,33 si le visiteur a déclaré un tiers-temps. */
-  extra_time_factor: number | null;
 };
 
 export type TrainingStatus = "en_cours" | "en_pause" | "rendue" | "abandonnee";
@@ -155,7 +156,6 @@ export type TrainingSession = {
   hints: string[];
   status: TrainingStatus;
   duration_s: number;
-  extra_time_factor: number;
   limit_s: number;
   elapsed_s: number;
   remaining_s: number;
@@ -326,7 +326,6 @@ export type Leaderboard = {
 
 export type ReportTarget = "exercise" | "solution";
 
-/** Un de mes signalements, avec son issue. */
 export type DecisionType = "sanction" | "report" | "signal";
 
 export type Decision = {
@@ -336,6 +335,8 @@ export type Decision = {
   reason: string;
   decided_at: string | null;
   ends_at: string | null;
+  /** Pour une sanction : en cours, terminée ou levée. */
+  state: "en_cours" | "terminee" | "levee" | null;
   appeal_deadline: string | null;
   can_appeal: boolean;
   appeal_status: "en_attente" | "maintenue" | "annulee" | null;
@@ -343,6 +344,7 @@ export type Decision = {
   appeal_note: string | null;
 };
 
+/** Un de mes signalements, avec son issue. */
 export type MyReport = {
   id: number;
   target: ReportTarget;
@@ -354,6 +356,8 @@ export type MyReport = {
   status_label: string;
   created_at: string;
   decided_at: string | null;
+  /** Points du signalement confirmé, 0 sinon. */
+  points: number;
 };
 
 export type BadgeInfo = {
@@ -425,6 +429,8 @@ export type MySolution = {
 
 export type ReviewTask = {
   id: number;
+  /** La copie relue, pour pouvoir la signaler ; son auteur reste anonyme. */
+  solution_id: number;
   assigned_at: string;
   exercise_id: number;
   exercise_title: string;
