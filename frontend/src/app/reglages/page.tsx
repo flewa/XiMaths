@@ -18,6 +18,20 @@ import { DEFAULT_THEME, THEME_COOKIE, type Theme } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Réglages", robots: { index: false } };
 
+/** Les sections de la page, pour y sauter directement. */
+function sections(withPush: boolean) {
+  return [
+    { id: "profil", label: "Profil public" },
+    { id: "preferences", label: "Préférences" },
+    ...(withPush ? [{ id: "appareil", label: "Cet appareil" }] : []),
+    { id: "apparence", label: "Apparence" },
+    { id: "email-academique", label: "Email académique" },
+    { id: "mot-de-passe", label: "Mot de passe" },
+    { id: "donnees", label: "Mes données" },
+    { id: "suppression", label: "Supprimer mon compte" },
+  ];
+}
+
 export default async function SettingsPage() {
   let data;
   try {
@@ -38,6 +52,21 @@ export default async function SettingsPage() {
         {me.google_linked && <span className="text-mute"> · compte Google lié</span>}
       </p>
 
+      <nav aria-label="Sections des réglages" className="mt-6">
+        <ul className="flex flex-wrap gap-1.5 text-sm">
+          {sections(Boolean(pushKey)).map((section) => (
+            <li key={section.id}>
+              <a
+                href={`#${section.id}`}
+                className="block rounded-full bg-surface-card px-3 py-1 text-body hover:bg-hover hover:text-ink"
+              >
+                {section.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
       <section id="profil" className="mt-10 scroll-mt-20">
         <h2>Profil public</h2>
         <p className="mt-2 text-sm text-body">
@@ -52,29 +81,29 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      <ProseSection title="Préférences">
+      <ProseSection id="preferences" title="Préférences">
         <PreferencesForm me={me} levels={levels} />
       </ProseSection>
 
       {pushKey && (
-        <ProseSection title="Notifications sur cet appareil">
+        <ProseSection id="appareil" title="Notifications sur cet appareil">
           <PushSettings publicKey={pushKey} />
         </ProseSection>
       )}
 
-      <ProseSection title="Apparence">
+      <ProseSection id="apparence" title="Apparence">
         <ThemeChoice current={theme} />
       </ProseSection>
 
-      <ProseSection title="Email académique">
+      <ProseSection id="email-academique" title="Email académique">
         <AcademicEmailForm me={me} />
       </ProseSection>
 
-      <ProseSection title="Mot de passe">
+      <ProseSection id="mot-de-passe" title="Mot de passe">
         <PasswordForm hasPassword={me.has_password} />
       </ProseSection>
 
-      <ProseSection title="Mes données">
+      <ProseSection id="donnees" title="Mes données">
         <p>
           Toutes tes données (compte, contributions, points, sessions) dans un fichier JSON, lisible et
           réutilisable.
@@ -86,7 +115,7 @@ export default async function SettingsPage() {
         </p>
       </ProseSection>
 
-      <ProseSection title="Supprimer mon compte">
+      <ProseSection id="suppression" title="Supprimer mon compte">
         <DeleteAccountForm hasPassword={me.has_password} />
       </ProseSection>
     </div>

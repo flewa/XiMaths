@@ -16,9 +16,10 @@ const REASONS: Record<ReportTarget, { value: string; label: string; help: string
     { value: "plagiat", label: "Plagiat", help: "Recopié d'un livre ou d'un site sans autorisation." },
     { value: "inapproprie", label: "Contenu inapproprié", help: "Hors sujet, injurieux ou illicite." },
   ],
+  // Une copie fausse se juge dans la relecture (« incorrecte ») : on ne signale ici que ce
+  // que le verdict ne dit pas.
   solution: [
-    { value: "erreur", label: "Erreur dans la solution", help: "Une étape est fausse malgré la validation." },
-    { value: "plagiat", label: "Plagiat", help: "Recopiée d'un livre, d'un site ou d'un autre membre." },
+    { value: "plagiat", label: "Plagiat", help: "Recopiée d'un livre, d'un site ou d'un corrigé." },
     { value: "ia_non_declaree", label: "IA non déclarée", help: "Semble générée sans que ce soit déclaré." },
     { value: "inapproprie", label: "Contenu inapproprié", help: "Hors sujet, injurieux ou illicite." },
   ],
@@ -66,7 +67,7 @@ export function ReportButton({
         className="inline-flex items-center gap-1.5 text-sm text-mute hover:text-ink"
       >
         <Icon name="flag" size={15} />
-        Signaler
+        {target === "exercise" ? "Signaler" : "Signaler cette copie"}
       </button>
     );
   }
@@ -95,7 +96,7 @@ export function ReportButton({
   return (
     <form
       onSubmit={onSubmit}
-      aria-label={target === "exercise" ? "Signaler l'exercice" : "Signaler la solution"}
+      aria-label={target === "exercise" ? "Signaler l'exercice" : "Signaler la copie"}
       className="mt-2 w-full space-y-3 border border-hairline px-4 py-3"
     >
       <fieldset className="space-y-1.5">

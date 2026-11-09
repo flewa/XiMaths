@@ -17,7 +17,7 @@ export default function PrivacyPage() {
       <ProseSection title="Ce que nous collectons">
         <Bullets
           items={[
-            "Compte : pseudo, adresse email, mot de passe chiffré, niveau déclaré, tiers-temps si tu le déclares, préférences.",
+            "Compte : pseudo, adresse email, mot de passe chiffré, niveau déclaré, préférences.",
             "Contributions : exercices, solutions, relectures, votes, signalements.",
             "Photos de copie, qui sont tes solutions (en libre, en entraînement et au défi du jour) : 3 pages au plus, réencodées à la réception, ce qui efface leurs métadonnées (lieu de la prise, appareil). Elles restent privées, même validées : seuls leurs relecteurs et la modération les voient.",
             "Activité : points, badges, sessions chronométrées (temps, nombre de sorties d'onglet, taille des collages venus d'ailleurs, jamais leur contenu), jours actifs, objectifs et mode vacances.",

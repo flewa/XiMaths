@@ -27,7 +27,9 @@ from catalog.models import Level, Topic
 from config.errors import RuleError
 from config.throttles import AnonRouteThrottle, AuthRouteThrottle
 from content.models import Review, Solution
+from moderation.models import ComprehensionQuestion
 from gamification.services import balance
+from gamification.skills import contributor_level
 
 from . import academic, google
 from .models import User
@@ -55,15 +57,18 @@ class MeOut(Schema):
     declared_level: str | None
     trust_level: int
     points: int
+    # Niveau de contributeur (1 à 30), tiré des points.
+    contributor_level: int
     pending_reviews: int
     leaderboard_visible: bool
-    tiers_temps: bool
     email_notifications: bool
     weekly_digest: bool
     daily_challenge_notifications: bool
     has_password: bool
     google_linked: bool
     unread_notifications: int
+    # Questions de compréhension à ouvrir ou à finir : le membre a un délai.
+    pending_questions: int
     academic_verified_at: datetime | None
     # Domaine de l'adresse académique vérifiée ; l'adresse elle-même n'est pas gardée.
     academic_domain: str
@@ -109,6 +114,16 @@ class MeOut(Schema):
         return balance(obj)
 
     @staticmethod
+    def resolve_contributor_level(obj):
+        return contributor_level(balance(obj))["level"]
+
+    @staticmethod
+    def resolve_pending_questions(obj):
+        return obj.comprehension_questions.filter(
+            status__in=[ComprehensionQuestion.Status.SENT, ComprehensionQuestion.Status.OPENED]
+        ).count()
+
+    @staticmethod
     def resolve_pending_reviews(obj):
         return Review.objects.filter(
             reviewer=obj,
@@ -143,7 +158,6 @@ class PreferencesIn(Schema):
     """Seuls les champs envoyés changent."""
 
     declared_level: str | None = Field(None, description="Code du niveau ; chaîne vide pour aucun.")
-    tiers_temps: bool | None = None
     leaderboard_visible: bool | None = None
     email_notifications: bool | None = None
     weekly_digest: bool | None = None
@@ -361,8 +375,7 @@ def set_leaderboard_visibility(request, payload: VisibilityIn):
 
 @router.post("/preferences", response=MeOut, auth=django_auth)
 def set_preferences(request, payload: PreferencesIn):
-    """Réglages du compte. Le tiers-temps (×1,33) s'applique à tous les modes
-    chronométrés, à partir de la prochaine session."""
+    """Réglages du compte."""
     user = request.auth
     changes = payload.dict(exclude_unset=True)
     if "declared_level" in changes:

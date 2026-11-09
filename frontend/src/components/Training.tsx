@@ -30,19 +30,10 @@ export function clock(seconds: number) {
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
 }
 
-/** Écran des règles : durée, tiers-temps, puis « Commencer ». */
-export function TrainingStart({
-  exerciseId,
-  options,
-  tiersTemps,
-}: {
-  exerciseId: number;
-  options: TrainingOptions;
-  tiersTemps: boolean;
-}) {
+/** Écran des règles : la durée, puis « Commencer ». */
+export function TrainingStart({ exerciseId, options }: { exerciseId: number; options: TrainingOptions }) {
   const router = useRouter();
   const [minutes, setMinutes] = useState(options.recommended);
-  const [extraTime, setExtraTime] = useState(tiersTemps);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -50,13 +41,6 @@ export function TrainingStart({
     event.preventDefault();
     setPending(true);
     setError(null);
-    if (extraTime !== tiersTemps) {
-      const saved = await apiPost("/auth/preferences", { tiers_temps: extraTime });
-      if (!saved.ok) {
-        setPending(false);
-        return setError(saved.error);
-      }
-    }
     const started = await apiPost<TrainingSession>("/training/sessions", {
       exercise_id: exerciseId,
       minutes,
@@ -88,17 +72,6 @@ export function TrainingStart({
           </label>
         ))}
       </fieldset>
-      <label className="flex cursor-pointer gap-2.5">
-        <input
-          type="checkbox"
-          checked={extraTime}
-          onChange={(event) => setExtraTime(event.target.checked)}
-          className="shrink-0"
-        />
-        <span>
-          J&apos;ai un tiers-temps <span className="text-mute">· durée ×1,33, comme aux concours</span>
-        </span>
-      </label>
       <FormMessage error={error} />
       <SubmitButton pending={pending}>Commencer</SubmitButton>
     </form>

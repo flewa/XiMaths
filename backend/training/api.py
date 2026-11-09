@@ -47,7 +47,6 @@ class SessionOut(Schema):
     hints: list[str]
     status: str
     duration_s: int
-    extra_time_factor: float
     limit_s: float
     elapsed_s: float
     remaining_s: float
@@ -128,7 +127,6 @@ class SessionOut(Schema):
 class OptionsOut(Schema):
     durations: list[int]
     recommended: int
-    extra_time_factor: float | None
 
 
 def _own(request, session_id):
@@ -141,12 +139,11 @@ def _own(request, session_id):
 
 @router.get("/training/options/{int:exercise_id}", response=OptionsOut, auth=django_auth)
 def options(request, exercise_id: int):
-    """Durées proposées sur l'écran des règles, et tiers-temps appliqué."""
+    """Durées proposées sur l'écran des règles."""
     exercise = get_object_or_404(Exercise, pk=exercise_id, status=Exercise.Status.PUBLISHED)
     return {
         "durations": list(services.DURATIONS_MIN),
         "recommended": services.recommended_minutes(exercise),
-        "extra_time_factor": services.EXTRA_TIME_FACTOR if request.auth.tiers_temps else None,
     }
 
 

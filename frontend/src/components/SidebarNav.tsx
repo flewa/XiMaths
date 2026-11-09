@@ -16,6 +16,10 @@ export type NavAccount = {
   username: string;
   avatar: AvatarData;
   points: number;
+  /** Niveau de contributeur. */
+  level: number;
+  /** Questions de compréhension à ouvrir ou à finir. */
+  pendingQuestions: number;
   pendingReviews: number;
   unreadNotifications: number;
   declaredLevel: string | null;
@@ -144,37 +148,56 @@ function LevelGroup({
   );
 }
 
-/** Compte, en bas de la barre : un menu qui s'ouvre vers le haut. */
+/** Compte, en bas de la barre : un menu qui s'ouvre vers le haut. Un point corail signale
+ * une question de compréhension en attente : elle a un délai. */
 function AccountFooter({ account }: { account: NavAccount }) {
   const pathname = usePathname();
-  const link = "block rounded-md px-3 py-1.5 hover:bg-hover hover:text-ink";
+  const link = "flex items-center rounded-md px-3 py-1.5 hover:bg-hover hover:text-ink";
+  const waiting = account.pendingQuestions;
   return (
     <details key={pathname} className="plain relative">
       <summary className={`${row} text-ink hover:bg-hover`}>
-        <Avatar avatar={account.avatar} size={24} />
+        <span className="relative">
+          <Avatar avatar={account.avatar} size={24} />
+          {waiting > 0 && (
+            <span className="absolute -right-1 -top-1 size-2.5 rounded-full bg-accent ring-2 ring-canvas">
+              <span className="sr-only">{waiting > 1 ? `, ${waiting} questions t'attendent` : ", une question t'attend"}</span>
+            </span>
+          )}
+        </span>
         <span className="truncate">{account.username}</span>
         <Icon name="gear" size={17} className="ml-auto text-stone" />
       </summary>
       <div className="absolute inset-x-0 bottom-full z-10 mb-2 rounded-lg border border-hairline bg-surface-card p-1.5 text-mute shadow-2xl">
-        <p className="px-3 py-1.5 text-sm">{account.points} points</p>
-        <Link
-          href={`/membres/${encodeURIComponent(account.username)}`}
-          className={link}
-        >
-          Mon profil
+        <Link href="/progression" className="block rounded-md px-3 py-2 hover:bg-hover">
+          <span className="block text-sm tabular-nums text-ink">{account.points} points</span>
+          <span className="block text-xs">Niveau {account.level} · ma progression</span>
         </Link>
-        <Link href="/reglages" className={link}>
-          Réglages
-        </Link>
-        <Link href="/signalements" className={link}>
-          Mes signalements
-        </Link>
-        <Link href="/questions" className={link}>
-          Mes questions
-        </Link>
-        <Link href="/decisions" className={link}>
-          Mes décisions
-        </Link>
+        <div className="mt-1 border-t border-hairline pt-1">
+          <Link href={`/membres/${encodeURIComponent(account.username)}`} className={link}>
+            Mon profil
+          </Link>
+          <Link href="/reglages" className={link}>
+            Réglages
+          </Link>
+        </div>
+        <div className="mt-1 border-t border-hairline pt-1">
+          <p className="px-3 pb-0.5 pt-1 text-[11px] font-semibold uppercase tracking-[0.04em] text-stone">Modération</p>
+          <Link href="/signalements" className={link}>
+            Mes signalements
+          </Link>
+          <Link href="/questions" className={link}>
+            Mes questions
+            {waiting > 0 && (
+              <span className="ml-auto rounded-full bg-accent px-1.5 text-[11px] font-semibold leading-[18px] text-accent-ink">
+                {waiting}
+              </span>
+            )}
+          </Link>
+          <Link href="/decisions" className={link}>
+            Mes décisions
+          </Link>
+        </div>
         <div className="mt-1 border-t border-hairline pt-1">
           <LogoutButton className={`${link} w-full text-left`} />
         </div>

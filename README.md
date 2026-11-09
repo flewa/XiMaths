@@ -88,7 +88,7 @@ Tout passe par des variables d'environnement, décrites dans `.env.example` (dé
 - Inscription avec vérification de l'adresse par lien signé, connexion par pseudo ou email, limitation de débit.
 - Connexion avec Google : un compte existant à la même adresse vérifiée est lié, sinon un compte est créé. L'adresse de retour à déclarer chez Google est `<site>/api/auth/google/callback`.
 - Mot de passe oublié, changement de mot de passe, export des données (JSON) et suppression du compte depuis `/reglages`. Les contenus publiés restent, sans auteur.
-- Réglages : niveau déclaré, tiers-temps, présence dans les classements, emails, résumé hebdomadaire, notification du défi du jour, thème clair, sombre ou système.
+- Réglages : niveau déclaré, présence dans les classements, emails, résumé hebdomadaire, notification du défi du jour, thème clair, sombre ou système.
 - Email académique, depuis `/reglages` : un lien signé, envoyé à une adresse d'université ou d'école, donne le badge « Étudiant vérifié ». Seuls le domaine et une empreinte (HMAC) sont gardés, pour qu'une adresse ne vérifie qu'un compte. Les domaines reconnus sont dans `backend/accounts/academic.py` ; `ACADEMIC_EXTRA_DOMAINS` en ajoute, et un modérateur peut aussi marquer un compte dans l'admin.
 
 ## Notifications
@@ -166,7 +166,7 @@ Sur l'accueil, des onglets (`?vue=`) passent du fil aux vues triées : sans solu
 
 Un défi par niveau, chaque jour, sur `/defi`. Les modérateurs créent des gabarits dans l'admin (« Entraînement › Gabarits de défi ») : un exercice publié, un énoncé avec des paramètres (`{{a}}`), leurs valeurs possibles, et la réponse en fonction des paramètres (`sqrt(a)/b`). Le formulaire vérifie le gabarit et montre un exemple de tirage.
 
-- **Fenêtre de 24 h**, de minuit à minuit ; 30 minutes (×1,33 avec un tiers-temps) ; **une seule tentative**, qu'abandonner consomme.
+- **Fenêtre de 24 h**, de minuit à minuit ; 30 minutes ; **une seule tentative**, qu'abandonner consomme.
 - **Énoncé tiré pour chacun** : partager sa réponse ne sert à rien. Les relecteurs voient l'énoncé tiré de l'auteur et la réponse attendue pour ses valeurs.
 - **Copie manuscrite** : le QR code s'affiche au départ ; les photos (3 au plus) doivent arriver avant la fin du temps, avec 60 s de grâce, après quoi le dépôt ferme et la session est rendue avec ce qui est arrivé.
 - **Barème** : 20 × m(d), gagnés quand la copie est validée par les pairs : plus de correction automatique. Bonus de rapidité jusqu'à ×1,25 ; chaque indication ouverte en retire 10 %. Les points comptent dans le classement de la semaine.

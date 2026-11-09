@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 const RULES = [
-  "30 minutes (40 avec un tiers-temps), une seule tentative, jusqu'à minuit. Abandonner consomme la tentative, sans autre pénalité.",
+  "30 minutes, une seule tentative, jusqu'à minuit. Abandonner consomme la tentative, sans autre pénalité.",
   "Ton énoncé est tiré pour toi : les autres ont d'autres valeurs. Partager sa méthode reste permis, c'est de l'apprentissage.",
   "Copie écrite à la main sur papier : au départ, scanne le QR code avec ton téléphone, puis photographie tes pages (3 au plus) avant la fin du temps, avec une minute de grâce. Rien ne se tape.",
   "Cours personnel autorisé, IA interdite. Les sorties d'onglet sont comptées, jamais pénalisées.",

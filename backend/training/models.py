@@ -6,10 +6,6 @@ from django.db.models import Q
 from catalog.models import Level
 from content.models import Exercise, Solution
 
-# Tiers-temps, appliqué à tous les modes chronométrés.
-EXTRA_TIME_FACTOR = 1.33
-
-
 class ChallengeTemplate(models.Model):
     """Gabarit de défi : un exercice publié dont l'énoncé et la réponse dépendent de
     paramètres tirés pour chaque membre. Partager sa réponse ne sert donc à rien."""
@@ -76,8 +72,7 @@ class TimedSession(models.Model):
     )
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name="timed_sessions")
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.RUNNING)
-    duration_s = models.PositiveIntegerField(help_text="Durée choisie, avant tiers-temps.")
-    extra_time_factor = models.FloatField(default=1.0, help_text="1,33 avec un tiers-temps.")
+    duration_s = models.PositiveIntegerField(help_text="Durée choisie.")
     started_at = models.DateTimeField(help_text="Heure du serveur.")
     last_tick_at = models.DateTimeField(
         null=True, blank=True, help_text="Dernier signe de vie compté ; vide en pause."
@@ -136,7 +131,7 @@ class TimedSession(models.Model):
 
     @property
     def limit_s(self):
-        return self.duration_s * self.extra_time_factor
+        return self.duration_s
 
     @property
     def ranked(self):

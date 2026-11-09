@@ -1,7 +1,7 @@
 /** Page de texte : sections titrées. */
-export function ProseSection({ title, children }: { title: string; children: React.ReactNode }) {
+export function ProseSection({ title, id, children }: { title: string; id?: string; children: React.ReactNode }) {
   return (
-    <section className="mt-10">
+    <section id={id} className="mt-10 scroll-mt-20">
       <h2>{title}</h2>
       <div className="mt-3 space-y-3 text-body">{children}</div>
     </section>

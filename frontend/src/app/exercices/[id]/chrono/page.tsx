@@ -50,7 +50,7 @@ export default async function TrainingRulesPage({ params }: Props) {
       </ul>
       <div className="mt-10 border-t border-hairline pt-6">
         {me.email_verified ? (
-          <TrainingStart exerciseId={exercise.id} options={options} tiersTemps={me.tiers_temps} />
+          <TrainingStart exerciseId={exercise.id} options={options} />
         ) : (
           <FormMessage error="Confirme d'abord ton adresse email : le lien t'a été envoyé à l'inscription." />
         )}

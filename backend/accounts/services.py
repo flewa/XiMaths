@@ -136,7 +136,6 @@ def export_user_data(user):
             ),
             "niveau_declare": user.declared_level.code if user.declared_level else None,
             "niveau_de_confiance": user.get_trust_level_display(),
-            "tiers_temps": user.tiers_temps,
             "present_dans_les_classements": user.leaderboard_visible,
             "emails_importants": user.email_notifications,
             "resume_hebdomadaire": user.weekly_digest,
@@ -264,7 +263,6 @@ def delete_account(user):
     user.declared_level = None
     user.google_sub = None
     user.leaderboard_visible = False
-    user.tiers_temps = False
     user.email_notifications = False
     user.weekly_digest = False
     user.daily_challenge_notifications = False

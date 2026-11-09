@@ -460,6 +460,7 @@ class ReviewTaskOut(Schema):
 
     id: int
     assigned_at: datetime
+    solution_id: int
     exercise_id: int
     exercise_title: str
     exercise_statement: str
