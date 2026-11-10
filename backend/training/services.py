@@ -84,7 +84,7 @@ def start(user, exercise, *, minutes, now=None):
     if Solution.objects.filter(
         exercise=exercise,
         author=user,
-        status__in=[Solution.Status.HELD, Solution.Status.UNDER_REVIEW, Solution.Status.CONTESTED],
+        status=Solution.Status.UNDER_REVIEW,
     ).exists():
         raise RuleError("Tu as déjà une solution en cours d'évaluation sur cet exercice.")
     now = now or timezone.now()

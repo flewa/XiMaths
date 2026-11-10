@@ -201,7 +201,7 @@ def is_note(solution):
 
 def can_view(user, solution, *, now=None):
     """Une copie est privée, même validée : son auteur, ses relecteurs et la modération
-    (dont les experts qui tranchent ou évaluent une question de compréhension) la voient."""
+    (dont les experts qui évaluent une question de compréhension) la voient."""
     if not user.is_authenticated:
         return False
     if solution.author_id == user.pk or is_moderator(user):
@@ -209,9 +209,7 @@ def can_view(user, solution, *, now=None):
     if solution.reviews.filter(reviewer=user).exists():
         return True
     if user.trust_level >= user.TrustLevel.EXPERT:
-        # Arbitrage d'une solution contestée, évaluation d'une question de compréhension.
-        if solution.status == Solution.Status.CONTESTED:
-            return True
+        # Évaluation d'une question de compréhension.
         return Solution.objects.filter(pk=solution.pk, comprehension_question__isnull=False).exists()
     return False
 

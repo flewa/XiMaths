@@ -13,6 +13,7 @@ from content.services import submit_review
 from content.tests import TL, ContentTestCase, make_user
 from gamification.models import PointTransaction
 from notifications.models import Notification
+from training.models import TimedSession
 
 from . import comprehension
 from .models import ComprehensionQuestion
@@ -78,12 +79,22 @@ class ThresholdTests(ComprehensionTestCase):
         self.assertFalse(hasattr(second, "comprehension_question") and second.comprehension_question.pk)
         self.assertEqual(second.reviews.count(), 4)
 
-    def test_pasting_into_a_timed_session_raises_the_score(self):
-        solution = Solution.objects.create(exercise=self.hard, author=self.student, body="x" * 100)
-        session = SimpleNamespace(external_paste_chars=100, exercise=self.hard, pk=None, elapsed_s=600)
-        measured = comprehension.signals(solution, session)
-        self.assertEqual(measured["collage_temps"], 1.0)
-        self.assertGreater(comprehension.integrity_score(solution, session), 0.4)
+    def test_a_copy_returned_much_faster_than_the_others_raises_the_score(self):
+        solution = Solution.objects.create(exercise=self.hard, author=self.student, body="")
+        self.assertEqual(comprehension.integrity_score(solution), 0.0)  # sans chrono, rien à mesurer
+        for index, elapsed in enumerate((1100, 1200, 1300)):
+            TimedSession.objects.create(
+                user=make_user(f"autre{index}"),
+                exercise=self.hard,
+                status=TimedSession.Status.SUBMITTED,
+                duration_s=1800,
+                started_at=timezone.now(),
+                elapsed_s=elapsed,
+            )
+        fast = SimpleNamespace(exercise=self.hard, pk=None, elapsed_s=120)  # médiane 1 200 s
+        usual = SimpleNamespace(exercise=self.hard, pk=None, elapsed_s=900)
+        self.assertGreater(comprehension.integrity_score(solution, fast), 0.7)
+        self.assertEqual(comprehension.integrity_score(solution, usual), 0.0)
 
 
 class FlowTests(ComprehensionTestCase):

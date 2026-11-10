@@ -35,7 +35,6 @@ from .models import Exercise, Solution, Vote
 SOLUTION_WEIGHTS = {
     Solution.Status.VALIDATED: 1.0,
     Solution.Status.UNDER_REVIEW: 0.4,
-    Solution.Status.CONTESTED: 0.4,
 }
 HALF_LIFE_DAYS = 30
 VOTE_FACTOR = 0.15

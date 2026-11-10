@@ -25,7 +25,6 @@ from .services import (
     SANCTION_TEXT,
     answer_deadline,
     answer_question,
-    answer_signal,
     can_evaluate,
     create_appeal,
     create_report,
@@ -150,17 +149,6 @@ def my_reports(request):
     for report in reports:
         report.points = earned.get(report.pk, 0)
     return reports
-
-
-class AnswerIn(Schema):
-    answer: str = Field(min_length=3, max_length=2000)
-
-
-@router.post("/integrity/{int:signal_id}/answer", response={204: None}, auth=django_auth)
-def answer_integrity_question(request, signal_id: int, payload: AnswerIn):
-    """Réponse de l'auteur à la question neutre sur sa solution en vérification."""
-    answer_signal(get_object_or_404(IntegritySignal, pk=signal_id, user=request.auth), request.auth, payload.answer)
-    return 204, None
 
 
 # ---------------------------------------------------------------- mes décisions, appels

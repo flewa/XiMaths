@@ -1,8 +1,8 @@
 """Question de compréhension, la mesure centrale de l'anti-triche (document, §6).
 
-- Score d'intégrité agrégé, sur les signaux mesurés : plagiat 0,35 ; collage et temps
-  0,25 ; empreintes IA 0,20 ; style 0,10 ; classifieur 0,10. Les signaux qui ne sont
-  pas encore mesurés sont retirés et les poids renormalisés.
+- Score d'intégrité, entre 0 et 1. Les copies sont manuscrites et photographiées : il
+  n'y a plus de texte à comparer ni de collage possible. Reste un signal mesurable, le
+  temps : un défi rendu bien plus vite que les autres.
 - Seulement pour une solution classée (défi) ou à fort enjeu (plus de 30 points).
   En dessous de 0,4 rien ; jusqu'à 0,7 une relecture supplémentaire ; au-delà, une
   question de compréhension.
@@ -28,12 +28,10 @@ from notifications.models import Notification
 from notifications.services import notify
 from training.models import TimedSession
 
-from .integrity import PLAGIARISM_JACCARD, SHORT_PROOF_JACCARD, SHORT_PROOF_LENGTH, closest_prior, fingerprint
 from .models import ComprehensionQuestion, IntegritySignal, Report
 
 Status = ComprehensionQuestion.Status
 
-WEIGHTS = {"plagiat": 0.35, "collage_temps": 0.25, "empreintes_ia": 0.20, "style": 0.10, "classifieur": 0.10}
 EXTRA_REVIEW_SCORE = 0.4
 QUESTION_SCORE = 0.7
 HIGH_STAKES_POINTS = 30
@@ -50,33 +48,20 @@ EXTRA_REVIEW = "relecture_supplementaire"
 QUESTION = "question"
 
 
-def signals(solution, session=None):
-    """Signaux mesurés, chacun entre 0 et 1."""
-    measured = {}
-    print_ = getattr(solution, "print", None) or fingerprint(solution)
-    _, jaccard = closest_prior(solution, print_)
-    threshold = SHORT_PROOF_JACCARD if print_.length < SHORT_PROOF_LENGTH else PLAGIARISM_JACCARD
-    measured["plagiat"] = min(1.0, jaccard / threshold)
-    if session is not None:
-        paste = min(1.0, session.external_paste_chars / max(1, len(solution.body)))
-        # Rendu en moins de la moitié du temps médian sur cet exercice : de plus en plus suspect.
-        times = sorted(
-            TimedSession.objects.filter(exercise=session.exercise, status=TimedSession.Status.SUBMITTED)
-            .exclude(pk=session.pk)
-            .values_list("elapsed_s", flat=True)
-        )
-        speed = 0.0
-        if times:
-            median = times[len(times) // 2]
-            speed = max(0.0, 1 - session.elapsed_s / (0.5 * median)) if median else 0.0
-        measured["collage_temps"] = max(paste, speed)
-    return measured
-
-
 def integrity_score(solution, session=None):
-    measured = signals(solution, session)
-    total = sum(WEIGHTS[name] for name in measured)
-    return sum(WEIGHTS[name] * value for name, value in measured.items()) / total
+    """0 sans session chronométrée. Sinon, de plus en plus proche de 1 quand la copie est
+    rendue en moins de la moitié du temps médian des autres sur cet exercice."""
+    if session is None:
+        return 0.0
+    times = sorted(
+        TimedSession.objects.filter(exercise=session.exercise, status=TimedSession.Status.SUBMITTED)
+        .exclude(pk=session.pk)
+        .values_list("elapsed_s", flat=True)
+    )
+    if not times:
+        return 0.0
+    median = times[len(times) // 2]
+    return max(0.0, 1 - session.elapsed_s / (0.5 * median)) if median else 0.0
 
 
 def high_stakes(solution, session):

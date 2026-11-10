@@ -16,9 +16,9 @@ from .services import (
     eligible_reviewers,
     publish_exercise,
     publish_solution,
-    resolve_contested,
     review_deadlines,
     submit_review,
+    volunteer_review,
 )
 
 User = get_user_model()
@@ -156,14 +156,25 @@ class ReviewQuorumTests(ContentTestCase):
         self.assertEqual(status, Solution.Status.NEEDS_WORK)
         self.assertEqual([balance(reviewer) for reviewer in self.reviewers], [2, 0, 2])
 
-    def test_an_expert_still_decides_a_solution_contested_under_the_former_rule(self):
+    def test_one_review_from_the_team_decides_without_waiting(self):
         solution = self.publish()
-        Solution.objects.filter(pk=solution.pk).update(status=Solution.Status.CONTESTED)
-        solution.refresh_from_db()
-        with self.assertRaises(PermissionDenied):
-            resolve_contested(solution, self.reviewers[2], validate=True)
-        expert = make_user("expert", trust=TL.EXPERT)
-        self.assertEqual(resolve_contested(solution, expert, validate=True), Solution.Status.VALIDATED)
+        team = make_user("equipe", is_staff=True)  # niveau Membre : l'équipe relit quand même
+        review = volunteer_review(solution, team)
+        self.assertEqual(submit_review(review, Verdict.GAPS, feedback="Juste."), Solution.Status.VALIDATED)
+        self.assertGreater(balance(self.student), 0)
+        # Les relecteurs tirés au sort n'ont plus rien à rendre.
+        with self.assertRaises(RuleError):
+            submit_review(solution.reviews.filter(assigned=True).first(), Verdict.CORRECT)
+
+    def test_the_team_can_send_a_copy_back_whatever_the_others_said(self):
+        solution = self.publish()
+        self.review(solution, self.reviewers[0], Verdict.CORRECT)
+        self.review(solution, self.reviewers[1], Verdict.INCORRECT)
+        review = volunteer_review(solution, make_user("equipe", trust=TL.MODERATOR))
+        self.assertEqual(submit_review(review, Verdict.INCORRECT, feedback="Faux."), Solution.Status.NEEDS_WORK)
+        # Seul le relecteur qui avait vu l'erreur est dans le vrai.
+        self.assertEqual([balance(reviewer) for reviewer in self.reviewers[:2]], [0, 2])
+        self.assertEqual(balance(self.student), 0)
 
     def test_a_verified_teacher_counts_as_one_reviewer(self):
         solution = self.publish()
@@ -395,8 +406,8 @@ class VoteTests(ContentTestCase):
 
     def test_solutions_are_private_so_nobody_votes_for_them(self):
         solution = self.publish()
-        with self.assertRaises(RuleError):
-            cast_vote(self.author, solution=solution)
+        self.client.force_login(self.author)
+        self.assertEqual(self.client.post(f"/api/solutions/{solution.pk}/vote").status_code, 404)
         self.assertEqual(balance(self.student), 0)
 
     def test_nobody_votes_for_themselves(self):

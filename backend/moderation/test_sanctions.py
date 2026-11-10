@@ -73,8 +73,8 @@ class TrustTests(ContentTestCase):
             Solution.objects.create(exercise=exercise, author=user, body="Preuve.", status=Solution.Status.VALIDATED)
 
     def test_a_member_becomes_reviewer_with_points_and_validated_solutions(self):
-        give_points(self.student, 300)
-        self.validated_solutions(self.student, 4)
+        give_points(self.student, 50)
+        self.validated_solutions(self.student, 1)
         self.assertIsNone(promote(self.student))
 
         self.validated_solutions(self.student, 1)

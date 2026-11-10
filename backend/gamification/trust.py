@@ -3,8 +3,11 @@ niveau Modérateur reste une nomination du staff.
 
 | Niveau    | Condition                                                         |
 | Membre    | 7 jours d'ancienneté et 30 points                                 |
-| Relecteur | 300 points, 5 solutions validées, aucune sanction depuis 90 jours |
+| Relecteur | 50 points, 2 solutions validées, aucune sanction depuis 90 jours  |
 | Expert    | 1 500 points, 30 relectures concordantes, à 80 % ou plus          |
+
+Le seuil de Relecteur est bas exprès : sur un site jeune, il faut des relecteurs pour que
+les copies soient corrigées, et il faut des copies corrigées pour devenir relecteur.
 """
 
 from datetime import timedelta
@@ -23,8 +26,8 @@ from .services import balance, promote_new_member
 User = get_user_model()
 TL = User.TrustLevel
 
-REVIEWER_POINTS = 300
-REVIEWER_SOLUTIONS = 5
+REVIEWER_POINTS = 50
+REVIEWER_SOLUTIONS = 2
 CLEAN_DAYS = 90
 EXPERT_POINTS = 1500
 EXPERT_AGREED_REVIEWS = 30
@@ -32,7 +35,7 @@ EXPERT_AGREEMENT = 0.8
 
 MESSAGES = {
     TL.REVIEWER: ("Tu es maintenant Relecteur", "Tu peux être tiré au sort pour relire, et signaler des doublons."),
-    TL.EXPERT: ("Tu es maintenant Expert", "Tes relectures pèsent 1,5, et tu peux trancher les solutions contestées."),
+    TL.EXPERT: ("Tu es maintenant Expert", "Tu peux évaluer les réponses aux questions de compréhension."),
 }
 
 

@@ -25,7 +25,6 @@ from gamification.scoring import PER_TARGET_CAPS, POINTS, validated_solution_poi
 from gamification.services import award, points_from
 from gamification.trust import promote
 from moderation.comprehension import EXTRA_REVIEW, assess, points_on_hold
-from moderation.integrity import NEUTRAL_QUESTION, check_solution
 from notifications.models import Notification
 from notifications.services import notify
 
@@ -50,18 +49,10 @@ REPEATED_VOTE_WEIGHTS = [Decimal(1), Decimal("0.5"), Decimal("0.25")]
 MAX_VOTES_FOR_AUTHOR_AS_REVIEWER = 3
 
 
-def reviewer_weight(user, *, assigned=True):
-    """Poids d'une relecture : 1 au niveau 2, 1,5 au niveau 3, 2 pour un enseignant
-    vérifié ; moitié pour une relecture spontanée."""
-    if user.verified_teacher:
-        base = Decimal(2)
-    elif user.trust_level >= User.TrustLevel.EXPERT:
-        base = Decimal("1.5")
-    elif user.trust_level >= User.TrustLevel.REVIEWER:
-        base = Decimal(1)
-    else:
-        return Decimal(0)
-    return base if assigned else base / 2
+def can_review(user):
+    """Peut relire : un relecteur (niveau de confiance 2 ou plus), un enseignant vérifié,
+    ou l'équipe du site."""
+    return user.verified_teacher or user.trust_level >= User.TrustLevel.REVIEWER or is_moderator(user)
 
 
 @transaction.atomic
@@ -86,9 +77,7 @@ def publish_exercise(exercise, *, now=None):
 @transaction.atomic
 def publish_solution(solution, *, rng=None, now=None):
     """Publie une tentative, puis tire au sort ses relecteurs. Elle ne rapporte rien en
-    soi : les points viennent du consensus des relecteurs (evaluate_solution).
-    Une solution trop proche d'une solution antérieure d'un autre auteur passe d'abord
-    en vérification : l'auteur reçoit une question neutre, un modérateur tranche."""
+    soi : les points viennent du consensus des relecteurs (evaluate_solution)."""
     if solution.status != Solution.Status.DRAFT:
         raise RuleError("Seul un brouillon peut être publié.")
     if solution.exercise.status != Exercise.Status.PUBLISHED:
@@ -100,18 +89,6 @@ def publish_solution(solution, *, rng=None, now=None):
     if solution.author:
         # « Premier pas » : la première copie envoyée, sans point.
         check_badges(solution.author, now=now)
-    if solution.author and check_solution(solution):
-        solution.status = Solution.Status.HELD
-        solution.save(update_fields=["status", "updated_at"])
-        notify(
-            solution.author,
-            Kind.SOLUTION_HELD,
-            "Une question sur ta solution",
-            NEUTRAL_QUESTION,
-            f"/exercices/{solution.exercise_id}",
-            now=now,
-        )
-        return solution
     assign_reviewers(solution, rng=rng, now=now)
     # Solution classée ou à fort enjeu : score d'intégrité, puis une relecture de plus
     # ou une question de compréhension au-delà des seuils.
@@ -181,14 +158,15 @@ def submit_review(review, verdict, *, feedback="", now=None):
         raise RuleError("Cette relecture est déjà rendue.")
     if review.expired_at is not None or review.round != review.solution.review_round:
         raise RuleError("Cette relecture a été confiée à quelqu'un d'autre.")
+    if review.solution.status != Solution.Status.UNDER_REVIEW:
+        # Décidée entre-temps (par les autres relecteurs, ou par l'équipe).
+        raise RuleError("Cette copie n'est plus en relecture.")
     if review.reviewer_id == review.solution.author_id:
         raise PermissionDenied("On ne relit pas sa propre solution.")
-    weight = reviewer_weight(review.reviewer, assigned=review.assigned)
-    if weight == 0:
+    if not can_review(review.reviewer):
         raise PermissionDenied("Niveau de confiance insuffisant pour relire.")
     review.verdict = verdict
     review.feedback = feedback
-    review.weight = weight
     review.submitted_at = now or timezone.now()
     review.save()
     solution = review.solution
@@ -223,12 +201,28 @@ def current_reviews(solution):
     return solution.reviews.filter(round=solution.review_round)
 
 
+def team_verdicts(solution):
+    """Verdicts rendus par l'équipe du site sur le tour en cours."""
+    submitted = current_reviews(solution).exclude(submitted_at=None).select_related("reviewer")
+    return [review.verdict for review in submitted if is_moderator(review.reviewer)]
+
+
 def evaluate_solution(solution, *, now=None):
     """Règle du consensus : une fois rendues toutes les relectures tirées au sort (trois au
     moins), la copie est validée si tous les relecteurs la jugent juste (« correcte » ou
     « correcte avec lacunes »), et rapporte alors ses points ; sinon elle est à reprendre.
+
+    Le filet : une relecture de l'équipe du site vaut décision, sans attendre les autres.
+    Tant que les relecteurs manquent, aucune copie ne reste ainsi sans réponse.
     Renvoie le statut de la solution."""
     if solution.status != Solution.Status.UNDER_REVIEW:
+        return solution.status
+    team = team_verdicts(solution)
+    if team:
+        if all(verdict in SOUND_VERDICTS for verdict in team):
+            _validate(solution, now=now)
+        else:
+            _close_as_needs_work(solution, agreeing={Review.Verdict.INCORRECT}, now=now)
         return solution.status
     reviews = current_reviews(solution)
     assigned = reviews.filter(assigned=True, expired_at=None)
@@ -248,19 +242,6 @@ def evaluate_solution(solution, *, now=None):
         else:
             agreeing = set()
         _close_as_needs_work(solution, agreeing=agreeing, now=now)
-    return solution.status
-
-
-@transaction.atomic
-def resolve_contested(solution, moderator, *, validate, now=None):
-    if moderator.trust_level < User.TrustLevel.EXPERT and not is_moderator(moderator):
-        raise PermissionDenied("Seuls les experts et les modérateurs tranchent.")
-    if solution.status != Solution.Status.CONTESTED:
-        raise RuleError("La solution n'est pas contestée.")
-    if validate:
-        _validate(solution, now=now)
-    else:
-        _close_as_needs_work(solution, agreeing={Review.Verdict.INCORRECT, Review.Verdict.GAPS}, now=now)
     return solution.status
 
 
@@ -347,7 +328,7 @@ def _validate(solution, *, now=None):
         solution.author,
         Kind.SOLUTION_VALIDATED,
         "Ta copie est validée",
-        f"Tous tes relecteurs ont jugé juste ta copie de « {exercise.title} » : tes points sont crédités.",
+        f"Ta copie de « {exercise.title} » a été jugée juste : tes points sont crédités.",
         url,
         now=now,
     )
@@ -372,8 +353,8 @@ def _close_as_needs_work(solution, *, agreeing, now=None):
         solution.author,
         Kind.SOLUTION_NEEDS_WORK,
         "Ta copie est à reprendre",
-        f"Tes relecteurs n'ont pas tous jugé juste ta copie de « {solution.exercise.title} ». "
-        "Lis leurs commentaires, puis renvoie-la : les points viennent quand tous sont d'accord.",
+        f"Ta copie de « {solution.exercise.title} » n'a pas été jugée juste. "
+        "Lis les commentaires de relecture, puis renvoie-la : les points viennent avec la validation.",
         f"/exercices/{solution.exercise_id}",
         now=now,
     )
@@ -408,34 +389,24 @@ def vote_weight(voter, author, *, now=None):
 
 
 @transaction.atomic
-def cast_vote(voter, *, exercise=None, solution=None, now=None):
-    """Vote « utile ». Le poids baisse quand on vote souvent pour le même auteur."""
-    if (exercise is None) == (solution is None):
-        raise ValueError("Un vote porte sur un exercice ou sur une solution.")
-    if solution is not None:
-        # Les solutions restent privées (auteur, relecteurs, modération) : pas de vote public.
-        raise RuleError("Les solutions ne sont pas publiques : on ne vote que pour les exercices.")
-    target = exercise or solution
-    author = target.author
+def cast_vote(voter, *, exercise, now=None):
+    """Vote « utile » pour un exercice (les copies sont privées : on ne vote pas pour elles).
+    Le poids baisse quand on vote souvent pour le même auteur."""
+    author = exercise.author
     if author is not None and author.pk == voter.pk:
         raise PermissionDenied("On ne vote pas pour soi-même.")
     now = now or timezone.now()
     weight = vote_weight(voter, author, now=now) if author else Decimal(0)
-    vote = Vote.objects.create(
-        voter=voter, exercise=exercise, solution=solution, weight=weight
-    )
+    vote = Vote.objects.create(voter=voter, exercise=exercise, weight=weight)
     if weight > 0:
-        reason = Reason.EXERCISE_UPVOTED if exercise else Reason.SOLUTION_UPVOTED
-        already = points_from(author, reason, target.votes.exclude(pk=vote.pk))
+        reason = Reason.EXERCISE_UPVOTED
+        already = points_from(author, reason, exercise.votes.exclude(pk=vote.pk))
         amount = min(
             math.floor(POINTS[reason] * weight + Decimal("0.5")),
             PER_TARGET_CAPS[reason] - already,
         )
         if amount > 0:
-            level = (exercise or solution.exercise).primary_level
-            award(author, reason, vote, amount=amount, level=level, now=now)
-        if solution is not None:
-            check_badges(author, now=now)
+            award(author, reason, vote, amount=amount, level=exercise.primary_level, now=now)
     # Après le vote : s'il crée le lien, link_accounts neutralise aussi celui-ci.
     check_vote_reciprocity(voter, author)
     return vote
@@ -491,14 +462,60 @@ def review_deadlines(*, now=None):
     return reminded, reassigned
 
 
+# Une copie sans décision après ce délai : l'équipe est prévenue, une fois par jour.
+TEAM_ALERT_AFTER = timedelta(hours=72)
+TEAM_ALERT_EVERY = timedelta(hours=20)
+
+
+def waiting_solutions(*, now=None):
+    """Copies en relecture depuis plus de 72 heures (depuis l'envoi, ou la dernière révision)."""
+    now = now or timezone.now()
+    return Solution.objects.filter(status=Solution.Status.UNDER_REVIEW, updated_at__lte=now - TEAM_ALERT_AFTER)
+
+
+def alert_team(*, now=None):
+    """Prévient l'équipe du site, au plus une fois par jour, des copies qui attendent
+    depuis plus de 72 heures : elle peut les corriger elle-même, sa relecture vaut décision.
+    Renvoie le nombre de personnes prévenues."""
+    now = now or timezone.now()
+    waiting = waiting_solutions(now=now).count()
+    if waiting == 0:
+        return 0
+    team = User.objects.filter(is_active=True, status=User.Status.ACTIVE).filter(
+        Q(is_staff=True) | Q(trust_level__gte=User.TrustLevel.MODERATOR)
+    )
+    alerted = 0
+    for member in team:
+        recent = Notification.objects.filter(
+            user=member, kind=Kind.TEAM_ALERT, created_at__gte=now - TEAM_ALERT_EVERY
+        ).exists()
+        if recent:
+            continue
+        notify(
+            member,
+            Kind.TEAM_ALERT,
+            "Une copie attend une correction depuis plus de 3 jours"
+            if waiting == 1
+            else f"{waiting} copies attendent une correction depuis plus de 3 jours",
+            "Les relecteurs manquent. Tu peux la corriger toi-même depuis la page Relectures : "
+            "une relecture de l'équipe vaut décision.",
+            "/relectures",
+            email=True,
+            now=now,
+        )
+        alerted += 1
+    return alerted
+
+
 @transaction.atomic
 def volunteer_review(solution, user):
-    """Relecture spontanée d'un relecteur : elle compte pour moitié."""
+    """Relecture choisie, sans tirage au sort : celle d'un relecteur s'ajoute aux relectures
+    tirées au sort ; celle de l'équipe du site vaut décision (evaluate_solution)."""
     if solution.status != Solution.Status.UNDER_REVIEW:
         raise RuleError("Cette solution n'est pas en relecture.")
     if solution.author_id == user.pk or are_linked(user, solution.author):
         raise PermissionDenied("On ne relit pas sa propre solution, ni celle d'un compte lié.")
-    if user.trust_level < User.TrustLevel.REVIEWER:
+    if not can_review(user):
         raise PermissionDenied("Les relectures sont ouvertes à partir du niveau Relecteur.")
     review, created = Review.objects.get_or_create(
         solution=solution,
@@ -510,7 +527,6 @@ def volunteer_review(solution, user):
     return review
 
 
-@transaction.atomic
 @transaction.atomic
 def revise_solution(solution, body, *, upload=None, rng=None, now=None):
     """Révision par l'auteur. Une solution à compléter repart en relecture ; une
@@ -533,30 +549,3 @@ def revise_solution(solution, body, *, upload=None, rng=None, now=None):
     solution.save(update_fields=["body", "status", "validated_at", "review_round", "updated_at"])
     assign_reviewers(solution, rng=rng, now=now)
     return solution, True
-
-
-@transaction.atomic
-def recommend_solution(solution, user, *, now=None):
-    """L'auteur de l'exercice recommandait une solution validée d'un autre. Les solutions
-    étant privées, il ne les voit plus : la recommandation est fermée."""
-    raise RuleError("Les solutions ne sont pas publiques : on ne peut plus en recommander.")
-    exercise = solution.exercise
-    if exercise.author_id != user.pk:
-        raise PermissionDenied("Seul l'auteur de l'exercice recommande une solution.")
-    if solution.status != Solution.Status.VALIDATED or solution.author_id in (None, user.pk):
-        raise RuleError("On recommande une solution validée d'un autre membre.")
-    if exercise.solutions.filter(recommended_at__isnull=False).exists():
-        raise RuleError("Tu as déjà recommandé une solution pour cet exercice.")
-    now = now or timezone.now()
-    solution.recommended_at = now
-    solution.save(update_fields=["recommended_at", "updated_at"])
-    award(solution.author, Reason.SOLUTION_RECOMMENDED, solution, level=exercise.primary_level, now=now)
-    notify(
-        solution.author,
-        Kind.SOLUTION_RECOMMENDED,
-        "L'auteur de l'exercice recommande ta solution",
-        f"Ta solution de « {exercise.title} » est mise en avant : +5 points.",
-        f"/exercices/{exercise.pk}",
-        now=now,
-    )
-    return solution
