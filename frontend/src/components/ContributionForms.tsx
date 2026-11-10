@@ -8,7 +8,7 @@ import { apiPost } from "@/lib/client-api";
 import { AI_USAGE_OPTIONS, SOLUTION_STATUS_LABELS } from "@/lib/labels";
 
 import { CopyPhotoPicker, type PickedPhotos } from "./CopyPhotoPicker";
-import { Field, FormMessage, SubmitButton, inputClass, primaryButtonClass, secondaryButtonClass } from "./Form";
+import { Field, FormMessage, SubmitButton, inputClass, secondaryButtonClass } from "./Form";
 
 // Une solution est la copie manuscrite, en photos : rien ne se tape.
 const NO_PHOTOS: PickedPhotos = { token: null, count: 0 };
@@ -201,40 +201,6 @@ export function VoteButton({
   );
 }
 
-/** Réponse à la question neutre d'une solution en vérification. */
-export function IntegrityAnswer({ signalId, initial }: { signalId: number; initial: string | null }) {
-  const [answer, setAnswer] = useState(initial ?? "");
-  const [result, setResult] = useState<{ error?: string; success?: string }>({});
-  const [pending, setPending] = useState(false);
-
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setPending(true);
-    const saved = await apiPost(`/integrity/${signalId}/answer`, { answer });
-    setPending(false);
-    setResult(saved.ok ? { success: "Réponse transmise au modérateur." } : { error: saved.error });
-  }
-
-  return (
-    <form onSubmit={onSubmit} className="mt-3 space-y-3">
-      <Field label="Ta réponse" htmlFor={`integrity-${signalId}`}>
-        <textarea
-          id={`integrity-${signalId}`}
-          required
-          minLength={3}
-          maxLength={2000}
-          rows={3}
-          value={answer}
-          onChange={(event) => setAnswer(event.target.value)}
-          className={inputClass}
-        />
-      </Field>
-      <FormMessage error={result.error} success={result.success} />
-      <SubmitButton pending={pending}>Répondre</SubmitButton>
-    </form>
-  );
-}
-
 /** Faire appel d'une décision : un autre modérateur l'examine sous 7 jours. */
 export function AppealForm({ type, id }: { type: DecisionType; id: number }) {
   const router = useRouter();
@@ -342,8 +308,8 @@ export function ReviseSolution({
   );
 }
 
-/** Relecture spontanée d'une solution en attente (poids ½). */
-export function VolunteerButton({ solutionId }: { solutionId: number }) {
+/** Choisir de relire une copie en attente : elle rejoint « mes relectures ». */
+export function VolunteerButton({ solutionId, label = "Je relis" }: { solutionId: number; label?: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   return (
@@ -357,39 +323,9 @@ export function VolunteerButton({ solutionId }: { solutionId: number }) {
         }}
         className={secondaryButtonClass}
       >
-        Je relis
+        {label}
       </button>
       {error && <span role="alert" className="text-sm text-danger-text">{error}</span>}
     </span>
-  );
-}
-
-/** Décision d'un expert sur une solution contestée. */
-export function ArbitrationButtons({ solutionId }: { solutionId: number }) {
-  const [status, setStatus] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  async function decide(validate: boolean) {
-    const result = await apiPost<{ solution_status: keyof typeof SOLUTION_STATUS_LABELS }>(
-      `/arbitrations/${solutionId}`,
-      { validate_solution: validate },
-    );
-    if (result.ok) setStatus(SOLUTION_STATUS_LABELS[result.data.solution_status]);
-    else setError(result.error);
-  }
-
-  if (status) return <FormMessage success={`Décision enregistrée : ${status.toLowerCase()}.`} />;
-  return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap gap-3">
-        <button type="button" onClick={() => decide(true)} className={primaryButtonClass}>
-          Valider
-        </button>
-        <button type="button" onClick={() => decide(false)} className={secondaryButtonClass}>
-          À compléter
-        </button>
-      </div>
-      <FormMessage error={error} />
-    </div>
   );
 }

@@ -20,7 +20,7 @@ Dans l'application de bureau Claude Code, `.claude/launch.json` décrit les deux
 
 | Dossier ou fichier | Contenu |
 | --- | --- |
-| `backend/` | API Django 5.2 + Django Ninja. Apps : `accounts` (comptes, connexion Google, niveau de confiance), `catalog` (niveaux, chapitres), `content` (exercices, solutions, relectures, votes, tâches planifiées), `duplicates` (détection des doublons), `gamification` (ledger, barème, classements, badges, niveaux de confiance, séries et objectifs), `moderation` (signalements, anti-plagiat, sanctions, appels, questions de compréhension), `notifications`, `training` (chronométré et défi du jour) |
+| `backend/` | API Django 5.2 + Django Ninja. Apps : `accounts` (comptes, connexion Google, niveau de confiance), `catalog` (niveaux, chapitres), `content` (exercices, solutions, relectures, votes, tâches planifiées), `duplicates` (détection des doublons), `gamification` (ledger, barème, classements, badges, niveaux de confiance, séries et objectifs), `moderation` (signalements, sanctions, appels, questions de compréhension), `notifications`, `training` (chronométré et défi du jour) |
 | `frontend/` | Next.js 16 (App Router), React 19, Tailwind 4, Markdown + KaTeX rendus côté serveur, éditeur CodeMirror 6. Design : barre latérale, titres dans la police des formules (Computer Modern, via KaTeX), un seul accent corail ; sombre par défaut, clair au choix (jetons dans `src/app/globals.css`) |
 | `dev.sh` | Lancement local en une commande : dépendances, base de démonstration, API et front |
 | `deploy/` | Mise en ligne sur un serveur (`install.sh`), mises à jour (`update.sh`), sauvegarde (`sauvegarde.sh`) et mesure d'audience (`statistiques.sh`) |
@@ -61,7 +61,7 @@ npm run dev
 - Les emails s'affichent dans la console du backend.
 - Le front relaie `/api` vers Django (`next.config.ts`) : session et CSRF fonctionnent sur la même origine.
 - Évite `npm run build` pendant `npm run dev` : le serveur de dev voit passer les fichiers de la construction et peut servir une version périmée. En cas de souci, arrête-le, supprime `.next` et relance `npm run dev`.
-- Documentation de l'API : http://127.0.0.1:8000/api/docs
+- Documentation de l'API : http://127.0.0.1:8000/api/docs (en développement seulement ; elle n'est pas servie en production)
 - Back-office : http://127.0.0.1:8000/admin/, avec le compte `moderateur`.
 - Avec PostgreSQL et les embeddings : `docker compose up -d`, puis copier `.env.example` dans `backend/.env` et lancer les commandes avec `uv run --env-file .env …`
 - Les tâches planifiées se lancent à la main en développement : `uv run python manage.py run_jobs hourly` (ouvre aussi le défi du jour) et `run_jobs nightly`.
@@ -93,7 +93,7 @@ Tout passe par des variables d'environnement, décrites dans `.env.example` (dé
 
 ## Notifications
 
-Dans l'application (`/notifications`) pour tout ce qui concerne le membre. Par email seulement pour ce qui le touche directement : retrait d'un contenu, sanction, appel tranché, solution en vérification, question de compréhension. Jamais d'email entre 22 h et 8 h : ils partent à 8 h. Résumé hebdomadaire le lundi, sur opt-in. Chaque email porte un lien de désinscription en un clic.
+Dans l'application (`/notifications`) pour tout ce qui concerne le membre. Par email seulement pour ce qui le touche directement : retrait d'un contenu, sanction, appel tranché, question de compréhension ; et, pour l'équipe, les copies qui attendent une correction depuis plus de 3 jours. Jamais d'email entre 22 h et 8 h : ils partent à 8 h. Résumé hebdomadaire le lundi, sur opt-in. Chaque email porte un lien de désinscription en un clic.
 
 **PWA et Web Push.** XiMaths s'installe sur l'écran d'accueil (manifeste, icônes ; sur iPhone et iPad, l'installation ouvre aussi le push). Les notifications push s'activent appareil par appareil dans `/reglages`, sur opt-in :
 
@@ -111,12 +111,12 @@ Clés VAPID : `uv run python manage.py generate_vapid_keys`, à copier dans `.en
 - Chaque relecteur laisse un verdict et un **commentaire obligatoire** : c'est la seule correction que reçoit l'auteur. Il la lit dès qu'elle arrive, et en est prévenu par une notification (« Ta copie a été relue », 1 sur 3, 2 sur 3).
 - **Consensus** : une fois toutes les relectures tirées au sort rendues, la copie est validée si tous les relecteurs la jugent juste (« correcte » ou « correcte avec lacunes »). Elle rapporte alors ses points ; sinon elle est à reprendre, et ne rapporte rien. Une copie envoyée ne rapporte rien en soi. Les relecteurs de la majorité gagnent leurs points de relecture.
 - Relecture volontaire possible depuis `/relectures` ; son verdict compte dans le consensus.
-- Les solutions contestées sous l'ancienne règle restent tranchées par un expert ou un modérateur, sur `/arbitrages`.
+- **Le filet : l'équipe du site.** Une relecture d'un membre de l'équipe (staff ou modérateur) vaut décision, sans attendre les autres : la copie est validée ou à reprendre aussitôt. Sur `/relectures`, l'équipe voit toutes les copies en attente, les plus anciennes d'abord. Chaque jour, elle est prévenue (notification et email) des copies en relecture depuis plus de 72 heures. Tant que les relecteurs manquent, aucune copie ne reste ainsi sans réponse.
 - Une solution validée puis modifiée de plus de 20 % repart en relecture, pour un nouveau tour.
 
 ## Photo de copie
 
-Une solution est toujours la copie manuscrite, en photos : rien ne se tape, ni rédaction ni réponse finale, en libre comme en temps limité. Sur l'ordinateur, « Depuis mon téléphone » affiche un QR code ; le téléphone qui le scanne ouvre `/photos/<jeton>` et y photographie les pages, sans se connecter (le jeton suffit, 30 minutes, prolongeables). Les photos apparaissent sur l'ordinateur au fur et à mesure, et partent en relecture avec la solution ; une révision envoie de nouvelles photos, qui remplacent les précédentes. Sur un téléphone, on ajoute les photos directement. Les relecteurs et les arbitres voient la réponse attendue de l'exercice (en défi, celle des valeurs tirées) pour vérifier vite le résultat. Trois pages au plus, 10 Mo chacune ; le serveur les redresse, les réduit à 2 000 px et les réencode en JPEG, ce qui efface leurs métadonnées. Elles sont servies par l'API, qui vérifie qui les demande (`content/photos.py`) : l'auteur, ses relecteurs, les arbitres et les évaluateurs de sa question de compréhension, les modérateurs, puis tout le monde une fois la solution validée. Une photo jamais jointe est effacée au bout d'un jour. Les photos sont dans le volume Docker `media`, sauvegardé chaque nuit avec la base.
+Une solution est toujours la copie manuscrite, en photos : rien ne se tape, ni rédaction ni réponse finale, en libre comme en temps limité. Sur l'ordinateur, « Depuis mon téléphone » affiche un QR code ; le téléphone qui le scanne ouvre `/photos/<jeton>` et y photographie les pages, sans se connecter (le jeton suffit, 30 minutes, prolongeables). Les photos apparaissent sur l'ordinateur au fur et à mesure, et partent en relecture avec la solution ; une révision envoie de nouvelles photos, qui remplacent les précédentes. Sur un téléphone, on ajoute les photos directement. Les relecteurs voient la réponse attendue de l'exercice (en défi, celle des valeurs tirées) pour vérifier vite le résultat. Trois pages au plus, 10 Mo chacune ; le serveur les redresse, les réduit à 2 000 px et les réencode en JPEG, ce qui efface leurs métadonnées. Elles sont servies par l'API, qui vérifie qui les demande (`content/photos.py`) : l'auteur, ses relecteurs, les évaluateurs de sa question de compréhension et les modérateurs ; personne d'autre, même une fois la solution validée. Une photo jamais jointe est effacée au bout d'un jour. Les photos sont dans le volume Docker `media`, sauvegardé chaque nuit avec la base.
 
 ## Détection des doublons
 
@@ -158,7 +158,7 @@ Sur l'accueil, des onglets (`?vue=`) passent du fil aux vues triées : sans solu
 - **Badges** (`/badges`), critères publics : Premier pas, Validé !, Pionnier, Auteur, Relecteur fiable, Touche-à-tout, Élégance, Chasseur de doublons, Sous pression (5 défis validés), Régulier bronze, argent et or (4, 12 et 30 semaines d'objectif atteint), Étudiant vérifié (email académique confirmé).
 - **Niveaux de confiance**, attribués automatiquement, jamais retirés automatiquement :
     - Membre : 7 jours et 30 points ;
-    - Relecteur : 300 points, 5 solutions validées, aucune sanction depuis 90 jours ;
+    - Relecteur : 50 points, 2 solutions validées, aucune sanction depuis 90 jours (seuil bas exprès : il faut des relecteurs pour corriger les copies, et des copies corrigées pour devenir relecteur) ;
     - Expert : 1 500 points et 30 relectures concordantes à 80 % ou plus ;
     - Modérateur : nomination par le staff.
 
@@ -199,8 +199,8 @@ Depuis la fiche d'un exercice : 15, 30, 45 ou 60 minutes, ou le temps conseillé
 
 - **Signalements** : doublon, plagiat, erreur, contenu inapproprié, IA non déclarée. Un modérateur tranche dans l'admin, avec un motif transmis à l'auteur du contenu. Un signalement confirmé de doublon, plagiat ou erreur rapporte +3.
 - **Comptes liés** (réciprocité des votes, ou à la main) : leurs interactions mutuelles sont neutralisées, sans sanction.
-- **Anti-plagiat** : chaque solution est comparée aux solutions antérieures des autres auteurs (MinHash, Jaccard ≥ 0,7, 0,85 sous 400 caractères). Au-delà, elle est mise en vérification et l'auteur reçoit une question neutre ; un modérateur tranche.
-- **Questions de compréhension** : sur une solution classée (défi) ou à fort enjeu (plus de 30 points), un score d'intégrité agrégé (ressemblance et temps) déclenche une relecture de plus (≥ 0,4) ou une question sur sa propre solution (≥ 0,7). La question est rédigée par Claude Opus 5.5 si une clé est configurée, par un modérateur dans l'admin sinon. Le membre a 72 h pour l'ouvrir sur `/questions`, puis 5 minutes pour répondre. Un expert ou un modérateur évalue, sur `/arbitrages` ; le LLM peut préparer l'évaluation. Réussie : les points sont accordés, et 30 jours sans question. Sinon, la solution reste publiée sans ses points de classement, sans sanction. Une question tous les 14 jours au plus.
+- **Plagiat d'une copie** : les copies sont des photos, il n'y a pas de texte à comparer. C'est le relecteur qui le signale (« Signaler cette copie », sur `/relectures`) ; un modérateur tranche. Les plagiats confirmés par l'ancienne détection automatique restent visibles de leur auteur, qui peut faire appel.
+- **Questions de compréhension** : sur une solution classée (défi) ou à fort enjeu (plus de 30 points), un score d'intégrité (un défi rendu bien plus vite que les autres) déclenche une relecture de plus (≥ 0,4) ou une question sur sa propre solution (≥ 0,7). La question est rédigée par Claude Opus 5.5 si une clé est configurée, par un modérateur dans l'admin sinon. Le membre a 72 h pour l'ouvrir sur `/questions`, puis 5 minutes pour répondre. Un expert ou un modérateur évalue, sur `/evaluations` ; le LLM peut préparer l'évaluation. Réussie : les points sont accordés, et 30 jours sans question. Sinon, la solution reste publiée sans ses points de classement, sans sanction. Une question tous les 14 jours au plus.
 - **Sanctions**, toujours humaines et motivées, dans l'admin : avertissement, exclusion des classements (30 jours), suspension (7 jours), bannissement. Un compte suspendu peut se connecter pour faire appel, pas contribuer.
 - **Appels** sous 14 jours, depuis `/decisions` : sanctions, retraits de contenu, plagiats confirmés. Un autre modérateur que l'auteur de la décision les examine, sous 7 jours, et motive sa réponse. Une décision annulée lève la sanction ou rétablit le contenu et ses points.
 
@@ -310,7 +310,7 @@ npx tsc --noEmit
 npm run lint
 ```
 
-Le backend couvre le ledger et le barème, la relecture par les pairs (tours, délais, volontaires, arbitrages, révisions), les votes, l'authentification (Google compris), les notifications (push compris), la détection des doublons (avec E2 et l'avis du LLM simulés), les classements, les badges et les niveaux de confiance, le niveau de contributeur et la carte de compétences, le fil d'accueil, les signalements, l'anti-plagiat, les sanctions et appels, les questions de compréhension, les photos de copie (QR code, sessions chronométrées), l'entraînement chronométré, le défi du jour, les séries et objectifs, et les tâches planifiées. Aucun test n'appelle un service externe : Claude, Google et les embeddings sont simulés.
+Le backend couvre le ledger et le barème, la relecture par les pairs (tours, délais, volontaires, relecture de l'équipe, révisions), les votes, l'authentification (Google compris), les notifications (push compris), la détection des doublons (avec E2 et l'avis du LLM simulés), les classements, les badges et les niveaux de confiance, le niveau de contributeur et la carte de compétences, le fil d'accueil, les signalements, les sanctions et appels, les questions de compréhension, les photos de copie (QR code, sessions chronométrées), l'entraînement chronométré, le défi du jour, les séries et objectifs, et les tâches planifiées. Aucun test n'appelle un service externe : Claude, Google et les embeddings sont simulés.
 
 ## Limites connues
 

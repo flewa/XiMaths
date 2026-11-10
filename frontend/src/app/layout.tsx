@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
 import Link from "next/link";
-import Script from "next/script";
 import "katex/dist/katex.min.css";
 
 import { VerifyBanner } from "@/components/AccountControls";
@@ -73,20 +72,6 @@ export default async function RootLayout({
   const audience = process.env.UMAMI_WEBSITE_ID;
   return (
     <html lang="fr" data-theme={theme}>
-      <head>
-        {/* 2. Ajout de ton script Google Tag Manager avec le composant Script de Next.js */}
-        <Script
-          src="https://www.googletagmanager.com/gtm.js?id=GTM-K29G3NJ2"
-          strategy="afterInteractive"
-        />
-        <Script id="google-tag-manager" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-          `}
-        </Script>
-      </head>
       {/* Sous 1024 px, la barre d'onglets du bas recouvrirait la fin de la page : on lui fait de la place. */}
       <body className={`${sans.variable} pb-[calc(3.5rem+env(safe-area-inset-bottom))] font-sans antialiased lg:pb-0`}>
         <a

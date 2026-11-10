@@ -5,7 +5,7 @@ import { SITE_URL } from "@/lib/site";
 // Pages personnelles ou de travail : rien à indexer.
 const PRIVATE = [
   "/api/",
-  "/arbitrages",
+  "/evaluations",
   "/decisions",
   "/desabonnement",
   "/entrainement",

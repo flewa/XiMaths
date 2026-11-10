@@ -74,7 +74,7 @@ function itemsFor(account: NavAccount | null): Item[] {
         icon: "review",
         label: "Relectures",
         match: (path) =>
-          path.startsWith("/relectures") || path.startsWith("/arbitrages"),
+          path.startsWith("/relectures") || path.startsWith("/evaluations"),
         count: account.pendingReviews,
         hot: true,
       },

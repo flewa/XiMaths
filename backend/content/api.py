@@ -867,8 +867,8 @@ class OpenSolutionOut(Schema):
     exercise_title: str
     primary_level: str
     published_at: datetime | None
-    # En relecture depuis (envoi, ou dernière révision), et où en sont ses relectures.
-    waiting_since: datetime
+    # En relecture depuis (envoi, ou dernière révision), en heures ; et ses relectures.
+    waiting_hours: int
     reviews_done: int
     reviews_expected: int
 
@@ -898,6 +898,7 @@ def open_for_review(request):
         .select_related("exercise__primary_level")
         .order_by("updated_at")[: OPEN_FOR_TEAM if is_moderator(user) else OPEN_FOR_REVIEWERS]
     )
+    now = timezone.now()
     items = []
     for solution in solutions:
         done, expected = review_progress(solution)
@@ -908,7 +909,7 @@ def open_for_review(request):
                 "exercise_title": solution.exercise.title,
                 "primary_level": solution.exercise.primary_level.code,
                 "published_at": solution.published_at,
-                "waiting_since": solution.updated_at,
+                "waiting_hours": int((now - solution.updated_at).total_seconds() // 3600),
                 "reviews_done": done,
                 "reviews_expected": expected,
             }

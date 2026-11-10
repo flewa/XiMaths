@@ -33,7 +33,7 @@ export default function PrivacyPage() {
         <Bullets
           items={[
             "Faire fonctionner le service : publication, relecture par les pairs, points et classements.",
-            "Protéger la communauté : limites de débit, détection des doublons et du plagiat, comptes liés. Aucune sanction n'est automatique.",
+            "Protéger la communauté : limites de débit, détection des doublons, comptes liés. Aucune sanction n'est automatique.",
             "T'envoyer les emails que tu as choisis dans les réglages.",
           ]}
         />
@@ -75,7 +75,7 @@ export default function PrivacyPage() {
             "Notifications : 6 mois.",
             "Photos de copie jamais jointes à une solution : effacées au bout d'un jour.",
             "Abonnements push : jusqu'à ce que tu les désactives, ou que ton navigateur les révoque.",
-            "Signaux d'intégrité (plagiat, collages) : jusqu'à la décision de modération, puis effacés au plus tard après 1 an.",
+            "Décisions de modération pour plagiat : effacées au plus tard 1 an après la décision.",
             "Questions de compréhension : tant que le compte existe ; elles sont effacées avec lui.",
             "Mesure d'audience : 25 mois, puis effacée.",
           ]}
