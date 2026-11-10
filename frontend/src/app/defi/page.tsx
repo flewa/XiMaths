@@ -127,7 +127,7 @@ export default async function ChallengePage() {
       )}
       {me && (
         <p className="mt-6 text-sm text-mute">
-          Être prévenu à l&apos;ouverture :{" "}
+          Recevoir une notification à l&apos;ouverture :{" "}
           <Link href="/reglages" className="underline underline-offset-4">
             réglages
           </Link>

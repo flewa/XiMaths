@@ -265,7 +265,11 @@ Et les photos des copies, du même jour :
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend tar -C /app/media -xzf - < /var/backups/ximaths/photos-AAAA-MM-JJ.tar.gz
 ```
 
-Avant d'ouvrir au public : compléter les mentions légales (éditeur et hébergeur du site) et, dans la page Confidentialité, le responsable des données et les sous-traitants.
+Copier les sauvegardes hors du serveur (sans cela, une panne du disque emporte le site et ses sauvegardes) : ajouter dans `.env.prod` une destination au format de rsync, par exemple `SAUVEGARDE_DISTANTE=utilisateur@autre-machine:/chemin/ximaths`. Il faut `rsync` sur le serveur et une connexion SSH par clé pour root. Chaque nuit, le dossier distant devient le miroir de `/var/backups/ximaths`.
+
+Être prévenu d'une panne : faire surveiller `https://<SITE_DOMAIN>/api/health` par un service de surveillance (UptimeRobot, Better Stack…), et renseigner `SENTRY_DSN` pour recevoir les erreurs du serveur.
+
+Mentions légales : l'éditeur, l'adresse de contact et l'hébergeur sont dans `frontend/src/lib/legal.ts`.
 
 ### Mesure d'audience
 
