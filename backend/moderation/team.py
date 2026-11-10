@@ -51,13 +51,13 @@ SanctionKind = Literal["avertissement", "exclusion_classements", "suspension", "
 
 # Ce que change un signalement confirmé, pour que la personne qui tranche le sache avant.
 EFFECTS = {
-    ("exercise", Reason.PLAGIARISM): "L'exercice est retiré et ses points annulés.",
-    ("exercise", Reason.INAPPROPRIATE): "L'exercice est retiré et ses points annulés.",
-    ("exercise", Reason.ERROR): "Rien n'est retiré : corrige l'énoncé toi-même, puis confirme.",
-    ("solution", Reason.PLAGIARISM): "La copie est masquée, ses points annulés, et 50 points retirés.",
-    ("solution", Reason.INAPPROPRIATE): "La copie est masquée et ses points annulés.",
-    ("solution", Reason.UNDECLARED_AI): "Les points de la copie sont annulés, sans étiquette publique.",
-    ("solution", Reason.ERROR): "Rien n'est retiré : l'erreur se juge dans les relectures.",
+    ("exercise", Reason.PLAGIARISM): "Si tu confirmes, l'exercice est retiré et ses points annulés.",
+    ("exercise", Reason.INAPPROPRIATE): "Si tu confirmes, l'exercice est retiré et ses points annulés.",
+    ("exercise", Reason.ERROR): "Si tu confirmes, rien n'est retiré : l'énoncé se corrige à part, puis on confirme.",
+    ("solution", Reason.PLAGIARISM): "Si tu confirmes, la copie est masquée, ses points annulés, et 50 points retirés.",
+    ("solution", Reason.INAPPROPRIATE): "Si tu confirmes, la copie est masquée et ses points annulés.",
+    ("solution", Reason.UNDECLARED_AI): "Si tu confirmes, les points de la copie sont annulés, sans étiquette publique.",
+    ("solution", Reason.ERROR): "Si tu confirmes, rien n'est retiré : l'erreur se juge dans les relectures.",
 }
 
 

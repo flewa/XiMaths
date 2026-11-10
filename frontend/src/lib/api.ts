@@ -125,6 +125,8 @@ export type Me = {
   academic_domain: string;
   /** Équipe du site (accès à l'admin) : relit et publie les rappels de cours. */
   is_staff: boolean;
+  /** Équipe de modération : ce qui attend dans ses files ; 0 pour les autres membres. */
+  moderation_pending: number;
   /** Profil public. */
   bio: string;
   avatar: Avatar;
@@ -333,7 +335,7 @@ export type Leaderboard = {
 
 export type ReportTarget = "exercise" | "solution";
 
-export type DecisionType = "sanction" | "report" | "signal";
+export type DecisionType = "sanction" | "report" | "signal" | "message";
 
 export type Decision = {
   type: DecisionType;
@@ -567,7 +569,9 @@ export type DiscussionReply = {
   created_at: string;
   removed: boolean;
   mine: boolean;
+  /** Son auteur le retire ; l'équipe retire celui d'un autre, avec un motif. */
   can_remove: boolean;
+  can_moderate: boolean;
   flagged: boolean;
 };
 
@@ -725,4 +729,173 @@ export async function fetchProfileOptions() {
 
 export function fetchMember(username: string) {
   return get<Member>(`/members/${encodeURIComponent(username)}`);
+}
+
+// ---------------------------------------------------------------- équipe de modération
+
+/** Niveau de confiance des modérateurs ; les administrateurs (is_staff) en font partie aussi. */
+export const MODERATOR_TRUST_LEVEL = 4;
+
+export function isTeam(me: Me | null) {
+  return Boolean(me && (me.is_staff || me.trust_level >= MODERATOR_TRUST_LEVEL));
+}
+
+export type SanctionKind = "avertissement" | "exclusion_classements" | "suspension" | "bannissement";
+
+export type ModerationSummary = {
+  reports: number;
+  messages: number;
+  appeals: number;
+  appeals_overdue: number;
+  duplicates: number;
+};
+
+/** Un membre dans une file : de quoi voir s'il récidive. */
+export type MemberBrief = {
+  username: string;
+  status: string;
+  status_label: string;
+  active_sanction: string | null;
+  past_decisions: number;
+};
+
+export type ReportGroup = {
+  id: number;
+  reason: string;
+  reason_label: string;
+  target: "exercise" | "solution";
+  exercise_id: number;
+  exercise_title: string;
+  statement: string;
+  photos: CopyPhoto[];
+  solution_status: string | null;
+  author: MemberBrief | null;
+  reports: { username: string; details: string; created_at: string }[];
+  created_at: string;
+  /** Ce que change la confirmation. */
+  effect: string;
+  can_decide: boolean;
+};
+
+export type FlaggedMessage = {
+  id: number;
+  body: string;
+  created_at: string;
+  exercise_id: number;
+  exercise_title: string;
+  author: MemberBrief | null;
+  in_reply_to: string | null;
+  flags: { username: string; created_at: string }[];
+  kept_before: boolean;
+  can_decide: boolean;
+};
+
+export type AppealItem = {
+  id: number;
+  member: MemberBrief;
+  statement: string;
+  created_at: string;
+  due_at: string;
+  overdue: boolean;
+  decision_type: DecisionType;
+  decision_title: string;
+  decision_reason: string;
+  decided_at: string | null;
+  decided_by: string | null;
+  url: string | null;
+  can_decide: boolean;
+};
+
+export type LogEntry = {
+  id: number;
+  created_at: string;
+  actor: string | null;
+  action: string;
+  action_label: string;
+  summary: string;
+  member: string | null;
+  url: string;
+};
+
+export type MemberFile = {
+  username: string;
+  joined_at: string;
+  status: string;
+  status_label: string;
+  trust_level: number;
+  trust_label: string;
+  is_staff: boolean;
+  is_moderator: boolean;
+  email_verified: boolean;
+  points: number;
+  exercises: number;
+  solutions: number;
+  reviews: number;
+  messages: number;
+  reports_made: number;
+  reports_confirmed: number;
+  reports_rejected: number;
+  sanctions: {
+    id: number;
+    kind: SanctionKind;
+    label: string;
+    reason: string;
+    created_at: string;
+    ends_at: string | null;
+    active: boolean;
+    decided_by: string | null;
+    lifted_reason: string;
+    appeal: string | null;
+  }[];
+  removals: {
+    what: string;
+    reason: string;
+    decided_at: string | null;
+    decided_by: string | null;
+    url: string | null;
+    appeal: string | null;
+  }[];
+  recent_messages: {
+    id: number;
+    body: string;
+    created_at: string;
+    exercise_id: number;
+    exercise_title: string;
+    removed: boolean;
+  }[];
+  log: LogEntry[];
+  can_sanction: boolean;
+  can_appoint: boolean;
+};
+
+/** Réservé à l'équipe : null pour un autre visiteur (l'API répond 403). */
+async function teamGet<T>(path: string) {
+  return get<T>(path).catch((error: Error) => {
+    if (error.message.endsWith("HTTP 403")) return null;
+    throw error;
+  });
+}
+
+export function fetchModerationSummary() {
+  return teamGet<ModerationSummary>("/moderation/summary");
+}
+
+export function fetchReportQueue() {
+  return teamGet<ReportGroup[]>("/moderation/reports");
+}
+
+export function fetchFlaggedMessages() {
+  return teamGet<FlaggedMessage[]>("/moderation/messages");
+}
+
+export function fetchAppealQueue() {
+  return teamGet<AppealItem[]>("/moderation/appeals");
+}
+
+export function fetchModerationLog() {
+  return teamGet<LogEntry[]>("/moderation/log");
+}
+
+export function fetchMemberFile(username: string) {
+  return teamGet<MemberFile>(`/moderation/members/${encodeURIComponent(username)}`);
 }

@@ -402,7 +402,7 @@ def decide_appeal(appeal, *, overturn, moderator, note, now=None):
     log_action(
         moderator,
         Action.APPEAL_OVERTURNED if overturn else Action.APPEAL_UPHELD,
-        f"Appel de {appeal.user.username}. Motif : {appeal.decision_note}",
+        f"Appel examiné. Motif : {appeal.decision_note}",
         member=appeal.user,
     )
     notify(
@@ -680,7 +680,7 @@ def set_moderator(member, named, *, by):
             return member
         member.trust_level = User.TrustLevel.MODERATOR
         member.save(update_fields=["trust_level"])
-        log_action(by, Action.MODERATOR_NAMED, f"{member.username} rejoint l'équipe de modération.", member=member)
+        log_action(by, Action.MODERATOR_NAMED, "Rejoint l'équipe de modération.", member=member)
         notify(
             member,
             Kind.PROMOTION,
@@ -694,5 +694,5 @@ def set_moderator(member, named, *, by):
     member.trust_level = User.TrustLevel.MEMBER
     member.save(update_fields=["trust_level"])
     promote(member)
-    log_action(by, Action.MODERATOR_REMOVED, f"{member.username} quitte l'équipe de modération.", member=member)
+    log_action(by, Action.MODERATOR_REMOVED, "Quitte l'équipe de modération.", member=member)
     return member

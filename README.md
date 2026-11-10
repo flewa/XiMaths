@@ -208,12 +208,19 @@ Depuis la fiche d'un exercice : 15, 30, 45 ou 60 minutes, ou le temps conseillé
 
 ## Modération et intégrité
 
-- **Signalements** : doublon, plagiat, erreur, contenu inapproprié, IA non déclarée. Un modérateur tranche dans l'admin, avec un motif transmis à l'auteur du contenu. Un signalement confirmé de doublon, plagiat ou erreur rapporte +3.
+- **Espace de modération** (`/moderation`, pour les modérateurs et les administrateurs, avec un compteur dans le menu) : trois files et un journal.
+  - *Signalements*, groupés par contenu et par motif (ils se tranchent ensemble) : le contenu, son auteur et ses antécédents, qui a signalé et pourquoi, l'effet d'une confirmation. Confirmer demande un motif, envoyé à l'auteur ; on peut y joindre une sanction. Les doublons restent dans leur file, dans l'admin.
+  - *Messages signalés* sous les exercices : les garder (ils ne reviennent que s'ils sont signalés à nouveau) ou les retirer avec un motif, que l'auteur reçoit et dont il peut faire appel.
+  - *Appels*, avec l'échéance de 7 jours ; un appel en retard est signalé en tête de page.
+  - *Journal* : chaque décision de l'équipe (signalement, retrait, sanction, levée, appel, nomination), qui l'a prise et pourquoi.
+- **Fiche de modération** d'un membre (`/moderation/membres/<pseudo>`, liée depuis son profil pour l'équipe) : activité, sanctions, contenus retirés, derniers messages, journal ; sanctionner, lever une sanction ; les administrateurs y nomment ou retirent les modérateurs.
+- Personne ne tranche ce qui le concerne : son propre contenu, son propre message, l'appel d'une décision qu'il a prise. Seul un administrateur sanctionne un modérateur.
+- **Signalements** : doublon, plagiat, erreur, contenu inapproprié, IA non déclarée. Un signalement confirmé de doublon, plagiat ou erreur rapporte +3.
 - **Comptes liés** (réciprocité des votes, ou à la main) : leurs interactions mutuelles sont neutralisées, sans sanction.
 - **Plagiat d'une copie** : les copies sont des photos, il n'y a pas de texte à comparer. C'est le relecteur qui le signale (« Signaler cette copie », sur `/relectures`) ; un modérateur tranche. Les plagiats confirmés par l'ancienne détection automatique restent visibles de leur auteur, qui peut faire appel.
 - **Questions de compréhension** : sur une solution classée (défi) ou à fort enjeu (plus de 30 points), un score d'intégrité (un défi rendu bien plus vite que les autres) déclenche une relecture de plus (≥ 0,4) ou une question sur sa propre solution (≥ 0,7). La question est rédigée par Claude Opus 5.5 si une clé est configurée, par un modérateur dans l'admin sinon. Le membre a 72 h pour l'ouvrir sur `/questions`, puis 5 minutes pour répondre. Un expert ou un modérateur évalue, sur `/evaluations` ; le LLM peut préparer l'évaluation. Réussie : les points sont accordés, et 30 jours sans question. Sinon, la solution reste publiée sans ses points de classement, sans sanction. Une question tous les 14 jours au plus.
-- **Sanctions**, toujours humaines et motivées, dans l'admin : avertissement, exclusion des classements (30 jours), suspension (7 jours), bannissement. Un compte suspendu peut se connecter pour faire appel, pas contribuer.
-- **Appels** sous 14 jours, depuis `/decisions` : sanctions, retraits de contenu, plagiats confirmés. Un autre modérateur que l'auteur de la décision les examine, sous 7 jours, et motive sa réponse. Une décision annulée lève la sanction ou rétablit le contenu et ses points.
+- **Sanctions**, toujours humaines et motivées, depuis la fiche du membre (ou l'admin) : avertissement, exclusion des classements (30 jours), suspension (7 jours), bannissement. Un compte suspendu peut se connecter pour faire appel, pas contribuer.
+- **Appels** sous 14 jours, depuis `/decisions` : sanctions, retraits de contenu (messages compris), plagiats confirmés. Un autre modérateur que l'auteur de la décision les examine, sous 7 jours, et motive sa réponse. Une décision annulée lève la sanction ou rétablit le contenu et ses points.
 
 ## Rappels de cours
 

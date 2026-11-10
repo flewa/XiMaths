@@ -70,7 +70,9 @@ async function apiRequest<T>(method: string, path: string, body?: unknown): Prom
         body: errorBody,
       };
     }
-    const data = response.status === 204 ? undefined : await response.json();
+    // Une réponse réussie peut être vide (204, ou 201 sans contenu, comme un appel envoyé).
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : undefined;
     return { ok: true, data: data as T };
   } catch {
     return { ok: false, status: 0, error: "Le serveur ne répond pas. Réessaie." };

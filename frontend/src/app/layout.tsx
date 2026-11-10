@@ -8,7 +8,7 @@ import { VerifyBanner } from "@/components/AccountControls";
 import { AudienceTracker } from "@/components/Audience";
 import { BottomNav } from "@/components/BottomNav";
 import { MobileBar, SidebarContent, type NavAccount } from "@/components/SidebarNav";
-import { fetchLevels, fetchMe, fetchTopics, nullOnError } from "@/lib/api";
+import { fetchLevels, fetchMe, fetchTopics, isTeam, nullOnError } from "@/lib/api";
 import { CONTACT_EMAIL } from "@/lib/legal";
 import { chaptersOf } from "@/lib/seo-pages";
 import { DEFAULT_THEME, SITE_DESCRIPTION, SITE_URL, SOCIAL_PROFILES, THEME_COOKIE, type Theme } from "@/lib/site";
@@ -67,6 +67,8 @@ export default async function RootLayout({
     pendingReviews: me.pending_reviews,
     unreadNotifications: me.unread_notifications,
     declaredLevel: me.declared_level,
+    team: isTeam(me),
+    moderationPending: me.moderation_pending,
   };
   // Site déclaré dans Umami (deploy/statistiques.sh), lu au démarrage du serveur : sans lui,
   // aucune mesure d'audience.
