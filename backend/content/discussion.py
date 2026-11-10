@@ -1,7 +1,8 @@
 """Questions et remarques sous un exercice : un fil par exercice, lisible par tous, où
 l'on écrit une fois connecté. On y demande une précision, on signale une coquille, on
-discute d'une méthode ; on n'y donne pas la solution, qui s'envoie en copie. L'équipe du
-site retire ce qui n'a rien à faire là, et tout membre peut lui signaler un message."""
+discute d'une méthode ; on n'y donne pas la solution, qui s'envoie en copie. Tout membre
+peut signaler un message ; l'équipe le garde ou le retire, avec un motif que son auteur
+reçoit et dont il peut faire appel (voir moderation.services)."""
 
 from datetime import datetime
 
@@ -16,7 +17,9 @@ from ninja.security import django_auth
 
 from accounts.permissions import contributor, is_moderator
 from accounts.schemas import MemberRefOut
+from config.errors import RuleError
 from config.throttles import AuthRouteThrottle
+from moderation.services import remove_message
 from notifications.models import Notification
 from notifications.services import notify
 
@@ -26,6 +29,10 @@ from .models import Exercise, Message, MessageFlag
 User = get_user_model()
 router = Router(tags=["discussion"])
 Kind = Notification.Kind
+
+
+class ModerateIn(Schema):
+    reason: str = Field(min_length=1, max_length=1000)
 
 
 class MessageIn(Schema):
@@ -44,7 +51,9 @@ class ReplyOut(Schema):
     created_at: datetime
     removed: bool
     mine: bool
+    # L'auteur retire son message ; l'équipe retire celui d'un autre, avec un motif.
     can_remove: bool
+    can_moderate: bool
     flagged: bool
 
 
@@ -65,7 +74,8 @@ def describe(message, exercise, user, flagged):
         "created_at": message.created_at,
         "removed": removed,
         "mine": bool(mine and not removed),
-        "can_remove": bool(not removed and user.is_authenticated and (mine or is_moderator(user))),
+        "can_remove": bool(mine and not removed),
+        "can_moderate": bool(not removed and not mine and user.is_authenticated and is_moderator(user)),
         "flagged": message.pk in flagged,
     }
 
@@ -143,28 +153,32 @@ def post_message(request, exercise_id: int, payload: MessageIn):
 
 
 @router.delete("/messages/{int:message_id}", response=list[MessageOut], auth=django_auth)
-def remove_message(request, message_id: int):
-    """Retire un message : son auteur, ou l'équipe du site. Le texte reste en base, pour
-    qu'un retrait par l'équipe puisse être expliqué ; il n'est plus montré à personne."""
+def remove_own_message(request, message_id: int):
+    """Son auteur retire un message, sans motif à donner. Le texte reste en base (export de
+    ses données) ; il n'est plus montré à personne."""
     user = request.auth
-    message = get_object_or_404(Message.objects.select_related("exercise", "author"), pk=message_id, removed_at=None)
-    mine = message.author_id == user.pk
-    if not mine and not is_moderator(user):
+    message = get_object_or_404(Message.objects.select_related("exercise"), pk=message_id, removed_at=None)
+    if message.author_id != user.pk:
         raise HttpError(403, "Tu ne peux retirer que tes propres messages.")
-    with transaction.atomic():
-        message.removed_at = timezone.now()
-        message.removed_by_team = not mine
-        message.save(update_fields=["removed_at", "removed_by_team"])
-        if not mine:
-            notify(
-                message.author,
-                Kind.DISCUSSION,
-                f"Ton message sous « {message.exercise.title} » a été retiré",
-                "L'équipe l'a retiré : le fil sert aux questions et aux remarques sur l'énoncé, "
-                "pas aux solutions ni aux échanges hors sujet. Ce n'est pas une sanction.",
-                f"/exercices/{message.exercise_id}#discussion",
-            )
+    message.removed_at = timezone.now()
+    message.save(update_fields=["removed_at"])
     return thread(message.exercise, user)
+
+
+@router.post("/messages/{int:message_id}/moderate", response=list[MessageOut], auth=django_auth)
+def moderate_message(request, message_id: int, payload: ModerateIn):
+    """L'équipe retire le message d'un autre, avec un motif : son auteur le reçoit et peut
+    faire appel."""
+    message = get_object_or_404(
+        Message.objects.select_related("exercise", "author"), pk=message_id, removed_at=None
+    )
+    if not is_moderator(request.auth):
+        raise HttpError(403, "Seule l'équipe retire les messages des autres.")
+    try:
+        remove_message(message, moderator=request.auth, reason=payload.reason)
+    except RuleError as error:
+        raise HttpError(409, str(error))
+    return thread(message.exercise, request.auth)
 
 
 @router.post(
@@ -174,7 +188,8 @@ def remove_message(request, message_id: int):
     throttle=[AuthRouteThrottle("signalement-message", "20/h")],
 )
 def flag_message(request, message_id: int):
-    """Signale un message à l'équipe. Elle est prévenue au premier signalement."""
+    """Signale un message à l'équipe. Elle est prévenue quand le message entre dans sa file
+    (au premier signalement, ou au premier depuis qu'elle l'a gardé)."""
     user = contributor(request)
     message = get_object_or_404(Message.objects.select_related("exercise"), pk=message_id, removed_at=None)
     if message.author_id == user.pk:
@@ -184,14 +199,17 @@ def flag_message(request, message_id: int):
             MessageFlag.objects.create(message=message, user=user)
     except IntegrityError:
         return 204, None
-    if message.flags.count() == 1:
+    pending = message.flags.all()
+    if message.flags_reviewed_at:
+        pending = pending.filter(created_at__gt=message.flags_reviewed_at)
+    if pending.count() == 1:
         for member in team_members().exclude(pk=user.pk):
             notify(
                 member,
                 Kind.DISCUSSION,
                 f"Message signalé sous « {message.exercise.title} »",
                 excerpt(message.body),
-                f"/exercices/{message.exercise_id}#discussion",
+                "/moderation?file=messages",
                 email=True,
             )
     return 204, None

@@ -86,13 +86,22 @@ class DiscussionTests(ContentTestCase):
         question = self.post(self.student, "La solution est : ...").json()[0]["id"]
         self.post(self.author, "Merci de ne pas donner la solution ici.", parent=question)
         self.client.force_login(self.team)
-        [message] = self.client.delete(f"/api/messages/{question}").json()
+        # L'équipe ne retire pas le message d'un autre sans motif.
+        self.assertEqual(self.client.delete(f"/api/messages/{question}").status_code, 403)
+        moderate = f"/api/messages/{question}/moderate"
+        self.assertEqual(
+            self.client.post(moderate, json.dumps({"reason": " "}), content_type="application/json").status_code, 409
+        )
+        response = self.client.post(
+            moderate, json.dumps({"reason": "Une solution complète n'a pas sa place ici."}), content_type="application/json"
+        )
+        [message] = response.json()
         self.assertTrue(message["removed"])
         self.assertEqual((message["body"], message["author"]), ("", None))
         self.assertEqual(len(message["replies"]), 1)
-        # L'auteur du message est prévenu, sans que ce soit une sanction.
-        removed = Notification.objects.filter(user=self.student, kind=Kind.DISCUSSION).latest("pk")
-        self.assertIn("retiré", removed.title)
+        # Son auteur reçoit le motif, et peut faire appel.
+        removed = Notification.objects.filter(user=self.student, kind=Kind.CONTENT_REMOVED).latest("pk")
+        self.assertIn("Une solution complète", removed.body)
 
     def test_flagging_warns_the_team_once(self):
         question = self.post(self.student, "Message hors sujet").json()[0]["id"]

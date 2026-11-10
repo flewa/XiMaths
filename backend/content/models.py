@@ -304,8 +304,15 @@ class Message(models.Model):
     body = models.TextField(max_length=MAX_LENGTH, help_text="Markdown et LaTeX.")
     created_at = models.DateTimeField(auto_now_add=True)
     removed_at = models.DateTimeField(null=True, blank=True)
-    # Retiré par l'équipe (et non par son auteur) : l'auteur en est prévenu.
+    # Retiré par l'équipe (et non par son auteur) : l'auteur en reçoit le motif et peut
+    # faire appel, comme pour tout retrait de contenu.
     removed_by_team = models.BooleanField(default=False)
+    removed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    removal_reason = models.TextField(blank=True, max_length=1000)
+    # Signalements examinés jusqu'à cette date : seuls les suivants le remettent en file.
+    flags_reviewed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["created_at", "pk"]

@@ -187,6 +187,9 @@ class Appeal(models.Model):
     signal = models.OneToOneField(
         IntegritySignal, null=True, blank=True, on_delete=models.CASCADE, related_name="appeal"
     )
+    message = models.OneToOneField(
+        "content.Message", null=True, blank=True, on_delete=models.CASCADE, related_name="appeal"
+    )
     statement = models.TextField("arguments du membre", max_length=3000)
     status = models.CharField("statut", max_length=16, choices=Status.choices, default=Status.PENDING)
     decided_by = models.ForeignKey(
@@ -202,9 +205,10 @@ class Appeal(models.Model):
         constraints = [
             models.CheckConstraint(
                 condition=(
-                    Q(sanction__isnull=False, report__isnull=True, signal__isnull=True)
-                    | Q(sanction__isnull=True, report__isnull=False, signal__isnull=True)
-                    | Q(sanction__isnull=True, report__isnull=True, signal__isnull=False)
+                    Q(sanction__isnull=False, report__isnull=True, signal__isnull=True, message__isnull=True)
+                    | Q(sanction__isnull=True, report__isnull=False, signal__isnull=True, message__isnull=True)
+                    | Q(sanction__isnull=True, report__isnull=True, signal__isnull=False, message__isnull=True)
+                    | Q(sanction__isnull=True, report__isnull=True, signal__isnull=True, message__isnull=False)
                 ),
                 name="appeal_single_decision",
             ),
@@ -215,7 +219,44 @@ class Appeal(models.Model):
 
     @property
     def decision(self):
-        return self.sanction or self.report or self.signal
+        return self.sanction or self.report or self.signal or self.message
+
+
+class ModerationLog(models.Model):
+    """Journal des décisions de l'équipe, lisible par toute l'équipe : qui a décidé quoi,
+    et pourquoi. Écrit par les services, jamais modifié."""
+
+    class Action(models.TextChoices):
+        REPORT_CONFIRMED = "signalement_confirme", "Signalement confirmé"
+        REPORT_REJECTED = "signalement_rejete", "Signalement non retenu"
+        MESSAGE_REMOVED = "message_retire", "Message retiré"
+        FLAGS_DISMISSED = "message_garde", "Message gardé"
+        SANCTION = "sanction", "Sanction"
+        SANCTION_LIFTED = "sanction_levee", "Sanction levée"
+        APPEAL_UPHELD = "appel_rejete", "Appel rejeté"
+        APPEAL_OVERTURNED = "appel_accepte", "Appel accepté"
+        MODERATOR_NAMED = "moderateur_nomme", "Modérateur nommé"
+        MODERATOR_REMOVED = "moderateur_retire", "Modérateur retiré"
+
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+", verbose_name="par"
+    )
+    action = models.CharField(max_length=24, choices=Action.choices)
+    # Le membre concerné, s'il y en a un : sa fiche de modération reprend ces lignes.
+    member = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="moderation_log"
+    )
+    summary = models.TextField("résumé")
+    url = models.CharField(max_length=300, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "entrée du journal de modération"
+        verbose_name_plural = "journal de modération"
+        ordering = ["-created_at", "-pk"]
+
+    def __str__(self):
+        return f"{self.get_action_display()} · {self.summary[:60]}"
 
 
 class ComprehensionQuestion(models.Model):

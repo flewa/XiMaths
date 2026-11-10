@@ -15,7 +15,7 @@ from accounts.permissions import contributor, is_moderator
 from config.throttles import AuthRouteThrottle
 from content import photos
 from content.api import PhotoOut
-from content.models import Exercise, Solution
+from content.models import Exercise, Message, Solution
 from gamification.models import PointTransaction
 
 from . import comprehension
@@ -157,7 +157,7 @@ def my_reports(request):
 class DecisionOut(Schema):
     """Une décision qui me concerne : sanction, retrait d'un contenu, plagiat confirmé."""
 
-    type: Literal["sanction", "report", "signal"]
+    type: Literal["sanction", "report", "signal", "message"]
     id: int
     title: str
     reason: str
@@ -173,7 +173,7 @@ class DecisionOut(Schema):
 
 
 class AppealIn(Schema):
-    type: Literal["sanction", "report", "signal"]
+    type: Literal["sanction", "report", "signal", "message"]
     id: int
     statement: str = Field(min_length=10, max_length=3000)
 
@@ -248,13 +248,23 @@ def my_decisions(request):
     ):
         title = f"Plagiat confirmé : ta solution de « {signal.solution.exercise.title} »" if signal.solution else "Plagiat confirmé"
         items.append(_decision_out("signal", signal, title, signal.decision_note, signal.decided_at))
+    for message in Message.objects.filter(author=user, removed_by_team=True).select_related("exercise", "appeal"):
+        items.append(
+            _decision_out(
+                "message",
+                message,
+                f"Message retiré sous « {message.exercise.title} »",
+                message.removal_reason,
+                message.removed_at,
+            )
+        )
     return sorted(items, key=lambda item: item["decided_at"] or timezone.now(), reverse=True)
 
 
 @router.post("/appeals", response={201: None}, auth=django_auth)
 def appeal(request, payload: AppealIn):
     """Faire appel, sous 14 jours ; un autre modérateur répond sous 7 jours."""
-    model = {"sanction": Sanction, "report": Report, "signal": IntegritySignal}[payload.type]
+    model = {"sanction": Sanction, "report": Report, "signal": IntegritySignal, "message": Message}[payload.type]
     create_appeal(request.auth, get_object_or_404(model, pk=payload.id), payload.statement)
     return 201, None
 
