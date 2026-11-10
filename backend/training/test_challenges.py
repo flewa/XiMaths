@@ -211,7 +211,7 @@ class ChallengeApiTests(ChallengeTestCase):
         [item] = self.client.get("/api/challenges/today").json()
         self.assertEqual(item["level"], self.challenge.level.code)
         self.assertEqual(item["group_label"], "1re année · L1 et sup")
-        self.assertEqual(set(item["group_levels"]), {"L1", "MPSI", "MP2I", "PCSI", "PTSI"})
+        self.assertEqual(set(item["group_levels"]), {"L1", "MPSI", "MP2I", "PCSI", "PTSI", "BCPST1", "ECG1", "BL1"})
         self.assertEqual(item["points_max"], 31)  # 25 × 1,25, bonus de rapidité compris
         self.assertIsNone(item["attempt"])
         self.assertNotIn("statement", item)

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { ExerciseList } from "@/components/ExerciseList";
 import { FilterChip, Tabs } from "@/components/FilterChip";
+import { LevelPicker } from "@/components/LevelPicker";
 import { SearchBox } from "@/components/SearchBox";
 import { fetchExercises, fetchLevels, type ExerciseSort } from "@/lib/api";
 import { plural } from "@/lib/labels";
@@ -73,18 +74,11 @@ export default async function BrowsePage({
         </p>
       )}
 
-      <Tabs label="Filtrer par niveau" className="mt-10">
-        <FilterChip href={browseHref(undefined, current.value, q)} label="Tous" active={!niveau} />
-        {levels.map((level) => (
-          <FilterChip
-            key={level.code}
-            href={browseHref(level.code, current.value, q)}
-            label={level.code}
-            title={level.name}
-            active={niveau === level.code}
-          />
-        ))}
-      </Tabs>
+      {/* Vingt niveaux ne tiennent plus sur une ligne d'onglets : un menu, rangé par filière. */}
+      <div className="mt-10 flex items-center justify-between gap-3">
+        <p className="text-sm text-mute">{plural(exercises.length, "exercice")}</p>
+        <LevelPicker levels={levels} current={niveau} hrefFor={(code) => browseHref(code, current.value, q)} />
+      </div>
       <Tabs label="Trier" className="mt-2">
         {SORTS.map((sort) => (
           <FilterChip

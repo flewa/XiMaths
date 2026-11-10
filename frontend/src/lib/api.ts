@@ -79,7 +79,11 @@ export type ExerciseDetail = ExerciseSummary & {
   /** Exercice canonique, si celui-ci a été fusionné comme doublon. */
   merged_into: number | null;
   variants: ExerciseLink[];
+  stats: ExerciseStats;
 };
+
+/** Des personnes, pas des copies : qui a lu l'énoncé, qui a envoyé une copie, qui l'a réussi. */
+export type ExerciseStats = { readers: number; senders: number; solvers: number };
 
 export type SimilarityBand = "quasi_copie" | "tres_similaire" | "variante" | "peut_etre_lie";
 
@@ -418,7 +422,25 @@ export type MySolution = {
   reviews: AuthorReview[];
   /** Relectures attendues (trois au moins) ; 0 tant que la copie n'est pas en relecture. */
   reviews_expected: number;
+  /** Copie modèle : l'accord de l'auteur, et si l'équipe a choisi cette copie. */
+  model_consent: boolean;
+  is_model: boolean;
+  /** Envoyée après avoir ouvert la copie modèle : elle ne rapporte pas de points. */
+  after_model: boolean;
 };
+
+/** La copie modèle d'un exercice, vue par le visiteur : les photos seulement s'il l'a ouverte. */
+export type ModelCopy = {
+  exists: boolean;
+  can_open: boolean;
+  opened: boolean;
+  /** L'ouvrir privera de points une prochaine copie sur cet exercice. */
+  costs_points: boolean;
+  photos: CopyPhoto[];
+};
+
+/** Pour l'équipe : une copie validée dont l'auteur accepte qu'elle serve de modèle. */
+export type ModelCandidate = { id: number; photos: CopyPhoto[]; validated_at: string | null; is_model: boolean };
 
 export type ReviewTask = {
   id: number;
@@ -533,6 +555,35 @@ export async function fetchRelated(id: number) {
 /** Le visiteur connecté, ou null. */
 export function fetchMe() {
   return get<Me>("/auth/me");
+}
+
+/** Un message du fil d'un exercice. Retiré, il n'a plus ni auteur ni texte. */
+export type DiscussionReply = {
+  id: number;
+  author: MemberRef | null;
+  team: boolean;
+  exercise_author: boolean;
+  body: string;
+  created_at: string;
+  removed: boolean;
+  mine: boolean;
+  can_remove: boolean;
+  flagged: boolean;
+};
+
+export type DiscussionMessage = DiscussionReply & { replies: DiscussionReply[] };
+
+export async function fetchMessages(exerciseId: number) {
+  return (await get<DiscussionMessage[]>(`/exercises/${exerciseId}/messages`)) ?? [];
+}
+
+export async function fetchModelCopy(exerciseId: number) {
+  return get<ModelCopy>(`/exercises/${exerciseId}/model-copy`);
+}
+
+/** Réservé à l'équipe du site : n'appeler que pour elle. */
+export async function fetchModelCandidates(exerciseId: number) {
+  return (await get<ModelCandidate[]>(`/exercises/${exerciseId}/model-candidates`)) ?? [];
 }
 
 export async function fetchMySolutions(exerciseId: number) {

@@ -150,7 +150,7 @@ function Copies({ progress, firstExercise }: { progress: Progress; firstExercise
           })}
         </ul>
       )}
-      <p className="mt-3 text-xs text-mute">Tes copies restent privées : seuls tes relecteurs, tirés au sort, les lisent.</p>
+      <p className="mt-3 text-xs text-mute">Tes copies restent privées : seuls tes relecteurs, tirés au sort, les lisent, sauf celle que tu acceptes de voir servir de copie modèle.</p>
     </section>
   );
 }

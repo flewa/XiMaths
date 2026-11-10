@@ -54,7 +54,8 @@ export default function LegalNoticePage() {
         <p>
           Les exercices et les rappels de cours sont publiés sous licence Creative Commons BY-SA 4.0 : tu peux les
           réutiliser et les adapter, en citant leur auteur et en gardant la même licence. Les copies envoyées en
-          relecture restent privées. Le détail est dans les{" "}
+          relecture restent privées, sauf la copie modèle d&apos;un exercice, montrée sans nom avec l&apos;accord
+          de son auteur. Le détail est dans les{" "}
           <Link href="/cgu" className={link}>
             conditions d&apos;utilisation
           </Link>

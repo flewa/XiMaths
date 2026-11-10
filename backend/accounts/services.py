@@ -11,6 +11,7 @@ from django.core import signing
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import transaction
+from django.db.models import F
 from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -114,7 +115,7 @@ def set_password(user, password):
 def export_user_data(user):
     """Toutes les données d'un compte, dans un format lisible et réutilisable."""
     from content import photos
-    from content.models import Exercise, Review, Solution, Vote
+    from content.models import Exercise, ExerciseRead, Message, Review, Solution, Vote
     from gamification.models import Goal, PointTransaction, UserBadge, WeeklyStreak
     from moderation.models import ComprehensionQuestion, Report
     from notifications.models import Notification, PushSubscription
@@ -162,10 +163,20 @@ def export_user_data(user):
                 "texte": s.body,
                 "photos": [photo["url"] for photo in photos.described(s)],
                 "usage_ia": s.ai_usage,
+                "accord_copie_modele": s.model_consent,
+                "copie_modele": s.model_at is not None,
                 "statut": s.status,
                 "publiee": dates(s.published_at),
             }
             for s in Solution.objects.filter(author=user)
+        ],
+        "messages_sous_les_exercices": [
+            {"exercice": m.exercise_id, "texte": m.body, "ecrit": dates(m.created_at), "retire": dates(m.removed_at)}
+            for m in Message.objects.filter(author=user)
+        ],
+        "exercices_lus": [
+            {"exercice": r.exercise_id, "premiere_lecture": dates(r.first_read_at)}
+            for r in ExerciseRead.objects.filter(user=user)
         ],
         "relectures": [
             {"solution": r.solution_id, "verdict": r.verdict, "commentaire": r.feedback, "rendue": dates(r.submitted_at)}
@@ -236,7 +247,7 @@ def delete_account(user):
     """Efface les données personnelles. Les contributions, sous licence CC BY-SA,
     restent publiées sans pseudo ; le ledger, en ajout seul, reste attaché au
     compte anonymisé pour que les classements passés ne changent pas."""
-    from content.models import Exercise, Solution
+    from content.models import Exercise, ExerciseRead, Message, MessageFlag, ModelCopyView, Solution
     from gamification.models import Goal, UserBadge, WeeklyStreak
     from moderation.models import ComprehensionQuestion
     from notifications.models import Notification, PushSubscription
@@ -244,7 +255,15 @@ def delete_account(user):
 
     Exercise.objects.filter(author=user).update(author=None)
     PushSubscription.objects.filter(user=user).delete()
-    Solution.objects.filter(author=user).update(author=None)
+    # L'accord pour la copie modèle ne survit pas au compte : il ne pourrait plus être retiré.
+    Solution.objects.filter(author=user).update(author=None, model_consent=False, model_at=None)
+    # Les messages restent dans les fils, sans pseudo ; lectures et signalements s'effacent.
+    Message.objects.filter(author=user).update(author=None)
+    MessageFlag.objects.filter(user=user).delete()
+    ModelCopyView.objects.filter(user=user).delete()
+    # Une lecture reste comptée dans les statistiques de l'exercice, sans plus dire de qui.
+    Exercise.objects.filter(reads__user=user).update(visitor_reads=F("visitor_reads") + 1)
+    ExerciseRead.objects.filter(user=user).delete()
     Notification.objects.filter(user=user).delete()
     TimedSession.objects.filter(user=user).delete()
     UserBadge.objects.filter(user=user).delete()

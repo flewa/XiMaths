@@ -1,13 +1,9 @@
 import Link from "next/link";
 
 import type { Level } from "@/lib/api";
+import { LEVEL_TRACKS } from "@/lib/labels";
 
 import { Icon } from "./Icon";
-
-const TRACKS = [
-  { track: "universite", label: "Université" },
-  { track: "prepa", label: "Prépa" },
-];
 
 /** Choix du niveau du fil : un menu déroulant, sans script. Il se referme en changeant de page. */
 export function LevelPicker({
@@ -31,7 +27,7 @@ export function LevelPicker({
         <Link href={hrefFor(undefined)} className={option(!current)}>
           Tous les niveaux
         </Link>
-        {TRACKS.map(({ track, label }) => (
+        {LEVEL_TRACKS.map(({ track, label }) => (
           <div key={track} className="mt-1.5">
             <p className="px-3 py-1 text-xs text-stone">{label}</p>
             {levels

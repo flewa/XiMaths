@@ -58,6 +58,7 @@ const PATHS = {
       <circle cx="10" cy="11" r="2.75" />
     </>
   ),
+  share: <path d="M10 12.5V3M6.5 6.5 10 3l3.5 3.5M4.5 10.5v6h11v-6" />,
   phone: (
     <>
       <rect x="6" y="2.5" width="8" height="15" rx="1.75" />

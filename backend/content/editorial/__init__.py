@@ -7,8 +7,11 @@ import_exercises` les publie, en passant par la même validation et la même dé
 doublons qu'un exercice proposé sur le site.
 """
 
+from .filieres import with_filieres
 from .lot1 import EXERCISES as LOT1
 from .lot2 import EXERCISES as LOT2
 from .lot3 import EXERCISES as LOT3
+from .lot4 import EXERCISES as LOT4
 
-EXERCISES = LOT1 + LOT2 + LOT3
+# Le lot 4 est écrit pour les prépas BCPST, ECG et B/L ; les autres y sont rattachés à la main.
+EXERCISES = with_filieres(LOT1 + LOT2 + LOT3) + LOT4

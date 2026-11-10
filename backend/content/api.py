@@ -35,7 +35,7 @@ from duplicates.services import (
 from . import photos
 from .feed import FEED_LABELS, build_feed, compute_scores, record_impressions
 from .latex import forbidden_commands, plain_math, title_problems
-from .models import TEXT_MAX_LENGTH, Exercise, Review, Solution, SolutionPhoto, Vote
+from .models import TEXT_MAX_LENGTH, Exercise, ExerciseRead, Review, Solution, SolutionPhoto, Vote
 from .services import (
     can_review,
     cast_vote,
@@ -149,10 +149,28 @@ class ExerciseLinkOut(Schema):
     title: str
 
 
+class ExerciseStatsOut(Schema):
+    """Qui a lu l'exercice, qui s'y est essayé, qui l'a réussi : des personnes, pas des copies."""
+
+    readers: int
+    senders: int
+    solvers: int
+
+
+def exercise_stats(exercise):
+    sent = exercise.solutions.exclude(status__in=[Solution.Status.DRAFT, Solution.Status.HIDDEN]).exclude(author=None)
+    senders = set(sent.values_list("author_id", flat=True))
+    solvers = set(sent.filter(status=Solution.Status.VALIDATED).values_list("author_id", flat=True))
+    # Qui a envoyé une copie a lu l'énoncé, même avant que les lectures soient comptées.
+    members = set(exercise.reads.values_list("user_id", flat=True)) | senders
+    return {"readers": exercise.visitor_reads + len(members), "senders": len(senders), "solvers": len(solvers)}
+
+
 class ExerciseDetail(ExerciseSummary):
     statement: str
     hints: list[str]
     author: str | None
+    stats: ExerciseStatsOut
     source_type: str
     source_reference: str
     license: str
@@ -162,6 +180,10 @@ class ExerciseDetail(ExerciseSummary):
     @staticmethod
     def resolve_author(obj):
         return obj.author.username if obj.author else None
+
+    @staticmethod
+    def resolve_stats(obj):
+        return exercise_stats(obj)
 
     @staticmethod
     def resolve_merged_into(obj):
@@ -298,6 +320,24 @@ def get_exercise(request, exercise_id: int):
     )
 
 
+@router.post(
+    "/exercises/{int:exercise_id}/read",
+    response={204: None},
+    throttle=[AnonRouteThrottle("lecture", "300/h")],
+)
+def read_exercise(request, exercise_id: int):
+    """La page de l'exercice a été ouverte. Un membre compte une fois par exercice, son
+    auteur jamais ; un visiteur compte une fois par navigateur (c'est le site qui s'en
+    souvient). Aucune adresse ni identifiant de visiteur n'est gardé."""
+    exercise = get_object_or_404(Exercise, pk=exercise_id, status=Exercise.Status.PUBLISHED)
+    user = request.user
+    if not user.is_authenticated:
+        Exercise.objects.filter(pk=exercise.pk).update(visitor_reads=F("visitor_reads") + 1)
+    elif exercise.author_id != user.pk:
+        ExerciseRead.objects.get_or_create(exercise=exercise, user=user)
+    return 204, None
+
+
 # ---------------------------------------------------------------- écriture
 
 
@@ -356,6 +396,8 @@ class SolutionIn(Schema):
     ai_usage: Literal["aucune", "relecture", "aide_idee", "generee"] = "aucune"
     # Jeton de l'envoi de photos (QR code).
     photo_upload: str = Field(min_length=1, max_length=64)
+    # Accord pour que la copie, une fois validée, puisse servir de copie modèle, sans nom.
+    model_consent: bool = False
 
 
 NO_PHOTOS = "Joins les photos de ta copie : une solution s'envoie en photos."
@@ -399,6 +441,15 @@ class MySolutionOut(Schema):
     # l'auteur dès qu'elles arrivent ; et le nombre de relectures attendues.
     reviews: list[AuthorReviewOut]
     reviews_expected: int
+    # Copie modèle : l'accord de l'auteur, et si l'équipe a choisi cette copie.
+    model_consent: bool
+    is_model: bool
+    # Envoyée après avoir ouvert la copie modèle : elle ne rapporte pas de points.
+    after_model: bool
+
+    @staticmethod
+    def resolve_is_model(obj):
+        return obj.model_at is not None and obj.model_consent and obj.status == Solution.Status.VALIDATED
 
     @staticmethod
     def resolve_photos(obj):
@@ -670,7 +721,9 @@ def propose_solution(request, exercise_id: int, payload: SolutionIn):
         raise HttpError(409, "Tu as déjà une solution en cours d'évaluation sur cet exercice.")
     upload = pending_upload(user, exercise, payload.photo_upload)
     with transaction.atomic():
-        solution = Solution.objects.create(exercise=exercise, author=user, ai_usage=payload.ai_usage)
+        solution = Solution.objects.create(
+            exercise=exercise, author=user, ai_usage=payload.ai_usage, model_consent=payload.model_consent
+        )
         # Les photos d'abord : la publication les lit (plagiat, question de compréhension).
         photos.attach(upload, solution)
         publish_solution(solution)

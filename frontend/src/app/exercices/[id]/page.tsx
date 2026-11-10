@@ -10,26 +10,36 @@ import {
 import { Avatar } from "@/components/Avatar";
 import { BadgeMedal } from "@/components/BadgeMedal";
 import { CopyPhotoList } from "@/components/CopyPhotos";
+import { Discussion } from "@/components/Discussion";
+import { ExerciseShare, ReadBeacon } from "@/components/ExerciseShare";
 import { ApiUnavailable, Difficulty, License, logApiError } from "@/components/ExerciseMeta";
 import { ExerciseList } from "@/components/ExerciseList";
 import { secondaryButtonClass } from "@/components/Form";
 import { Icon } from "@/components/Icon";
 import { JsonLd, breadcrumb } from "@/components/JsonLd";
 import { MathMarkdown } from "@/components/MathMarkdown";
+import { ModelCandidates, ModelConsent, ModelCopyPanel } from "@/components/ModelCopy";
 import { ReportButton } from "@/components/ReportButton";
 import { Tag } from "@/components/Tag";
 import {
   fetchExercise,
   fetchMe,
+  fetchMessages,
+  fetchModelCandidates,
+  fetchModelCopy,
   fetchMySolutions,
   fetchRelated,
   fetchTopics,
   nullOnError,
   type AuthorReview,
+  type DiscussionMessage,
   type ExerciseDetail,
+  type ExerciseStats,
   type ExerciseSummary,
   type Me,
   type MemberRef,
+  type ModelCandidate,
+  type ModelCopy,
   type MySolution,
   type Topic,
 } from "@/lib/api";
@@ -55,6 +65,7 @@ function voteBlocker(me: Me | null, author: string | null) {
 
 // Signaler un doublon est un droit du niveau Relecteur.
 const REVIEWER_TRUST_LEVEL = 2;
+const MODERATOR_TRUST_LEVEL = 4;
 
 /** Bouton « Signaler », pour un membre vérifié et sur le contenu des autres seulement. */
 function Report({ me, author, ...target }: { me: Me | null; author: string | null } & Omit<
@@ -147,14 +158,23 @@ export default async function ExercisePage({ params }: Props) {
   let topics: Topic[];
   let related: ExerciseSummary[];
   let mySolutions: MySolution[] = [];
+  let messages: DiscussionMessage[];
+  let modelCopy: ModelCopy | null;
+  let candidates: ModelCandidate[] = [];
   try {
-    [exercise, me, topics, related] = await Promise.all([
+    [exercise, me, topics, related, messages, modelCopy] = await Promise.all([
       fetchExercise(id),
       fetchMe(),
       fetchTopics(),
       fetchRelated(Number(id)),
+      fetchMessages(Number(id)),
+      fetchModelCopy(Number(id)),
     ]);
     if (exercise && me) mySolutions = await fetchMySolutions(exercise.id);
+    // L'équipe choisit la copie modèle depuis la page de l'exercice.
+    if (exercise && me && (me.is_staff || me.trust_level >= MODERATOR_TRUST_LEVEL)) {
+      candidates = await fetchModelCandidates(exercise.id);
+    }
   } catch (error) {
     logApiError(error);
     return <ApiUnavailable />;
@@ -163,7 +183,6 @@ export default async function ExercisePage({ params }: Props) {
   // Doublon fusionné : son adresse redirige vers l'exercice canonique, qui a repris ses solutions.
   if (exercise.merged_into) permanentRedirect(`/exercices/${exercise.merged_into}`);
 
-  const count = exercise.submitted_solutions;
   const pending = mySolutions.some((s) => s.status === "under_review");
 
   return (
@@ -222,18 +241,15 @@ export default async function ExercisePage({ params }: Props) {
             par {exercise.author}
           </Link>
         )}
-        {/* Les solutions restent privées : seul leur nombre est public. */}
-        <span>
-          {count === 0
-            ? "pas encore de copie envoyée"
-            : `${count} solution${count > 1 ? "s" : ""} envoyée${count > 1 ? "s" : ""}`}
-        </span>
         <VoteButton
           path={`/exercises/${exercise.id}/vote`}
           count={exercise.votes}
           disabledReason={voteBlocker(me, exercise.author)}
         />
       </p>
+
+      <ReadBeacon exerciseId={exercise.id} member={Boolean(me)} />
+      <ExerciseStatsLine stats={exercise.stats} />
 
       <section aria-labelledby="enonce" className="mt-10">
         <h2 id="enonce" className={sectionTitle}>
@@ -243,6 +259,11 @@ export default async function ExercisePage({ params }: Props) {
         <div className="rounded-r-xl border-l-2 border-accent bg-surface-soft px-5 py-1 sm:px-6">
           <MathMarkdown>{exercise.statement}</MathMarkdown>
         </div>
+        <ExerciseShare
+          url={`${SITE_URL}/exercices/${exercise.id}`}
+          title={exercise.title_text}
+          image={`${SITE_URL}${SHARE_IMAGE.url}`}
+        />
       </section>
 
       {exercise.hints.length > 0 && (
@@ -314,6 +335,24 @@ export default async function ExercisePage({ params }: Props) {
         </section>
       )}
 
+      {(modelCopy?.exists || candidates.length > 0) && (
+        <section id="copie-modele" aria-labelledby="copie-modele-titre" className={`${section} scroll-mt-20`}>
+          <h2 id="copie-modele-titre" className={sectionTitle}>
+            Copie modèle
+          </h2>
+          {modelCopy?.exists ? (
+            <ModelCopyPanel exerciseId={exercise.id} initial={modelCopy} />
+          ) : (
+            <p className="mt-3 text-body">Pas encore de copie modèle pour cet exercice.</p>
+          )}
+          {candidates.length > 0 && <ModelCandidates initial={candidates} />}
+        </section>
+      )}
+
+      <section id="discussion" aria-labelledby="discussion-titre" className={`${section} scroll-mt-20`}>
+        <Discussion exerciseId={exercise.id} initial={messages} viewer={me ? { verified: me.email_verified } : null} />
+      </section>
+
       {exercise.author_profile && <AuthorCard author={exercise.author_profile} />}
 
       {related.length > 0 && (
@@ -365,6 +404,35 @@ function AuthorCard({ author }: { author: MemberRef }) {
   );
 }
 
+/** Les solutions restent privées : seuls ces trois nombres sont publics. */
+function ExerciseStatsLine({ stats }: { stats: ExerciseStats }) {
+  if (stats.readers === 0) return null;
+  const share = (count: number) => `${Math.round((100 * count) / stats.readers)} %`;
+  const items = [
+    { value: stats.readers, label: stats.readers > 1 ? "personnes l'ont lu" : "personne l'a lu", share: null },
+    { value: stats.senders, label: stats.senders > 1 ? "ont envoyé une copie" : "a envoyé une copie", share: share(stats.senders) },
+    { value: stats.solvers, label: stats.solvers > 1 ? "l'ont réussi" : "l'a réussi", share: share(stats.solvers) },
+  ];
+  return (
+    <dl className="mt-5 grid max-w-xl grid-cols-3 gap-2">
+      {items.map((item) => (
+        <div key={item.label} className="flex flex-col-reverse justify-end rounded-xl bg-surface-soft px-3 py-2">
+          <dt className="text-[13px] leading-snug text-mute">{item.label}</dt>
+          <dd className="font-serif text-xl leading-tight text-ink-deep tabular-nums">
+            {item.value}
+            {item.share && item.value > 0 && (
+              <span className="ml-1.5 font-sans text-[13px] text-mute">
+                {item.share}
+                <span className="sr-only"> des lecteurs</span>
+              </span>
+            )}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 function MySolutionCard({ solution, exerciseId }: { solution: MySolution; exerciseId: number }) {
   return (
     <article className="mt-3 border border-hairline px-4 py-3">
@@ -382,6 +450,12 @@ function MySolutionCard({ solution, exerciseId }: { solution: MySolution; exerci
         {solution.body && <MathMarkdown>{solution.body}</MathMarkdown>}
       </details>
       <ReviewsReceived solution={solution} />
+      {solution.after_model && (
+        <p className="mt-3 text-sm text-mute">
+          Envoyée après avoir ouvert la copie modèle : elle peut être validée, sans rapporter de points.
+        </p>
+      )}
+      {solution.status !== "hidden" && solution.ai_usage !== "generee" && <ModelConsent solution={solution} />}
       {(solution.status === "needs_work" || solution.status === "validated") && (
         <ReviseSolution
           solutionId={solution.id}

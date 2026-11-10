@@ -34,6 +34,13 @@ export const SOLUTION_STATUS_LABELS: Record<SolutionStatus, string> = {
   hidden: "Masquée",
 };
 
+/** Les familles de niveaux, dans l'ordre des menus (champ `track` d'un niveau). */
+export const LEVEL_TRACKS = [
+  { track: "universite", label: "Université" },
+  { track: "prepa", label: "Prépa scientifique" },
+  { track: "prepa_eco", label: "Prépa ECG et B/L" },
+];
+
 export const dateFormat = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" });
 
 /** Une décimale, à la française : « 2,4 ». */

@@ -188,7 +188,8 @@ export function CopyPhotoPicker({
       )}
       <p className="text-sm text-mute">
         Une page par photo, à plat et bien éclairée, 3 au plus. N&apos;y laisse pas ton nom. Ta copie reste privée :
-        seuls tes relecteurs, tirés au sort, et la modération la voient.
+        seuls tes relecteurs, tirés au sort, et la modération la voient, sauf si tu acceptes qu&apos;elle serve de
+        copie modèle.
         {timed && " Les photos doivent arriver avant la fin du temps : garde une minute pour les prendre."}
       </p>
 

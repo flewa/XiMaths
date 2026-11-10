@@ -29,7 +29,7 @@ from notifications.models import Notification
 from notifications.services import notify
 
 from . import photos
-from .models import Exercise, Review, Solution, Vote
+from .models import Exercise, ModelCopyView, Review, Solution, Vote
 
 Kind = Notification.Kind
 
@@ -74,6 +74,77 @@ def publish_exercise(exercise, *, now=None):
     return exercise
 
 
+def saw_model_copy(solution):
+    """Vrai si l'auteur a déjà ouvert la copie modèle de l'exercice."""
+    return ModelCopyView.objects.filter(exercise_id=solution.exercise_id, user_id=solution.author_id).exists()
+
+
+def model_copy(exercise):
+    """La copie modèle de l'exercice, ou None : choisie par l'équipe, toujours validée,
+    et dont l'auteur maintient son accord."""
+    return (
+        Solution.objects.filter(
+            exercise=exercise, model_at__isnull=False, model_consent=True, status=Solution.Status.VALIDATED
+        )
+        .order_by("-model_at")
+        .first()
+    )
+
+
+def model_candidates(exercise):
+    """Copies que l'équipe peut choisir : validées, avec l'accord de leur auteur, pas générées."""
+    return (
+        Solution.objects.filter(exercise=exercise, status=Solution.Status.VALIDATED, model_consent=True)
+        .exclude(ai_usage=Solution.AiUsage.GENERATED)
+        .order_by("-model_at", "-validated_at")
+    )
+
+
+@transaction.atomic
+def choose_model_copy(solution, chosen, *, now=None):
+    """L'équipe choisit (ou retire) la copie modèle d'un exercice : une seule à la fois."""
+    if not chosen:
+        solution.model_at = None
+        solution.save(update_fields=["model_at", "updated_at"])
+        return solution
+    if not model_candidates(solution.exercise).filter(pk=solution.pk).exists():
+        raise RuleError("Cette copie ne peut pas servir de modèle : il faut qu'elle soit validée et que son auteur soit d'accord.")
+    Solution.objects.filter(exercise=solution.exercise, model_at__isnull=False).exclude(pk=solution.pk).update(model_at=None)
+    already = solution.model_at is not None
+    solution.model_at = now or timezone.now()
+    solution.save(update_fields=["model_at", "updated_at"])
+    if not already:
+        notify(
+            solution.author,
+            Kind.SOLUTION_RECOMMENDED,
+            "Ta copie a été choisie comme copie modèle",
+            f"Elle est montrée, sans ton pseudo, aux membres qui ont envoyé leur copie sur « {solution.exercise.title} ». "
+            "Tu peux retirer ton accord à tout moment, depuis la page de l'exercice.",
+            f"/exercices/{solution.exercise_id}",
+            now=now,
+        )
+    return solution
+
+
+def set_model_consent(solution, consent):
+    """L'auteur donne ou retire son accord. Retiré, la copie cesse aussitôt d'être le modèle."""
+    solution.model_consent = consent
+    if not consent:
+        solution.model_at = None
+    solution.save(update_fields=["model_consent", "model_at", "updated_at"])
+    return solution
+
+
+def can_open_model_copy(user, exercise):
+    """La copie modèle se débloque une fois sa propre copie envoyée ; l'auteur de l'exercice
+    et l'équipe la voient aussi."""
+    if not user.is_authenticated:
+        return False
+    if exercise.author_id == user.pk or is_moderator(user):
+        return True
+    return Solution.objects.filter(exercise=exercise, author=user).exclude(status=Solution.Status.DRAFT).exists()
+
+
 @transaction.atomic
 def publish_solution(solution, *, rng=None, now=None):
     """Publie une tentative, puis tire au sort ses relecteurs. Elle ne rapporte rien en
@@ -85,7 +156,8 @@ def publish_solution(solution, *, rng=None, now=None):
     now = now or timezone.now()
     solution.status = Solution.Status.UNDER_REVIEW
     solution.published_at = now
-    solution.save(update_fields=["status", "published_at", "updated_at"])
+    solution.after_model = saw_model_copy(solution)
+    solution.save(update_fields=["status", "published_at", "after_model", "updated_at"])
     if solution.author:
         # « Premier pas » : la première copie envoyée, sans point.
         check_badges(solution.author, now=now)
@@ -249,6 +321,9 @@ def award_author_points(solution, *, now=None):
     """Points de l'auteur d'une solution validée : le barème libre, ou les 40 % restants
     d'un défi. Idempotent ; appelé aussi quand une question de compréhension est réussie."""
     if solution.author is None:
+        return
+    # Envoyée après avoir vu la copie modèle : elle peut être validée, pas rapporter de points.
+    if solution.after_model:
         return
     exercise = solution.exercise
     level = exercise.primary_level
@@ -546,6 +621,11 @@ def revise_solution(solution, body, *, upload=None, rng=None, now=None):
     solution.status = Solution.Status.UNDER_REVIEW
     solution.validated_at = None
     solution.review_round += 1
-    solution.save(update_fields=["body", "status", "validated_at", "review_round", "updated_at"])
+    # Une copie révisée n'est plus celle que l'équipe avait choisie comme modèle.
+    solution.model_at = None
+    solution.after_model = solution.after_model or saw_model_copy(solution)
+    solution.save(
+        update_fields=["body", "status", "validated_at", "review_round", "model_at", "after_model", "updated_at"]
+    )
     assign_reviewers(solution, rng=rng, now=now)
     return solution, True

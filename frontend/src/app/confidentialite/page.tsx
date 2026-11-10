@@ -34,9 +34,12 @@ export default function PrivacyPage() {
           items={[
             "Compte : pseudo, adresse email, mot de passe chiffré, niveau déclaré, préférences.",
             "Contributions : exercices, solutions, relectures, votes, signalements.",
+            "Messages sous les exercices : publics, avec ton pseudo. Tu peux retirer les tiens ; un message retiré n'est plus montré à personne.",
             "Photos de copie, qui sont tes solutions (en libre, en entraînement et au défi du jour) : 3 pages au plus, réencodées à la réception, ce qui efface leurs métadonnées (lieu de la prise, appareil). Elles restent privées, même validées : seuls leurs relecteurs et la modération les voient.",
+            "Copie modèle : seulement si tu coches la case d'accord, et si l'équipe choisit ta copie validée. Elle est alors montrée, sans ton pseudo, aux membres qui ont envoyé leur propre copie sur l'exercice. Tu retires ton accord quand tu veux, depuis la page de l'exercice : la copie cesse aussitôt d'être montrée. Le site retient aussi qui a ouvert la copie modèle d'un exercice, car une copie envoyée ensuite ne rapporte plus de points.",
             "Activité : points, badges, sessions chronométrées (temps, nombre de sorties d'onglet, taille des collages venus d'ailleurs, jamais leur contenu), jours actifs, objectifs et mode vacances.",
             "Questions de compréhension, si l'une t'est posée : la question, ta réponse et l'évaluation.",
+            "Lecture des exercices : pour chaque exercice que tu ouvres une fois connecté, la date de la première ouverture. Elle sert aux statistiques de l'exercice (combien l'ont lu, tenté, résolu) et n'est montrée à personne. Sans compte, la lecture est seulement comptée, sans rien retenir de toi.",
             "Connexion Google, si tu l'utilises : ton adresse email et l'identifiant de ton compte Google.",
             "Notifications push, si tu les actives sur un appareil : l'adresse du service de push de ton navigateur et ses clés de chiffrement.",
             "Email académique, si tu en vérifies un : seulement son domaine et une empreinte chiffrée, qui l'empêche de vérifier un second compte. L'adresse elle-même n'est pas conservée.",

@@ -67,6 +67,9 @@ class Exercise(models.Model):
     feed_impressions = models.PositiveIntegerField(
         default=0, help_text="Affichages dans le fil d'accueil, pour l'exposition minimale."
     )
+    visitor_reads = models.PositiveIntegerField(
+        default=0, help_text="Lectures de la page par des visiteurs non connectés, une par navigateur."
+    )
     merged_into = models.ForeignKey(
         "self",
         null=True,
@@ -160,6 +163,12 @@ class Solution(models.Model):
     recommended_at = models.DateTimeField(
         null=True, blank=True, help_text="Recommandée par l'auteur de l'exercice (une par exercice)."
     )
+    # Copie modèle : l'auteur donne son accord, l'équipe choisit une copie validée par
+    # exercice. Elle est montrée sans nom aux membres qui ont envoyé la leur.
+    model_consent = models.BooleanField(default=False)
+    model_at = models.DateTimeField(null=True, blank=True)
+    # Envoyée (ou révisée) après que son auteur a ouvert la copie modèle : sans points.
+    after_model = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-validated_at", "-published_at"]
@@ -254,6 +263,67 @@ class Review(models.Model):
                 fields=["solution", "reviewer"], name="review_unique_reviewer"
             ),
         ]
+
+
+class ExerciseRead(models.Model):
+    """Un membre a ouvert la page d'un exercice : une ligne par membre et par exercice. Sert
+    aux statistiques de l'exercice (combien l'ont lu, combien ont envoyé une copie)."""
+
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name="reads")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="exercise_reads")
+    first_read_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["exercise", "user"], name="exercise_read_once_per_member")]
+
+
+class ModelCopyView(models.Model):
+    """Un membre a ouvert la copie modèle d'un exercice : ses copies suivantes sur cet
+    exercice ne rapportent plus de points."""
+
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name="model_views")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="model_views")
+    viewed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["exercise", "user"], name="model_copy_view_once_per_member")]
+
+
+class Message(models.Model):
+    """Question ou remarque sous un exercice. Les réponses n'ont qu'un niveau : on répond
+    à un message, pas à une réponse. Retiré, un message garde sa place si on lui a
+    répondu, sans son texte."""
+
+    MAX_LENGTH = 2000
+
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name="messages")
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="messages"
+    )
+    parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE, related_name="replies")
+    body = models.TextField(max_length=MAX_LENGTH, help_text="Markdown et LaTeX.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    removed_at = models.DateTimeField(null=True, blank=True)
+    # Retiré par l'équipe (et non par son auteur) : l'auteur en est prévenu.
+    removed_by_team = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["created_at", "pk"]
+        indexes = [models.Index(fields=["exercise", "created_at"])]
+
+    def __str__(self):
+        return f"Message de {self.author} sous « {self.exercise} »"
+
+
+class MessageFlag(models.Model):
+    """Un membre signale un message à l'équipe : une fois par message."""
+
+    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name="flags")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="message_flags")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["message", "user"], name="message_flag_once_per_member")]
 
 
 class Vote(models.Model):
