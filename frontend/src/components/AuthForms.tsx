@@ -8,6 +8,7 @@ import type { Level } from "@/lib/api";
 import { apiPost } from "@/lib/client-api";
 
 import { Field, FormMessage, SubmitButton, inputClass, secondaryButtonClass } from "./Form";
+import { LevelOptions } from "./LevelOptions";
 
 export function LoginForm({ next }: { next: string }) {
   const router = useRouter();
@@ -195,11 +196,7 @@ export function SignupForm({ levels }: { levels: Level[] }) {
       <Field label="Ton niveau" htmlFor="declared_level" hint="Sert à te proposer des exercices et des relectures.">
         <select id="declared_level" name="declared_level" defaultValue="" className={inputClass}>
           <option value="">Je préfère ne pas le dire</option>
-          {levels.map((level) => (
-            <option key={level.code} value={level.code}>
-              {level.name}
-            </option>
-          ))}
+          <LevelOptions levels={levels} />
         </select>
       </Field>
       <FormMessage error={error} />

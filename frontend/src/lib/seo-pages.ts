@@ -25,6 +25,13 @@ export const LEVEL_INTROS: Record<string, string> = {
   PC: "Algèbre linéaire, équations différentielles, intégrales multiples, fonctions de plusieurs variables : les exercices de PC.",
   PSI: "Probabilités discrètes, réduction, séries, fonctions de plusieurs variables : le programme de PSI.",
   PT: "Intégrales, équations différentielles, géométrie différentielle des courbes et des surfaces : les exercices de PT.",
+  MPI: "Réduction, séries entières, intégrales à paramètre, espaces vectoriels normés : le programme de maths de MPI, le même qu'en MP.",
+  BCPST1: "Suites, équations différentielles, nombres complexes, matrices, probabilités finies : les maths de première année de BCPST, avec des modèles venus de la biologie.",
+  BCPST2: "Diagonalisation, séries, intégrales généralisées, variables aléatoires discrètes et à densité, fonctions de deux variables : la deuxième année de BCPST.",
+  ECG1: "Suites, séries, calcul matriciel, espaces vectoriels, dénombrement, probabilités discrètes : les maths de première année d'ECG.",
+  ECG2: "Réduction, algèbre bilinéaire, intégrales généralisées, variables à densité, estimation, optimisation : la deuxième année d'ECG.",
+  BL1: "Suites, étude de fonctions, intégrales, matrices, dénombrement et probabilités finies : les maths de première année de B/L (lettres et sciences sociales).",
+  BL2: "Séries, intégrales généralisées, diagonalisation, lois discrètes et à densité, fonctions de deux variables : la deuxième année de B/L.",
 };
 
 /** Le nom d'un chapitre ou d'une notion précédé de « de » ou « d' ». Seule l'initiale
@@ -104,6 +111,8 @@ export const NOTION_INTROS: Record<string, string> = {
   "variables-aleatoires-discretes":
     "Espérance, variance, covariance, lois géométrique, binomiale et de Poisson, fonctions génératrices.",
   "theoremes-limites": "Inégalité de Bienaymé-Tchebychev, loi forte des grands nombres, convergence en loi.",
+  "variables-a-densite":
+    "Densités, lois exponentielle et uniforme, espérance et variance par le calcul intégral, estimateurs sans biais : les variables aléatoires continues.",
   "marches-aleatoires":
     "Marche aléatoire simple, ruine du joueur, processus de Poisson, mouvement brownien et formule d'Itô.",
   "geometrie-plan-espace": "Distances, produit vectoriel et aires, rotations de l'espace, plans tangents.",

@@ -4,8 +4,8 @@ Chaque exercice passe par la même validation qu'un exercice proposé sur le sit
 de l'API, commandes LaTeX interdites, niveaux et chapitres connus), puis par la détection
 de doublons : un exercice trop proche d'un exercice déjà publié est laissé de côté et
 signalé. La commande peut être relancée : ce que la rédaction a déjà publié n'est pas recréé,
-mais prend son titre actuel (retrouvé par `former_titles` s'il a changé) et ses chapitres et
-notions.
+mais prend son titre actuel (retrouvé par `former_titles` s'il a changé), ses chapitres et
+notions, et les niveaux ajoutés depuis.
 
     python manage.py import_exercises --dry-run   # vérifie tout, n'écrit rien
     python manage.py import_exercises
@@ -146,9 +146,15 @@ class Command(BaseCommand):
     @staticmethod
     def refresh(exercise, spec):
         """Titre et chapitres (notions comprises) d'un exercice déjà publié, d'après la
-        rédaction. Le reste (énoncé, indications, niveaux) ne bouge pas. 1 s'il a changé."""
-        fields, _, topics = draft_fields(payload(spec))
+        rédaction, et les niveaux qu'elle lui a ajoutés. Le reste (énoncé, indications)
+        ne bouge pas. 1 s'il a changé."""
+        fields, levels, topics = draft_fields(payload(spec))
         changed = False
+        # Les niveaux ne font que s'ajouter (une filière ouverte depuis) : rien n'est retiré.
+        missing = set(levels) - set(exercise.levels.all())
+        if missing:
+            exercise.levels.add(*missing)
+            changed = True
         if exercise.title != fields["title"]:
             exercise.title = fields["title"]
             exercise.save(update_fields=["title"])

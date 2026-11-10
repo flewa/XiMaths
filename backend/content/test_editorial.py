@@ -55,3 +55,35 @@ class EditorialExercisesTests(TestCase):
         self.assertFalse(account.leaderboard_visible)
         self.assertFalse(account.email_notifications)
         self.assertIsNotNone(account.email_verified_at)
+
+
+class FilieresTests(TestCase):
+    """Prépas BCPST, ECG, B/L et MPI : des exercices déjà publiés les rejoignent."""
+
+    def test_every_new_level_has_exercises(self):
+        for code in ["MPI", "BCPST1", "BCPST2", "ECG1", "ECG2", "BL1", "BL2"]:
+            count = sum(code in spec["levels"] for spec in EXERCISES)
+            self.assertGreaterEqual(count, 10, code)
+
+    def test_mp_exercises_are_also_mpi(self):
+        self.assertTrue(all("MPI" in spec["levels"] for spec in EXERCISES if "MP" in spec["levels"]))
+
+    def test_no_complex_numbers_nor_differential_equations_in_ecg_and_bl(self):
+        outside = {"nombres-complexes", "equations-differentielles", "determinants"}
+        for spec in EXERCISES:
+            if {"ECG1", "ECG2", "BL1", "BL2"} & set(spec["levels"]):
+                self.assertFalse(outside & set(spec["topics"]), spec["title"])
+
+    def test_an_exercise_already_published_gains_its_new_levels(self):
+        run()
+        spec = next(spec for spec in EXERCISES if "BCPST1" in spec["levels"] and spec["primary_level"] != "BCPST1")
+        exercise = Exercise.objects.get(title=spec["title"])
+        exercise.levels.remove(Level.objects.get(code="BCPST1"))
+        l3 = Level.objects.get(code="M2")
+        exercise.levels.add(l3)
+
+        self.assertIn("Mis à jour : 1.", run())
+        codes = set(exercise.levels.values_list("code", flat=True))
+        # Le niveau manquant revient ; celui qu'on avait ajouté à la main n'est pas retiré.
+        self.assertIn("BCPST1", codes)
+        self.assertIn("M2", codes)

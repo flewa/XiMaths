@@ -6,7 +6,8 @@ class Level(models.Model):
 
     class Track(models.TextChoices):
         UNIVERSITY = "universite", "Université"
-        PREPA = "prepa", "Classe préparatoire"
+        PREPA = "prepa", "Classe préparatoire scientifique"
+        PREPA_ECO = "prepa_eco", "Classe préparatoire ECG ou B/L"
 
     code = models.CharField(max_length=8, unique=True)
     name = models.CharField(max_length=64)

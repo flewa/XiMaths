@@ -11,6 +11,7 @@ import { Field, FormMessage, SubmitButton, inputClass } from "./Form";
 import { MathEditor } from "./MathEditor";
 import { MathMarkdown } from "./MathMarkdown";
 import { MathText } from "./MathText";
+import { LevelOptions } from "./LevelOptions";
 
 const DIFFICULTIES = [
   { value: 1, label: "1 · Application directe du cours" },
@@ -198,11 +199,7 @@ export function ExerciseForm({
               onChange={(event) => setPrimaryLevel(event.target.value)}
               className={inputClass}
             >
-              {levels.map((level) => (
-                <option key={level.code} value={level.code}>
-                  {level.name}
-                </option>
-              ))}
+              <LevelOptions levels={levels} />
             </select>
           </Field>
           <Field label="Difficulté" htmlFor="difficulty">

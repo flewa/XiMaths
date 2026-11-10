@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import type { Avatar as AvatarData, Level, Topic } from "@/lib/api";
+import { LEVEL_TRACKS } from "@/lib/labels";
 import { chapterPath, levelPath } from "@/lib/seo-pages";
 
 import { LogoutButton } from "./AccountControls";
@@ -103,6 +104,13 @@ function itemsFor(account: NavAccount | null): Item[] {
 const row = "flex min-h-8 items-center gap-2.5 rounded-md px-2 font-medium";
 
 /** Les niveaux d'une filière, rangés comme des pages : ouverts si le membre y a déclaré le sien. */
+/** À côté de l'étiquette du code : « Licence 1 », « MPSI », « 1re année » (BCPST, ECG, B/L). */
+function shortName(level: Level) {
+  const name = level.name.replace(/^Prépa /, "");
+  const year = name.match(/ (\d(?:re|e) année)$/);
+  return year ? year[1] : name;
+}
+
 function LevelGroup({
   label,
   levels,
@@ -134,7 +142,7 @@ function LevelGroup({
                 {level.code}
               </span>
               <span className="truncate">
-                {level.name.replace(/^Prépa /, "")}
+                {shortName(level)}
               </span>
             </Link>
           </li>
@@ -271,16 +279,14 @@ export function SidebarContent({
         </ul>
 
         <p className="mb-1 mt-5 px-2 text-xs font-medium text-stone">Niveaux</p>
-        <LevelGroup
-          label="Université"
-          levels={levels.filter((level) => level.track === "universite")}
-          open={!declared || declared.track === "universite"}
-        />
-        <LevelGroup
-          label="Prépa"
-          levels={levels.filter((level) => level.track === "prepa")}
-          open={declared?.track === "prepa"}
-        />
+        {LEVEL_TRACKS.map(({ track, label }, index) => (
+          <LevelGroup
+            key={track}
+            label={label}
+            levels={levels.filter((level) => level.track === track)}
+            open={declared ? declared.track === track : index === 0}
+          />
+        ))}
         {topics.length > 0 && (
           <details className="plain group">
             <summary className={`${row} text-mute hover:bg-hover hover:text-ink`}>

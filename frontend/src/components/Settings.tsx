@@ -9,6 +9,7 @@ import { dateFormat } from "@/lib/labels";
 import { DEFAULT_THEME, THEME_COOKIE, type Theme } from "@/lib/site";
 
 import { Checkbox, Field, FormMessage, SubmitButton, inputClass } from "./Form";
+import { LevelOptions } from "./LevelOptions";
 
 export function PreferencesForm({ me, levels }: { me: Me; levels: Level[] }) {
   const router = useRouter();
@@ -40,11 +41,7 @@ export function PreferencesForm({ me, levels }: { me: Me; levels: Level[] }) {
       <Field label="Niveau déclaré" htmlFor="declared_level" hint="Il choisit ton fil d'accueil et tes pairs dans les classements.">
         <select id="declared_level" value={level} onChange={(event) => setLevel(event.target.value)} className={inputClass}>
           <option value="">Aucun</option>
-          {levels.map((item) => (
-            <option key={item.code} value={item.code}>
-              {item.name}
-            </option>
-          ))}
+          <LevelOptions levels={levels} />
         </select>
       </Field>
       <fieldset className="space-y-2">

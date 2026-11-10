@@ -19,9 +19,9 @@ async function findLevel(slug: string) {
 
 /** « Exercices de maths en MPSI », « Exercices de maths en L1 (Licence 1) ». */
 function heading(level: Level) {
-  return level.track === "prepa"
-    ? `Exercices de maths en ${level.code}`
-    : `Exercices de maths en ${level.code} (${level.name})`;
+  if (level.track === "universite") return `Exercices de maths en ${level.code} (${level.name})`;
+  // « Prépa BCPST 1re année » → « Exercices de maths en BCPST 1re année ».
+  return `Exercices de maths en ${level.name.replace(/^Prépa /, "")}`;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
