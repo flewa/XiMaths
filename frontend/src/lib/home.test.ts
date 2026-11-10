@@ -27,13 +27,19 @@ describe("nextSkill", () => {
 });
 
 describe("openChallenge", () => {
-  const challenge = (level: string, attempted: boolean) =>
-    ({ level, attempt: attempted ? { session_id: 1 } : null }) as DailyChallenge;
+  const FIRST_YEAR = ["L1", "MPSI", "MP2I", "PCSI", "PTSI"];
+  const SECOND_YEAR = ["L2", "MP", "PC", "PSI", "PT"];
+  const challenge = (level: string, group_levels: string[], attempted: boolean) =>
+    ({ level, group_levels, attempt: attempted ? { session_id: 1 } : null }) as DailyChallenge;
 
-  it("returns the declared level's challenge while it is still to be taken", () => {
-    expect(openChallenge([challenge("L2", false), challenge("L1", false)], "L1")?.level).toBe("L1");
-    expect(openChallenge([challenge("L1", true)], "L1")).toBeNull();
-    expect(openChallenge([challenge("L1", false)], null)).toBeNull();
+  it("returns the challenge of the declared level's group while it is still to be taken", () => {
+    const today = [challenge("L2", SECOND_YEAR, false), challenge("L1", FIRST_YEAR, false)];
+    expect(openChallenge(today, "L1")?.level).toBe("L1");
+    // Le défi de 1re année vaut pour tous ses niveaux, quel que soit celui de l'exercice tiré.
+    expect(openChallenge(today, "MPSI")?.level).toBe("L1");
+    expect(openChallenge(today, "M1")).toBeNull();
+    expect(openChallenge([challenge("L1", FIRST_YEAR, true)], "L1")).toBeNull();
+    expect(openChallenge([challenge("L1", FIRST_YEAR, false)], null)).toBeNull();
   });
 });
 

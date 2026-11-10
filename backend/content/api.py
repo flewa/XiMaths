@@ -31,18 +31,15 @@ from duplicates.services import (
     publish_checked,
     variants_of,
 )
-from moderation.integrity import NEUTRAL_QUESTION
 
 from . import photos
 from .feed import FEED_LABELS, build_feed, compute_scores, record_impressions
 from .latex import forbidden_commands, plain_math, title_problems
 from .models import TEXT_MAX_LENGTH, Exercise, Review, Solution, SolutionPhoto, Vote
 from .services import (
+    can_review,
     cast_vote,
-    current_reviews,
     publish_solution,
-    recommend_solution,
-    resolve_contested,
     review_progress,
     revise_solution,
     submit_review,
@@ -402,32 +399,10 @@ class MySolutionOut(Schema):
     # l'auteur dès qu'elles arrivent ; et le nombre de relectures attendues.
     reviews: list[AuthorReviewOut]
     reviews_expected: int
-    # Solution en vérification : la question neutre, et la réponse déjà donnée.
-    integrity_signal_id: int | None
-    integrity_question: str | None
-    integrity_answer: str | None
 
     @staticmethod
     def resolve_photos(obj):
         return photos.described(obj)
-
-    @staticmethod
-    def _open_signal(obj):
-        return next((s for s in obj.integrity_signals.all() if s.status == "ouvert"), None)
-
-    @staticmethod
-    def resolve_integrity_signal_id(obj):
-        signal = MySolutionOut._open_signal(obj)
-        return signal.pk if signal else None
-
-    @staticmethod
-    def resolve_integrity_question(obj):
-        return NEUTRAL_QUESTION if MySolutionOut._open_signal(obj) else None
-
-    @staticmethod
-    def resolve_integrity_answer(obj):
-        signal = MySolutionOut._open_signal(obj)
-        return signal.author_answer if signal else None
 
     @staticmethod
     def resolve_reviews(obj):
@@ -435,7 +410,7 @@ class MySolutionOut(Schema):
 
     @staticmethod
     def resolve_reviews_expected(obj):
-        if obj.status in (Solution.Status.DRAFT, Solution.Status.HELD):
+        if obj.status == Solution.Status.DRAFT:
             return 0
         return review_progress(obj)[1]
 
@@ -690,7 +665,7 @@ def propose_solution(request, exercise_id: int, payload: SolutionIn):
     if Solution.objects.filter(
         exercise=exercise,
         author=user,
-        status__in=[Solution.Status.HELD, Solution.Status.UNDER_REVIEW, Solution.Status.CONTESTED],
+        status=Solution.Status.UNDER_REVIEW,
     ).exists():
         raise HttpError(409, "Tu as déjà une solution en cours d'évaluation sur cet exercice.")
     upload = pending_upload(user, exercise, payload.photo_upload)
@@ -827,36 +802,22 @@ def my_solutions(request, exercise_id: int):
     return (
         Solution.objects.filter(exercise_id=exercise_id, author=request.auth)
         .exclude(status=Solution.Status.DRAFT)
-        .prefetch_related("reviews", "integrity_signals", "photos")
+        .prefetch_related("reviews", "photos")
         .order_by("-published_at")
     )
 
 
-def _vote(user, **target):
-    if Vote.objects.filter(voter=user, **target).exists():
-        raise HttpError(409, "Tu as déjà voté.")
-    try:
-        return cast_vote(user, **target)
-    except IntegrityError:
-        raise HttpError(409, "Tu as déjà voté.")
-
-
 @router.post("/exercises/{exercise_id}/vote", response={201: VoteOut}, auth=django_auth)
 def vote_for_exercise(request, exercise_id: int):
+    """Vote « utile » pour un exercice. Les copies sont privées : on ne vote pas pour elles."""
     user = contributor(request)
     exercise = get_object_or_404(Exercise, pk=exercise_id, status=Exercise.Status.PUBLISHED)
-    return 201, _vote(user, exercise=exercise)
-
-
-@router.post("/solutions/{solution_id}/vote", response={201: VoteOut}, auth=django_auth)
-def vote_for_solution(request, solution_id: int):
-    user = contributor(request)
-    solution = get_object_or_404(
-        Solution.objects.select_related("exercise"),
-        pk=solution_id,
-        status=Solution.Status.VALIDATED,
-    )
-    return 201, _vote(user, solution=solution)
+    if Vote.objects.filter(voter=user, exercise=exercise).exists():
+        raise HttpError(409, "Tu as déjà voté.")
+    try:
+        return 201, cast_vote(user, exercise=exercise)
+    except IntegrityError:
+        raise HttpError(409, "Tu as déjà voté.")
 
 
 @router.get("/reviews", response=list[ReviewTaskOut], auth=django_auth)
@@ -897,31 +858,7 @@ def review_solution(request, review_id: int, payload: ReviewIn):
     return {"solution_status": status}
 
 
-# ---------------------------------------------------------------- relecture : arbitrage, volontaires
-
-
-class ArbitrationReviewOut(Schema):
-    verdict: str
-    feedback: str
-    weight: float
-
-
-class ArbitrationOut(Schema):
-    """Solution contestée, présentée sans auteur ni relecteurs nommés."""
-
-    solution_id: int
-    exercise_id: int
-    exercise_title: str
-    exercise_statement: str
-    solution_body: str
-    solution_photos: list[PhotoOut]
-    expected_answer: str
-    ai_usage: str
-    reviews: list[ArbitrationReviewOut]
-
-
-class ArbitrationIn(Schema):
-    validate_solution: bool
+# ---------------------------------------------------------------- relecture : copies en attente
 
 
 class OpenSolutionOut(Schema):
@@ -930,6 +867,10 @@ class OpenSolutionOut(Schema):
     exercise_title: str
     primary_level: str
     published_at: datetime | None
+    # En relecture depuis (envoi, ou dernière révision), en heures ; et ses relectures.
+    waiting_hours: int
+    reviews_done: int
+    reviews_expected: int
 
 
 class RevisionIn(Schema):
@@ -937,54 +878,17 @@ class RevisionIn(Schema):
     photo_upload: str = Field(min_length=1, max_length=64)
 
 
-def _expert(user):
-    if user.trust_level < user.TrustLevel.EXPERT and not is_moderator(user):
-        raise HttpError(403, "Les arbitrages sont ouverts aux experts et aux modérateurs.")
-
-
-@router.get("/arbitrations", response=list[ArbitrationOut], auth=django_auth)
-def arbitrations(request):
-    """Solutions contestées : les relecteurs sont en désaccord, un expert tranche."""
-    _expert(request.auth)
-    contested = (
-        Solution.objects.filter(status=Solution.Status.CONTESTED)
-        .exclude(author=request.auth)
-        .select_related("exercise")
-        .order_by("published_at")
-    )
-    return [
-        {
-            "solution_id": solution.pk,
-            "exercise_id": solution.exercise_id,
-            "exercise_title": solution.exercise.title,
-            "exercise_statement": solution.variant_statement or solution.exercise.statement,
-            "solution_body": solution.body,
-            "solution_photos": photos.described(solution),
-            "expected_answer": expected_answer_of(solution),
-            "ai_usage": solution.ai_usage,
-            "reviews": [
-                {"verdict": r.verdict, "feedback": r.feedback, "weight": float(r.weight)}
-                for r in current_reviews(solution).exclude(submitted_at=None)
-            ],
-        }
-        for solution in contested
-    ]
-
-
-@router.post("/arbitrations/{int:solution_id}", response=ReviewResult, auth=django_auth)
-def arbitrate(request, solution_id: int, payload: ArbitrationIn):
-    _expert(request.auth)
-    solution = get_object_or_404(Solution.objects.select_related("exercise"), pk=solution_id)
-    if solution.author_id == request.auth.pk:
-        raise HttpError(403, "On ne tranche pas sa propre solution.")
-    return {"solution_status": resolve_contested(solution, request.auth, validate=payload.validate_solution)}
+# L'équipe voit toutes les copies en attente ; un relecteur, les vingt plus anciennes.
+OPEN_FOR_TEAM = 100
+OPEN_FOR_REVIEWERS = 20
 
 
 @router.get("/reviews/open", response=list[OpenSolutionOut], auth=django_auth)
 def open_for_review(request):
-    """Solutions en relecture qu'un relecteur peut relire spontanément (poids ½)."""
+    """Copies en relecture que l'on peut choisir de relire, les plus anciennes d'abord :
+    pour un relecteur, une relecture de plus ; pour l'équipe du site, la décision."""
     user = contributor(request)
-    if user.trust_level < user.TrustLevel.REVIEWER:
+    if not can_review(user):
         return []
     solutions = (
         Solution.objects.filter(status=Solution.Status.UNDER_REVIEW)
@@ -992,18 +896,25 @@ def open_for_review(request):
         .exclude(author_id__in=linked_ids(user))
         .exclude(reviews__reviewer=user)
         .select_related("exercise__primary_level")
-        .order_by("published_at")[:20]
+        .order_by("updated_at")[: OPEN_FOR_TEAM if is_moderator(user) else OPEN_FOR_REVIEWERS]
     )
-    return [
-        {
-            "solution_id": s.pk,
-            "exercise_id": s.exercise_id,
-            "exercise_title": s.exercise.title,
-            "primary_level": s.exercise.primary_level.code,
-            "published_at": s.published_at,
-        }
-        for s in solutions
-    ]
+    now = timezone.now()
+    items = []
+    for solution in solutions:
+        done, expected = review_progress(solution)
+        items.append(
+            {
+                "solution_id": solution.pk,
+                "exercise_id": solution.exercise_id,
+                "exercise_title": solution.exercise.title,
+                "primary_level": solution.exercise.primary_level.code,
+                "published_at": solution.published_at,
+                "waiting_hours": int((now - solution.updated_at).total_seconds() // 3600),
+                "reviews_done": done,
+                "reviews_expected": expected,
+            }
+        )
+    return items
 
 
 @router.post("/solutions/{int:solution_id}/volunteer", response={201: ReviewTaskOut}, auth=django_auth)
@@ -1022,10 +933,3 @@ def revise(request, solution_id: int, payload: RevisionIn):
     upload = pending_upload(user, solution.exercise, payload.photo_upload)
     revised, _ = revise_solution(solution, "", upload=upload)
     return revised
-
-
-@router.post("/solutions/{int:solution_id}/recommend", response={204: None}, auth=django_auth)
-def recommend(request, solution_id: int):
-    user = contributor(request)
-    recommend_solution(get_object_or_404(Solution.objects.select_related("exercise"), pk=solution_id), user)
-    return 204, None

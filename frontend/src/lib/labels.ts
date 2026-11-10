@@ -28,10 +28,8 @@ export const AI_USAGE_BADGES: Record<AiUsage, string | null> = {
 };
 
 export const SOLUTION_STATUS_LABELS: Record<SolutionStatus, string> = {
-  held: "En vérification",
-  under_review: "En relecture par des pairs",
-  contested: "Avis partagés : un expert tranche",
-  validated: "Validée par les trois relecteurs",
+  under_review: "En relecture",
+  validated: "Validée",
   needs_work: "À reprendre",
   hidden: "Masquée",
 };

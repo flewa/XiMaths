@@ -180,56 +180,6 @@ def settle_duplicate_reports(sender, pair, moderator, **kwargs):
 # ---------------------------------------------------------------- signaux d'intégrité
 
 
-def answer_signal(signal, user, text):
-    """Réponse de l'auteur à la question neutre, lue par le modérateur."""
-    if signal.user_id != user.pk:
-        raise PermissionDenied("Cette question ne te concerne pas.")
-    if signal.status != IntegritySignal.Status.OPEN:
-        raise RuleError("Cette vérification est déjà close.")
-    signal.author_answer = text.strip()
-    signal.save(update_fields=["author_answer"])
-    return signal
-
-
-@transaction.atomic
-def decide_signal(signal, *, confirmed, moderator, note="", now=None):
-    """Lève le signal (la solution part en relecture) ou confirme le plagiat
-    (points annulés, −50, solution masquée, motif envoyé à l'auteur)."""
-    if not is_moderator(moderator):
-        raise PermissionDenied("Seuls les modérateurs tranchent.")
-    if signal.status != IntegritySignal.Status.OPEN:
-        raise RuleError("Ce signal est déjà tranché.")
-    note = note.strip()
-    if confirmed and not note:
-        raise RuleError("Motive la décision : le motif est communiqué à l'auteur.")
-    now = now or timezone.now()
-    solution = signal.solution
-    signal.status = IntegritySignal.Status.CONFIRMED if confirmed else IntegritySignal.Status.CLEARED
-    signal.decided_by = moderator
-    signal.decided_at = now
-    signal.decision_note = note
-    signal.save()
-    if solution is None or solution.status != Solution.Status.HELD:
-        return signal
-    if confirmed:
-        apply_plagiarism(solution, now=now)
-        solution.status = Solution.Status.HIDDEN
-        solution.save(update_fields=["status", "updated_at"])
-        notify(
-            solution.author,
-            Kind.CONTENT_REMOVED,
-            f"La modération a retiré ta solution de « {solution.exercise.title} »",
-            f"Motif : {note}\n\nTu peux faire appel sous 14 jours depuis la page Mes décisions.",
-            "/decisions",
-            now=now,
-        )
-    else:
-        solution.status = Solution.Status.UNDER_REVIEW
-        solution.save(update_fields=["status", "updated_at"])
-        assign_reviewers(solution, now=now)
-    return signal
-
-
 def purge_signals(*, now=None):
     """Les signaux tranchés s'effacent un an après la décision."""
     limit = (now or timezone.now()) - timedelta(days=365)

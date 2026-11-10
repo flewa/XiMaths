@@ -1,6 +1,7 @@
 #!/bin/sh
 # Sauvegarde de XiMaths : la base, les photos des copies et la mesure d'audience, gardées
-# 14 jours dans /var/backups/ximaths. Lancée chaque nuit par /etc/cron.daily/ximaths-sauvegarde
+# 14 jours dans /var/backups/ximaths, et copiées sur une autre machine si SAUVEGARDE_DISTANTE
+# est renseigné dans .env.prod. Lancée chaque nuit par /etc/cron.daily/ximaths-sauvegarde
 # (installé par deploy/install.sh et deploy/update.sh). À la main :
 #
 #   sudo ./deploy/sauvegarde.sh
@@ -36,3 +37,17 @@ SQL
 fi
 find /var/backups/ximaths \( -name 'ximaths-*.sql.gz' -o -name 'photos-*.tar.gz' -o -name 'audience-*.sql.gz' \) \
   -mtime +14 -delete
+
+# Copie hors du serveur : sans elle, une panne du disque ou la perte du serveur emporte le site
+# et ses sauvegardes. La destination se donne dans .env.prod, au format de rsync :
+#   SAUVEGARDE_DISTANTE=utilisateur@autre-machine:/chemin/ximaths
+# (connexion SSH par clé pour root, sans mot de passe). Le dossier distant devient le miroir
+# de /var/backups/ximaths, donc garde lui aussi 14 jours.
+remote=$(sed -n 's/^SAUVEGARDE_DISTANTE=//p' .env.prod | tail -n 1)
+if [ -n "$remote" ]; then
+  if ! command -v rsync >/dev/null 2>&1; then
+    echo "[!] Sauvegarde distante impossible : rsync manque (apt install rsync)." >&2
+  elif ! rsync -a --delete /var/backups/ximaths/ "$remote/"; then
+    echo "[!] La copie des sauvegardes vers $remote a échoué : elles ne sont que sur ce serveur." >&2
+  fi
+fi

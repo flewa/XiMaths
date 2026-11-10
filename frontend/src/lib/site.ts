@@ -4,7 +4,7 @@
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const SITE_DESCRIPTION =
-  "Exercices de mathématiques du supérieur, de la licence au master et en prépa, résolus et relus par la communauté.";
+  "Exercices de mathématiques du supérieur, de la licence au master et en prépa. Envoie ta copie en photo : des étudiants la corrigent.";
 
 export type Theme = "system" | "light" | "dark";
 export const THEME_COOKIE = "theme";
@@ -14,7 +14,7 @@ export const SHARE_IMAGE = {
   url: "/opengraph-image.png",
   width: 1200,
   height: 630,
-  alt: "XiMaths : des maths du supérieur, résolues et relues par la communauté.",
+  alt: "XiMaths : des exercices de maths du supérieur, et ta copie corrigée par des étudiants.",
 };
 
 /** Comptes officiels de XiMaths : déclarés aux moteurs (sameAs) et liés en pied de page.

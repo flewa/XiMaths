@@ -88,17 +88,11 @@ class Report(models.Model):
         return self.exercise or self.solution
 
 
-class SolutionPrint(models.Model):
-    """Signature MinHash d'une solution, pour l'anti-plagiat interne."""
-
-    solution = models.OneToOneField(Solution, on_delete=models.CASCADE, primary_key=True, related_name="print")
-    signature = models.JSONField()
-    length = models.PositiveIntegerField(help_text="Longueur du texte, en caractères.")
-
-
 class IntegritySignal(models.Model):
-    """Signal d'intégrité : jamais une preuve, jamais une sanction automatique.
-    Un humain tranche, et le signal s'efface un an après la décision."""
+    """Signal d'intégrité tranché par un modérateur : un historique. La détection automatique
+    comparait des textes ; les copies sont désormais des photos, et un plagiat se signale
+    par un relecteur (Report). Les décisions passées restent visibles de leur auteur, qui
+    peut faire appel ; elles s'effacent un an après."""
 
     class Kind(models.TextChoices):
         PLAGIARISM = "plagiat", "Ressemblance avec une solution antérieure"

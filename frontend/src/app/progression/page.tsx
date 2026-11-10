@@ -76,8 +76,6 @@ function Summary({ progress }: { progress: Progress }) {
 const COPY_STATUS: Partial<Record<MyCopy["status"], { label: string; className: string }>> = {
   needs_work: { label: "À reprendre", className: "bg-accent-soft text-accent-text" },
   under_review: { label: "En relecture", className: "bg-surface-card text-body" },
-  held: { label: "En vérification", className: "bg-surface-card text-body" },
-  contested: { label: "En arbitrage", className: "bg-surface-card text-body" },
   validated: { label: "Validée", className: "text-success" },
 };
 
@@ -88,10 +86,6 @@ function copyDetail(copy: MyCopy) {
       return "Lis les commentaires des relecteurs, puis renvoie ta copie.";
     case "under_review":
       return `${copy.reviews_done} relecture${copy.reviews_done > 1 ? "s" : ""} sur ${copy.reviews_expected} · ${sent}`;
-    case "held":
-      return `Un modérateur vérifie ta copie · ${sent}`;
-    case "contested":
-      return `Avis partagés : un expert tranche · ${sent}`;
     case "validated":
       return copy.validated_at ? `validée le ${short(copy.validated_at)}` : "validée";
     default:

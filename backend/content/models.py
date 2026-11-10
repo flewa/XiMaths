@@ -121,10 +121,7 @@ class Solution(models.Model):
 
     class Status(models.TextChoices):
         DRAFT = "draft", "Brouillon"
-        # Trop proche d'une solution antérieure d'un autre auteur : un modérateur regarde.
-        HELD = "held", "En vérification"
         UNDER_REVIEW = "under_review", "En relecture"
-        CONTESTED = "contested", "Contestée"
         VALIDATED = "validated", "Validée"
         NEEDS_WORK = "needs_work", "À compléter"
         HIDDEN = "hidden", "Masquée"

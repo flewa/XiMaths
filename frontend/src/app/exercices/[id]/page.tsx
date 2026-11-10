@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 
 import {
-  IntegrityAnswer,
   ReviseSolution,
   SolutionForm,
   VoteButton,
@@ -165,7 +164,7 @@ export default async function ExercisePage({ params }: Props) {
   if (exercise.merged_into) permanentRedirect(`/exercices/${exercise.merged_into}`);
 
   const count = exercise.submitted_solutions;
-  const pending = mySolutions.some((s) => ["held", "under_review", "contested"].includes(s.status));
+  const pending = mySolutions.some((s) => s.status === "under_review");
 
   return (
     <article>
@@ -180,7 +179,11 @@ export default async function ExercisePage({ params }: Props) {
       <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-body">
         <span className="flex gap-1.5 font-medium">
           {exercise.levels.map((code) => (
-            <Link key={code} href={levelPath(code)} className="text-ink hover:underline hover:underline-offset-4">
+            <Link
+              key={code}
+              href={levelPath(code)}
+              className="rounded-full bg-surface-card px-2.5 py-1 text-xs text-ink hover:bg-hover"
+            >
               {code}
             </Link>
           ))}
@@ -194,7 +197,10 @@ export default async function ExercisePage({ params }: Props) {
               return topic ? (
                 <span key={name}>
                   {separator}
-                  <Link href={chapterPath(topic.slug)} className="hover:text-ink hover:underline hover:underline-offset-4">
+                  <Link
+                    href={chapterPath(topic.slug)}
+                    className="inline-block py-1 hover:text-ink hover:underline hover:underline-offset-4"
+                  >
                     {name}
                   </Link>
                 </span>
@@ -217,7 +223,11 @@ export default async function ExercisePage({ params }: Props) {
           </Link>
         )}
         {/* Les solutions restent privées : seul leur nombre est public. */}
-        <span>{count === 0 ? "aucune solution envoyée" : `${count} solution${count > 1 ? "s" : ""} envoyée${count > 1 ? "s" : ""}`}</span>
+        <span>
+          {count === 0
+            ? "pas encore de copie envoyée"
+            : `${count} solution${count > 1 ? "s" : ""} envoyée${count > 1 ? "s" : ""}`}
+        </span>
         <VoteButton
           path={`/exercises/${exercise.id}/vote`}
           count={exercise.votes}
@@ -371,12 +381,6 @@ function MySolutionCard({ solution, exerciseId }: { solution: MySolution; exerci
         <CopyPhotoList photos={solution.photos} compact />
         {solution.body && <MathMarkdown>{solution.body}</MathMarkdown>}
       </details>
-      {solution.integrity_question && solution.integrity_signal_id && (
-        <div className="mt-3 border-l-2 border-hairline-strong pl-3">
-          <p className="text-body">{solution.integrity_question}</p>
-          <IntegrityAnswer signalId={solution.integrity_signal_id} initial={solution.integrity_answer} />
-        </div>
-      )}
       <ReviewsReceived solution={solution} />
       {(solution.status === "needs_work" || solution.status === "validated") && (
         <ReviseSolution
@@ -404,14 +408,21 @@ function ReviewsReceived({ solution }: { solution: MySolution }) {
     <div className="mt-3 text-sm">
       <p className="font-medium">
         Corrections reçues{" "}
+        {/* Une fois la copie décidée, seul compte ce qui a été rendu. */}
         <span className="font-normal text-mute">
-          · {done} sur {solution.reviews_expected}
-          {solution.status === "under_review" && " — les points viennent si tous tes relecteurs la jugent juste"}
+          {solution.status === "under_review"
+            ? `· ${done} sur ${solution.reviews_expected} — les points viennent si tous tes relecteurs la jugent juste`
+            : `· ${done}`}
         </span>
       </p>
-      {done === 0 ? (
-        <p className="mt-1 text-mute">Tes relecteurs ont 72 heures. Tu seras prévenu à chaque correction.</p>
-      ) : (
+      {solution.status === "under_review" && (
+        <p className="mt-1 text-mute">
+          {done === 0 && "Tes relecteurs ont 72 heures, et une notification t'annonce chaque correction. "}
+          Si la relecture n&apos;est pas terminée sous 3 jours, l&apos;équipe du site est prévenue et prend le
+          relais.
+        </p>
+      )}
+      {done > 0 && (
         <ol className="mt-2 space-y-2">
           {solution.reviews.map((review, index) => (
             <li key={review.submitted_at} className="rounded-lg bg-surface-soft px-3 py-2">

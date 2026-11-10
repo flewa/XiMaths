@@ -6,9 +6,10 @@ import { Avatar } from "./Avatar";
 import { Difficulty } from "./ExerciseMeta";
 import { MathText } from "./MathText";
 
-/** Solutions envoyées : un compteur, les solutions elles-mêmes restent privées. */
+/** Solutions envoyées : un compteur, les solutions elles-mêmes restent privées. Rien quand il
+ * n'y en a pas : « aucune solution » sur chaque ligne ferait croire le site vide. */
 function solutionsLabel(count: number) {
-  return count === 0 ? "aucune solution" : `${count} solution${count > 1 ? "s" : ""} envoyée${count > 1 ? "s" : ""}`;
+  return count === 0 ? null : `${count} solution${count > 1 ? "s" : ""} envoyée${count > 1 ? "s" : ""}`;
 }
 
 type Tag = { label: string; className: string };
@@ -44,6 +45,7 @@ export function ExerciseList({
         const tag = tagOf(exercise);
         const moreLevels = exercise.levels.length - PHONE_LEVELS;
         const author = showAuthor ? exercise.author_profile : null;
+        const sent = solutionsLabel(exercise.submitted_solutions);
         return (
           <li key={exercise.id}>
             <div className="relative -mx-3 flex items-center gap-5 rounded-xl px-3 py-4 hover:bg-hover">
@@ -92,15 +94,17 @@ export function ExerciseList({
                   )}
                   <span aria-hidden="true">·</span>
                   <Difficulty value={exercise.difficulty} short />
-                  <span className="ml-auto flex gap-2 sm:hidden">
-                    {tag && <span className={tag.className}>{tag.label}</span>}
-                    <span>{solutionsLabel(exercise.submitted_solutions)}</span>
-                  </span>
+                  {(tag || sent) && (
+                    <span className="ml-auto flex gap-2 sm:hidden">
+                      {tag && <span className={tag.className}>{tag.label}</span>}
+                      {sent && <span>{sent}</span>}
+                    </span>
+                  )}
                 </span>
               </span>
               <span className="hidden w-36 shrink-0 text-right text-[13px] sm:block">
                 {tag && <span className={`block ${tag.className}`}>{tag.label}</span>}
-                <span className="block text-mute">{solutionsLabel(exercise.submitted_solutions)}</span>
+                {sent && <span className="block text-mute">{sent}</span>}
               </span>
             </div>
           </li>

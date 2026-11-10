@@ -42,6 +42,24 @@ class ChallengeTestCase(ContentTestCase):
 
 
 class OpeningTests(ChallengeTestCase):
+    def test_levels_of_the_same_year_share_one_challenge(self):
+        # Un gabarit de MPSI, la même année que le L1 du défi déjà ouvert : pas de second défi.
+        other = self.make_exercise(level="MPSI")
+        ChallengeTemplate.objects.create(exercise=other, statement="Calculer ${{a}} + 1$.", parameters={"a": [1, 2]}, answer="a + 1")
+        # Un gabarit de L3 : un autre groupe, donc un défi de plus.
+        third = self.make_exercise(level="L3")
+        ChallengeTemplate.objects.create(exercise=third, statement="Calculer ${{a}} + 2$.", parameters={"a": [1, 2]}, answer="a + 2")
+
+        opened = challenges.open_challenges(now=self.now)
+        self.assertEqual([challenge.level.code for challenge in opened], ["L3"])
+
+        # En MPSI, on est prévenu du défi de 1re année, quel que soit le niveau de l'exercice tiré.
+        fan = make_user("mpsi", level="MPSI", daily_challenge_notifications=True)
+        [first_year] = [c for c in challenges.open_challenges(now=self.now + timedelta(days=1)) if c.level.year == 1]
+        self.assertIn(first_year.level.code, ("L1", "MPSI"))
+        alert = Notification.objects.get(user=fan, kind=Notification.Kind.CHALLENGE)
+        self.assertIn("1re année", alert.title)
+
     def test_one_challenge_per_level_and_day_with_opt_in_notifications(self):
         self.assertEqual(self.challenge.level, self.exercise.primary_level)
         self.assertEqual(self.challenge.closes_at - self.challenge.opens_at, timedelta(days=1))
@@ -192,6 +210,8 @@ class ChallengeApiTests(ChallengeTestCase):
     def test_today_lists_the_challenge_without_its_statement(self):
         [item] = self.client.get("/api/challenges/today").json()
         self.assertEqual(item["level"], self.challenge.level.code)
+        self.assertEqual(item["group_label"], "1re année · L1 et sup")
+        self.assertEqual(set(item["group_levels"]), {"L1", "MPSI", "MP2I", "PCSI", "PTSI"})
         self.assertEqual(item["points_max"], 31)  # 25 × 1,25, bonus de rapidité compris
         self.assertIsNone(item["attempt"])
         self.assertNotIn("statement", item)

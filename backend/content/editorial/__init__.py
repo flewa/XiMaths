@@ -9,5 +9,6 @@ doublons qu'un exercice proposé sur le site.
 
 from .lot1 import EXERCISES as LOT1
 from .lot2 import EXERCISES as LOT2
+from .lot3 import EXERCISES as LOT3
 
-EXERCISES = LOT1 + LOT2
+EXERCISES = LOT1 + LOT2 + LOT3

@@ -12,7 +12,6 @@ from django.utils import timezone
 from PIL import Image
 
 from moderation.comprehension import _solution_blocks
-from moderation.models import SolutionPrint
 
 from . import photos
 from .models import PhotoUpload, Solution, SolutionPhoto
@@ -244,7 +243,7 @@ class SolutionWithPhotosTests(PhotoTestCase):
         self.send(token)
         self.assertEqual(self.propose(token).status_code, 422)
 
-    def test_two_photo_solutions_are_not_taken_for_plagiarism(self):
+    def test_two_photo_solutions_both_go_to_review(self):
         first = make_user("marc", level="L1", email_verified_at=timezone.now())
         for author in (first, self.student):
             token = self.open_upload(user=author)
@@ -253,7 +252,6 @@ class SolutionWithPhotosTests(PhotoTestCase):
 
         mine = Solution.objects.get(author=self.student)
         self.assertEqual(mine.status, Solution.Status.UNDER_REVIEW)
-        self.assertEqual(SolutionPrint.objects.get(solution=mine).signature, [])
 
     def test_reviewers_receive_the_photos(self):
         token = self.open_upload()
@@ -295,11 +293,7 @@ class VisibilityTests(PhotoTestCase):
         self.assertEqual(self.status_for(make_user("expert", trust=TL.EXPERT)), 404)
         self.assertEqual(self.status_for(None), 404)
 
-    def test_experts_see_a_contested_solution_but_nobody_else_a_validated_one(self):
-        expert = make_user("expert", trust=TL.EXPERT)
-        Solution.objects.filter(pk=self.solution.pk).update(status=Solution.Status.CONTESTED)
-        self.assertEqual(self.status_for(expert), 200)
-
+    def test_a_validated_copy_stays_private(self):
         # Validée, la copie reste privée : son auteur et ses relecteurs seulement.
         Solution.objects.filter(pk=self.solution.pk).update(status=Solution.Status.VALIDATED)
         self.assertEqual(self.status_for(None), 404)

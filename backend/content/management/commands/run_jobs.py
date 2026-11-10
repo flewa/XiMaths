@@ -20,7 +20,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from content.photos import purge as purge_photos
-from content.services import review_deadlines
+from content.services import alert_team, review_deadlines
 from gamification.rankings import Week
 from gamification.streaks import close_week
 from moderation.services import comprehension_tick, lift_expired, purge_signals
@@ -45,6 +45,7 @@ HOURLY = {
     "défis du jour à ouvrir": lambda now: len(open_challenges(now=now)),
     "défis à rendre (échéance passée)": lambda now: close_expired(now=now),
     "relectures en retard (relances, réattributions)": lambda now: review_deadlines(now=now),
+    "copies sans correction depuis 72 h (alerte à l'équipe)": lambda now: alert_team(now=now),
     "sanctions arrivées à échéance": lambda now: lift_expired(now=now),
     "questions de compréhension (rédaction, délais, préévaluation)": lambda now: comprehension_tick(now=now),
     "emails retenus pendant les heures calmes": lambda now: send_pending_emails(now=now),

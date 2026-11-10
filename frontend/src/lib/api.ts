@@ -181,8 +181,12 @@ export type TrainingSession = {
 
 export type DailyChallenge = {
   id: number;
+  /** Niveau de l'exercice tiré : ses points comptent pour ce niveau. */
   level: string;
   level_name: string;
+  /** Groupe de niveaux auquel le défi s'adresse (« 1re année · L1 et sup »), et ses niveaux. */
+  group_label: string;
+  group_levels: string[];
   exercise_title: string;
   difficulty: number;
   minutes: number;
@@ -240,7 +244,6 @@ export type ProgressSummary = {
   /** Exercices différents réussis (solution validée). */
   validated_exercises: number;
   copies_sent: number;
-  /** En relecture, en vérification ou en arbitrage. */
   in_review: number;
   needs_work: number;
   points_week: number;
@@ -394,13 +397,7 @@ export type Member = {
 
 export type ProfileOptions = { colors: string[]; symbols: string[] };
 
-export type SolutionStatus =
-  | "held"
-  | "under_review"
-  | "contested"
-  | "validated"
-  | "needs_work"
-  | "hidden";
+export type SolutionStatus = "under_review" | "validated" | "needs_work" | "hidden";
 
 export type AuthorReview = {
   verdict: "correcte" | "lacunes" | "incorrecte";
@@ -421,10 +418,6 @@ export type MySolution = {
   reviews: AuthorReview[];
   /** Relectures attendues (trois au moins) ; 0 tant que la copie n'est pas en relecture. */
   reviews_expected: number;
-  /** Solution en vérification : la question neutre, et la réponse déjà donnée. */
-  integrity_signal_id: number | null;
-  integrity_question: string | null;
-  integrity_answer: string | null;
 };
 
 export type ReviewTask = {
@@ -591,33 +584,18 @@ export async function fetchProviders() {
   return (await get<{ google: boolean }>("/auth/providers")) ?? { google: false };
 }
 
-export type Arbitration = {
-  solution_id: number;
-  exercise_id: number;
-  exercise_title: string;
-  exercise_statement: string;
-  solution_body: string;
-  solution_photos: CopyPhoto[];
-  expected_answer: string;
-  ai_usage: AiUsage;
-  reviews: { verdict: string; feedback: string; weight: number }[];
-};
-
+/** Copie en relecture que l'on peut choisir de relire (l'équipe : de corriger). */
 export type OpenSolution = {
   solution_id: number;
   exercise_id: number;
   exercise_title: string;
   primary_level: string;
   published_at: string | null;
+  /** Heures passées en relecture, depuis l'envoi ou la dernière révision. */
+  waiting_hours: number;
+  reviews_done: number;
+  reviews_expected: number;
 };
-
-/** null si le visiteur n'est ni expert ni modérateur. */
-export function fetchArbitrations() {
-  return get<Arbitration[]>("/arbitrations").catch((error: Error) => {
-    if (error.message.endsWith("HTTP 403")) return null;
-    throw error;
-  });
-}
 
 export type QuestionStatus =
   | "envoyee"

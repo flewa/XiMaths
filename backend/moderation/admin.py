@@ -12,7 +12,6 @@ from .models import Appeal, ComprehensionQuestion, IntegritySignal, Report, Sanc
 from .services import (
     APPEAL_RESPONSE,
     decide_appeal,
-    decide_signal,
     evaluate_question,
     lift,
     resolve_report,
@@ -134,74 +133,25 @@ class ReportAdmin(admin.ModelAdmin):
             self.message_user(request, str(error), messages.ERROR)
 
 
-class SignalDecisionForm(forms.ModelForm):
-    decision = forms.ChoiceField(
-        label="Décision",
-        required=False,
-        choices=[("", "—"), (REJECT, "Lever : la solution part en relecture"), (CONFIRM, "Plagiat confirmé")],
-    )
-    motif = forms.CharField(
-        label="Motif",
-        required=False,
-        widget=forms.Textarea(attrs={"rows": 3}),
-        help_text="Obligatoire pour confirmer : il est communiqué à l'auteur, qui peut faire appel.",
-    )
-
-    class Meta:
-        model = IntegritySignal
-        fields = []
-
-    def clean(self):
-        data = super().clean()
-        if data.get("decision") == CONFIRM and not data.get("motif", "").strip():
-            self.add_error("motif", "Motive la décision.")
-        return data
-
-
 @admin.register(IntegritySignal)
 class IntegritySignalAdmin(admin.ModelAdmin):
-    """Solutions en vérification : jamais de sanction sur un signal seul, un humain tranche."""
+    """Signaux d'intégrité déjà tranchés : un historique, en lecture seule. Plus aucun
+    signal n'est créé automatiquement ; un plagiat se signale par un relecteur."""
 
-    form = SignalDecisionForm
     list_display = ("created_at", "kind", "user", "value", "status")
     list_filter = ("status", "kind")
     search_fields = ("user__username",)
-    readonly_fields = ("comparison", "kind", "user", "value", "author_answer", "status", "decided_by", "decided_at", "decision_note")
+    readonly_fields = ("kind", "user", "value", "author_answer", "status", "decided_by", "decided_at", "decision_note")
+    fields = readonly_fields
 
     def has_add_permission(self, request):
         return False
 
-    def has_delete_permission(self, request, obj=None):
+    def has_change_permission(self, request, obj=None):
         return False
 
-    def get_fieldsets(self, request, obj=None):
-        fieldsets = [(None, {"fields": self.readonly_fields})]
-        if obj and obj.status == IntegritySignal.Status.OPEN:
-            fieldsets.append(("Décision", {"fields": ("decision", "motif")}))
-        return fieldsets
-
-    @admin.display(description="Solutions côte à côte")
-    def comparison(self, signal):
-        column = '<div style="flex:1;min-width:0"><strong>{}</strong><pre style="white-space:pre-wrap">{}</pre></div>'
-        matched = signal.matched_solution
-        return format_html(
-            '<div style="display:flex;gap:2rem">' + column + column + "</div>",
-            f"Nouvelle, de {signal.user}",
-            signal.solution.body if signal.solution else "—",
-            f"Antérieure, de {matched.author if matched else '—'}",
-            matched.body if matched else "—",
-        )
-
-    def save_model(self, request, obj, form, change):
-        decision = form.cleaned_data.get("decision")
-        if not decision:
-            return
-        try:
-            decide_signal(
-                obj, confirmed=decision == CONFIRM, moderator=request.user, note=form.cleaned_data.get("motif", "")
-            )
-        except (RuleError, PermissionDenied) as error:
-            self.message_user(request, str(error), messages.ERROR)
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.action(description="Lever la sanction")

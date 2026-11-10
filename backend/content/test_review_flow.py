@@ -1,5 +1,4 @@
 from datetime import timedelta
-from decimal import Decimal
 
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
@@ -9,7 +8,7 @@ from gamification.services import balance
 from notifications.models import Notification
 
 from .models import Review, Solution
-from .services import recommend_solution, review_deadlines, revise_solution, submit_review, volunteer_review
+from .services import alert_team, review_deadlines, revise_solution, submit_review, volunteer_review
 from .tests import TL, ContentTestCase, make_user
 
 Verdict = Review.Verdict
@@ -45,17 +44,17 @@ class DeadlineTests(ReviewFlowTestCase):
 
 
 class VolunteerTests(ReviewFlowTestCase):
-    def test_a_volunteer_review_weighs_half(self):
+    def test_a_volunteer_review_joins_the_drawn_ones(self):
         solution = self.publish()
-        volunteer = self.reviewers[-1]
-        if solution.reviews.filter(reviewer=volunteer).exists():
-            volunteer = make_user("volontaire", trust=TL.REVIEWER)
+        volunteer = make_user("volontaire", trust=TL.REVIEWER)
 
         review = volunteer_review(solution, volunteer)
-        submit_review(review, Verdict.CORRECT)
+        status = submit_review(review, Verdict.CORRECT, feedback="Juste.")
 
         review.refresh_from_db()
-        self.assertEqual((review.assigned, review.weight), (False, Decimal("0.5")))
+        self.assertFalse(review.assigned)
+        # Elle ne décide pas seule : les trois relectures tirées au sort restent attendues.
+        self.assertEqual(status, Solution.Status.UNDER_REVIEW)
         with self.assertRaises(RuleError):
             volunteer_review(solution, volunteer)
 
@@ -121,42 +120,48 @@ class RevisionTests(ReviewFlowTestCase):
             revise_solution(self.publish(), "Texte assez long pour être une solution valable.")
 
 
-class RecommendationTests(ReviewFlowTestCase):
-    def test_solutions_are_private_so_recommendations_are_closed(self):
+class TeamTests(ReviewFlowTestCase):
+    """Le filet : l'équipe du site voit les copies en attente, est prévenue quand l'une
+    d'elles attend trop, et sa relecture vaut décision."""
+
+    def setUp(self):
+        super().setUp()
+        self.team = make_user("equipe", is_staff=True, email_verified_at=timezone.now())
+
+    def test_the_team_lists_waiting_copies_and_corrects_one(self):
         solution = self.publish()
-        for review in self.assigned(solution):
-            submit_review(review, Verdict.CORRECT, feedback="Juste.")
-        solution.refresh_from_db()
-        with self.assertRaises(RuleError):
-            recommend_solution(solution, self.author)
+        self.client.force_login(self.team)
 
+        [item] = self.client.get("/api/reviews/open").json()
+        self.assertEqual((item["solution_id"], item["reviews_done"], item["reviews_expected"]), (solution.pk, 0, 3))
 
-class ArbitrationApiTests(ReviewFlowTestCase):
-    def contested(self):
-        """Solution contestée sous l'ancienne règle (deux avis opposés), avant le consensus :
-        un expert la tranche toujours."""
-        solution = self.publish()
-        reviews = self.assigned(solution)
-        now = timezone.now()
-        for review, verdict in ((reviews[0], Verdict.CORRECT), (reviews[1], Verdict.INCORRECT)):
-            Review.objects.filter(pk=review.pk).update(verdict=verdict, feedback="Avis.", weight=1, submitted_at=now)
-        Solution.objects.filter(pk=solution.pk).update(status=Solution.Status.CONTESTED)
-        solution.refresh_from_db()
-        return solution
-
-    def test_an_expert_sees_the_verdicts_and_decides(self):
-        solution = self.contested()
-        expert = make_user("experte", trust=TL.EXPERT, email_verified_at=timezone.now())
-        self.client.force_login(expert)
-
-        [item] = self.client.get("/api/arbitrations").json()
-        self.assertEqual({r["verdict"] for r in item["reviews"]}, {"correcte", "incorrecte"})
-        response = self.client.post(
-            f"/api/arbitrations/{solution.pk}", {"validate_solution": True}, content_type="application/json"
+        task = self.client.post(f"/api/solutions/{solution.pk}/volunteer").json()
+        self.assertEqual(task["solution_id"], solution.pk)
+        result = self.client.post(
+            f"/api/reviews/{task['id']}",
+            {"verdict": "correcte", "feedback": "Preuve juste et bien rédigée."},
+            content_type="application/json",
         )
-        self.assertEqual(response.json()["solution_status"], "validated")
+        self.assertEqual(result.json()["solution_status"], "validated")
+        self.assertEqual(self.client.get("/api/reviews/open").json(), [])
 
-    def test_members_cannot_arbitrate(self):
-        self.contested()
-        self.client.force_login(make_user("membre", trust=TL.MEMBER))
-        self.assertEqual(self.client.get("/api/arbitrations").status_code, 403)
+    def test_the_team_is_alerted_once_a_day_about_copies_waiting_three_days(self):
+        solution = self.publish()
+        sent = solution.updated_at
+        kind = Notification.Kind.TEAM_ALERT
+
+        self.assertEqual(alert_team(now=sent + timedelta(hours=71)), 0)
+        self.assertEqual(alert_team(now=sent + timedelta(hours=73)), 1)
+        alert = Notification.objects.get(user=self.team, kind=kind)
+        self.assertIn("Une copie attend", alert.title)
+        # Par email aussi : envoyé aussitôt, ou retenu jusqu'à 8 h pendant les heures calmes.
+        self.assertTrue(alert.email_pending or alert.emailed_at)
+        # L'alerte porte l'heure réelle : on la date de l'heure simulée, pour la suite.
+        Notification.objects.filter(pk=alert.pk).update(created_at=sent + timedelta(hours=73))
+        # Pas deux fois dans la journée ; de nouveau le lendemain, tant qu'elle attend.
+        self.assertEqual(alert_team(now=sent + timedelta(hours=80)), 0)
+        self.assertEqual(alert_team(now=sent + timedelta(hours=97)), 1)
+        # Une copie corrigée n'alerte plus personne.
+        submit_review(volunteer_review(solution, self.team), Verdict.CORRECT, feedback="Juste.")
+        self.assertEqual(alert_team(now=sent + timedelta(hours=130)), 0)
+        self.assertFalse(Notification.objects.filter(kind=kind).exclude(user=self.team).exists())

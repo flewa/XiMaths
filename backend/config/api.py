@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from ninja import NinjaAPI
 
@@ -11,7 +12,14 @@ from training.api import router as training_router
 
 from .errors import RuleError
 
-api = NinjaAPI(title="XiMaths API", version="0.4.0")
+# La documentation interactive sert au développement ; en production, elle ne sert à aucun
+# visiteur et décrit toute l'API à qui la cherche.
+api = NinjaAPI(
+    title="XiMaths API",
+    version="0.4.0",
+    docs_url="/docs" if settings.DEBUG else None,
+    openapi_url="/openapi.json" if settings.DEBUG else None,
+)
 api.add_router("/auth", auth_router)
 api.add_router("/", content_router)
 api.add_router("/", progression_router)

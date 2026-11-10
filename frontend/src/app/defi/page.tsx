@@ -11,7 +11,7 @@ import { MathText } from "@/components/MathText";
 export const metadata: Metadata = {
   title: "Défi du jour",
   description:
-    "Un défi chronométré par niveau, chaque jour : 30 minutes, une seule tentative, un énoncé tiré pour toi, une copie écrite à la main.",
+    "Un défi chronométré chaque jour, de la 1re année au master : 30 minutes, une seule tentative, un énoncé tiré pour toi, une copie écrite à la main.",
 };
 
 const RULES = [
@@ -55,12 +55,16 @@ function ChallengeCard({ challenge, me }: { challenge: DailyChallenge; me: Me | 
     <li className="py-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2>
-          {challenge.level_name} <span className="font-normal text-mute">· <MathText>{challenge.exercise_title}</MathText></span>
+          {challenge.group_label}{" "}
+          <span className="font-normal text-mute">
+            · <MathText>{challenge.exercise_title}</MathText>
+          </span>
         </h2>
         {challenge.attempt && <Tag strong>{ATTEMPT_LABELS[challenge.attempt.status]}</Tag>}
       </div>
       <p className="mt-1 text-sm text-mute">
-        <Difficulty value={challenge.difficulty} /> · jusqu&apos;à {challenge.points_max} points ·{" "}
+        Exercice de {challenge.level} · <Difficulty value={challenge.difficulty} /> · jusqu&apos;à{" "}
+        {challenge.points_max} points ·{" "}
         {challenge.hint_count} indication{challenge.hint_count > 1 ? "s" : ""}
       </p>
       <div className="mt-3">
@@ -89,17 +93,18 @@ export default async function ChallengePage() {
     return <ApiUnavailable />;
   }
   const [me, challenges] = data;
-  // Le niveau déclaré d'abord : c'est le défi de tes pairs.
-  const ordered = [...challenges].sort(
-    (a, b) => Number(b.level === me?.declared_level) - Number(a.level === me?.declared_level),
-  );
+  // Le groupe de ton niveau déclaré d'abord : c'est le défi de tes pairs.
+  const mine = (challenge: DailyChallenge) =>
+    Boolean(me?.declared_level && challenge.group_levels.includes(me.declared_level));
+  const ordered = [...challenges].sort((a, b) => Number(mine(b)) - Number(mine(a)));
 
   return (
     <div className="max-w-[720px]">
       <h1>Défi du jour</h1>
       <p className="mt-2 text-body">
-        Un exercice par niveau, chaque jour, compté dans le classement de la semaine. Tu peux relever
-        celui de n&apos;importe quel niveau : les points comptent pour le niveau de l&apos;exercice.
+        Chaque jour, un exercice pour la 1re année, un pour la 2e, un pour la L3 et un pour le master, comptés
+        dans le classement de la semaine. Tu peux relever n&apos;importe lequel : les points comptent pour le
+        niveau de l&apos;exercice.
       </p>
 
       <ul className="mt-6 space-y-2 text-body">
@@ -122,7 +127,7 @@ export default async function ChallengePage() {
       )}
       {me && (
         <p className="mt-6 text-sm text-mute">
-          Être prévenu à l&apos;ouverture :{" "}
+          Recevoir une notification à l&apos;ouverture :{" "}
           <Link href="/reglages" className="underline underline-offset-4">
             réglages
           </Link>

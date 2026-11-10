@@ -11,6 +11,7 @@ from ninja.security import django_auth
 from pydantic import Field
 
 from accounts.permissions import contributor
+from catalog.models import Level
 from content import photos
 from content.api import PhotoUploadOut
 from content.models import Exercise
@@ -219,8 +220,12 @@ class MyAttemptOut(Schema):
 
 class ChallengeOut(Schema):
     id: int
+    # Niveau de l'exercice tiré : ses points comptent pour ce niveau.
     level: str
     level_name: str
+    # Groupe de niveaux auquel le défi s'adresse, et les niveaux qu'il réunit.
+    group_label: str
+    group_levels: list[str]
     exercise_title: str
     difficulty: int
     minutes: int
@@ -232,10 +237,13 @@ class ChallengeOut(Schema):
 
 def _challenge_out(challenge, attempt):
     exercise = challenge.template.exercise
+    _, label, years = challenges.group_of(challenge.level)
     return {
         "id": challenge.pk,
         "level": challenge.level.code,
         "level_name": challenge.level.name,
+        "group_label": label,
+        "group_levels": [level.code for level in Level.objects.filter(year__in=years)],
         "exercise_title": exercise.title,
         "difficulty": exercise.difficulty,
         "minutes": challenges.MINUTES,
@@ -253,7 +261,7 @@ def _challenge_out(challenge, attempt):
 
 @router.get("/challenges/today", response=list[ChallengeOut])
 def today(request):
-    """Défis ouverts aujourd'hui, un par niveau. L'énoncé n'est envoyé qu'au départ."""
+    """Défis ouverts aujourd'hui, un par groupe de niveaux. L'énoncé n'est envoyé qu'au départ."""
     now = timezone.now()
     open_challenges = list(challenges.open_today(now))
     attempts = {}

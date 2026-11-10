@@ -319,7 +319,6 @@ class SummaryOut(Schema):
     # Exercices différents réussis (solution validée, hors solution générée par IA).
     validated_exercises: int
     copies_sent: int
-    # En relecture, en vérification ou en arbitrage.
     in_review: int
     needs_work: int
     points_week: int
@@ -370,11 +369,8 @@ COPIES_SHOWN = 8
 COPY_ORDER = {
     Solution.Status.NEEDS_WORK: 0,
     Solution.Status.UNDER_REVIEW: 1,
-    Solution.Status.CONTESTED: 1,
-    Solution.Status.HELD: 1,
     Solution.Status.VALIDATED: 2,
 }
-IN_REVIEW = (Solution.Status.UNDER_REVIEW, Solution.Status.CONTESTED, Solution.Status.HELD)
 
 
 def _summary(user, week):
@@ -389,7 +385,7 @@ def _summary(user, week):
         # Un exercice fusionné compte avec son canonique : deux doublons, un exercice.
         "validated_exercises": len({merged or exercise for exercise, merged in validated}),
         "copies_sent": sum(by_status.values()),
-        "in_review": sum(by_status.get(status, 0) for status in IN_REVIEW),
+        "in_review": by_status.get(Solution.Status.UNDER_REVIEW, 0),
         "needs_work": by_status.get(Solution.Status.NEEDS_WORK, 0),
         "points_week": points_by_user(week=week, user=user).get(user.pk, 0),
         "reviews_done": Review.objects.filter(reviewer=user).exclude(submitted_at=None).count(),
@@ -405,7 +401,7 @@ def _copies(user):
     shown = sorted(recent, key=lambda solution: COPY_ORDER[solution.status])[:COPIES_SHOWN]
     copies = []
     for solution in shown:
-        done, expected = (0, 0) if solution.status == Solution.Status.HELD else review_progress(solution)
+        done, expected = review_progress(solution)
         copies.append(
             {
                 "id": solution.pk,

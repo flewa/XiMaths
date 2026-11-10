@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { AudienceOptOut } from "@/components/Audience";
 import { Bullets, ProseSection } from "@/components/Prose";
+import { CONTACT_EMAIL } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Confidentialité",
@@ -13,6 +14,20 @@ export default function PrivacyPage() {
   return (
     <article className="max-w-[720px]">
       <h1>Confidentialité</h1>
+
+      <ProseSection title="Qui est responsable">
+        <p>
+          Le responsable de tes données est l&apos;éditeur de XiMaths (voir les{" "}
+          <Link href="/mentions-legales" className="underline underline-offset-4">
+            mentions légales
+          </Link>
+          ). Elles sont hébergées chez OVH. Pour toute question :{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`} className="underline underline-offset-4">
+            {CONTACT_EMAIL}
+          </a>
+          .
+        </p>
+      </ProseSection>
 
       <ProseSection title="Ce que nous collectons">
         <Bullets
@@ -33,7 +48,7 @@ export default function PrivacyPage() {
         <Bullets
           items={[
             "Faire fonctionner le service : publication, relecture par les pairs, points et classements.",
-            "Protéger la communauté : limites de débit, détection des doublons et du plagiat, comptes liés. Aucune sanction n'est automatique.",
+            "Protéger la communauté : limites de débit, détection des doublons, comptes liés. Aucune sanction n'est automatique.",
             "T'envoyer les emails que tu as choisis dans les réglages.",
           ]}
         />
@@ -75,7 +90,7 @@ export default function PrivacyPage() {
             "Notifications : 6 mois.",
             "Photos de copie jamais jointes à une solution : effacées au bout d'un jour.",
             "Abonnements push : jusqu'à ce que tu les désactives, ou que ton navigateur les révoque.",
-            "Signaux d'intégrité (plagiat, collages) : jusqu'à la décision de modération, puis effacés au plus tard après 1 an.",
+            "Décisions de modération pour plagiat : effacées au plus tard 1 an après la décision.",
             "Questions de compréhension : tant que le compte existe ; elles sont effacées avec lui.",
             "Mesure d'audience : 25 mois, puis effacée.",
           ]}
@@ -90,7 +105,11 @@ export default function PrivacyPage() {
           </Link>
           , tu peux télécharger toutes tes données et supprimer ton compte. La suppression efface tes
           données personnelles ; tes contributions restent publiées sans ton pseudo, conformément à leur
-          licence. Tu peux aussi saisir la CNIL.
+          licence. Pour corriger une information, t&apos;opposer à un traitement ou poser une question, écris à{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`} className="underline underline-offset-4">
+            {CONTACT_EMAIL}
+          </a>
+          . Tu peux aussi saisir la CNIL.
         </p>
       </ProseSection>
     </article>

@@ -13,8 +13,6 @@ POINTS = {
     Reason.SOLUTION_ATTEMPT: 2,
     Reason.SOLUTION_VALIDATED: 15,
     Reason.FIRST_VALIDATED: 10,
-    Reason.SOLUTION_UPVOTED: 2,
-    Reason.SOLUTION_RECOMMENDED: 5,
     Reason.REVIEW_AGREED: 2,
     Reason.REPORT_CONFIRMED: 3,
     Reason.PLAGIARISM_PENALTY: -50,
@@ -46,11 +44,10 @@ UNVALIDATED_DAILY_CAP = 40
 MEMBER_MIN_DAYS = 7
 MEMBER_MIN_POINTS = 30
 
-# Plafonds par cible : par exercice pour EXERCISE_*, par solution pour SOLUTION_UPVOTED.
+# Plafonds par exercice.
 PER_TARGET_CAPS = {
     Reason.EXERCISE_SOLVED: 30,
     Reason.EXERCISE_UPVOTED: 20,
-    Reason.SOLUTION_UPVOTED: 20,
 }
 
 
