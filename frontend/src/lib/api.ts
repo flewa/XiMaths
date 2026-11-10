@@ -181,8 +181,12 @@ export type TrainingSession = {
 
 export type DailyChallenge = {
   id: number;
+  /** Niveau de l'exercice tiré : ses points comptent pour ce niveau. */
   level: string;
   level_name: string;
+  /** Groupe de niveaux auquel le défi s'adresse (« 1re année · L1 et sup »), et ses niveaux. */
+  group_label: string;
+  group_levels: string[];
   exercise_title: string;
   difficulty: number;
   minutes: number;

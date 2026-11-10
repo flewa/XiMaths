@@ -137,7 +137,7 @@ uv run python manage.py scan_duplicates --reindex --all   # après un changement
 
 ## Interface
 
-- **Accueil d'un membre** : sa semaine en sept cases, le défi du jour de son niveau présenté comme un énoncé de manuel, puis ce qui l'attend (relectures à rendre, prochain exercice tiré de la carte de compétences, notifications non lues). Un visiteur voit la promesse, un bouton d'inscription et les trois étapes du site.
+- **Accueil d'un membre** : sa semaine en sept cases, le défi du jour de son groupe de niveaux présenté comme un énoncé de manuel, puis ce qui l'attend (relectures à rendre, prochain exercice tiré de la carte de compétences, notifications non lues). Un visiteur voit la promesse, un bouton d'inscription et les trois étapes du site.
 - **Mobile et tablette** (sous 1 024 px) : barre d'onglets en bas d'écran, à portée du pouce (Fil, Parcourir, Publier, Défi, Moi), masquée pendant une session chronométrée ; en-tête réduit au logo, aux notifications et au menu.
 - **Accessibilité** : contrastes d'au moins 4,5:1 (marqueurs d'état, textes sur la surface sombre, indications des champs), anneau de focus de 2 px sur toutes les surfaces, lien « Aller au contenu », cibles tactiles d'au moins 24 px, onglets qui ramènent l'onglet actif dans la vue.
 
@@ -164,7 +164,7 @@ Sur l'accueil, des onglets (`?vue=`) passent du fil aux vues triées : sans solu
 
 ## Défi du jour
 
-Un défi par niveau, chaque jour, sur `/defi`. Les modérateurs créent des gabarits dans l'admin (« Entraînement › Gabarits de défi ») : un exercice publié, un énoncé avec des paramètres (`{{a}}`), leurs valeurs possibles, et la réponse en fonction des paramètres (`sqrt(a)/b`). Le formulaire vérifie le gabarit et montre un exemple de tirage.
+Chaque jour, sur `/defi`, un défi par groupe de niveaux : 1re année (L1 et sup), 2e année (L2 et spé), L3, master. Le défi porte le niveau de l'exercice tiré, pour lequel comptent ses points ; un gabarit ne revient pas dans son groupe avant une semaine, s'il y a le choix. Les modérateurs créent des gabarits dans l'admin (« Entraînement › Gabarits de défi ») : un exercice publié, un énoncé avec des paramètres (`{{a}}`), leurs valeurs possibles, et la réponse en fonction des paramètres (`sqrt(a)/b`). Le formulaire vérifie le gabarit et montre un exemple de tirage.
 
 - **Fenêtre de 24 h**, de minuit à minuit ; 30 minutes ; **une seule tentative**, qu'abandonner consomme.
 - **Énoncé tiré pour chacun** : partager sa réponse ne sert à rien. Les relecteurs voient l'énoncé tiré de l'auteur et la réponse attendue pour ses valeurs.

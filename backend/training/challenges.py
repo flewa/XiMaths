@@ -1,4 +1,6 @@
-"""Défi du jour, un par niveau. Règles du document de conception :
+"""Défi du jour, un par groupe de niveaux (1re année, 2e année, L3, master) : treize
+défis par jour, un par niveau, c'était treize salles presque vides et le même gabarit qui
+revenait tous les jours. Règles du document de conception :
 
 - fenêtre de 24 h, 30 minutes, une seule tentative : abandonner la consomme ;
 - gabarits paramétrés : chaque membre reçoit ses propres paramètres, partager sa
@@ -36,8 +38,20 @@ MINUTES = 30
 BASE_POINTS = 20
 SPEED_BONUS = 0.25
 HINT_PENALTY = 0.1
-# Un gabarit ne revient pas dans le même niveau avant une semaine, s'il y a le choix.
+# Un gabarit ne revient pas dans le même groupe avant une semaine, s'il y a le choix.
 REPEAT_AFTER_DAYS = 7
+# Groupes de niveaux, par année d'études : (identifiant, libellé, années).
+GROUPS = [
+    ("annee-1", "1re année · L1 et sup", (1,)),
+    ("annee-2", "2e année · L2 et spé", (2,)),
+    ("l3", "L3", (3,)),
+    ("master", "Master", (4, 5)),
+]
+
+
+def group_of(level):
+    """Groupe du défi pour ce niveau : (identifiant, libellé, années)."""
+    return next(group for group in GROUPS if level.year in group[2])
 PLACEHOLDER_RE = re.compile(r"\{\{\s*([a-z])\s*\}\}")
 PARAMETER_RE = re.compile(r"^[a-z]$")
 # Lettres réservées par la grammaire des réponses : e (Euler) et i (imaginaire).
@@ -111,37 +125,50 @@ def window(date):
 
 
 def open_challenges(*, now=None, rng=None):
-    """Ouvre le défi du jour de chaque niveau qui a un gabarit actif. Idempotent :
+    """Ouvre le défi du jour de chaque groupe de niveaux qui a un gabarit actif. Le défi
+    porte le niveau de l'exercice tiré : ses points comptent pour ce niveau. Idempotent :
     la tâche horaire l'appelle, le premier passage après minuit ouvre les défis."""
     now = now or timezone.now()
     rng = rng or random.Random()
     today = timezone.localdate(now)
     opened = []
     templates = ChallengeTemplate.objects.filter(active=True, exercise__status=Exercise.Status.PUBLISHED)
-    for level in Level.objects.filter(pk__in=templates.values("exercise__primary_level")):
-        if Challenge.objects.filter(level=level, date=today).exists():
+    for _, label, years in GROUPS:
+        levels = Level.objects.filter(year__in=years)
+        if Challenge.objects.filter(level__in=levels, date=today).exists():
             continue
-        candidates = list(templates.filter(exercise__primary_level=level).order_by("pk"))
+        candidates = list(
+            templates.filter(exercise__primary_level__in=levels).select_related("exercise").order_by("pk")
+        )
+        if not candidates:
+            continue
         recent = set(
-            Challenge.objects.filter(level=level, date__gte=today - timedelta(days=REPEAT_AFTER_DAYS)).values_list(
-                "template_id", flat=True
-            )
+            Challenge.objects.filter(
+                level__in=levels, date__gte=today - timedelta(days=REPEAT_AFTER_DAYS)
+            ).values_list("template_id", flat=True)
         )
         fresh = [template for template in candidates if template.pk not in recent] or candidates
+        template = rng.choice(fresh)
         opens_at, closes_at = window(today)
         try:
             with transaction.atomic():
                 challenge = Challenge.objects.create(
-                    level=level, date=today, template=rng.choice(fresh), opens_at=opens_at, closes_at=closes_at
+                    level_id=template.exercise.primary_level_id,
+                    date=today,
+                    template=template,
+                    opens_at=opens_at,
+                    closes_at=closes_at,
                 )
         except IntegrityError:
             continue
         opened.append(challenge)
-        for user in User.objects.filter(is_active=True, daily_challenge_notifications=True, declared_level=level):
+        for user in User.objects.filter(
+            is_active=True, daily_challenge_notifications=True, declared_level__in=levels
+        ):
             notify(
                 user,
                 Notification.Kind.CHALLENGE,
-                f"Le défi du jour {level.code} est ouvert",
+                f"Le défi du jour est ouvert ({label})",
                 "30 minutes, une seule tentative, jusqu'à minuit.",
                 "/defi",
                 now=now,

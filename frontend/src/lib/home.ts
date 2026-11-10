@@ -12,7 +12,7 @@ export function nextSkill(skills: Skill[]): Skill | null {
 
 /** Le défi du jour du niveau déclaré, s'il reste à relever. */
 export function openChallenge(challenges: DailyChallenge[], level: string | null) {
-  const mine = challenges.find((challenge) => challenge.level === level) ?? null;
+  const mine = (level && challenges.find((challenge) => challenge.group_levels.includes(level))) || null;
   return mine && mine.attempt === null ? mine : null;
 }
 
