@@ -162,6 +162,10 @@ Vingt niveaux, rangés en trois familles dans les menus : université (L1 à M2)
 - **Partage** : WhatsApp, Facebook, X, Pinterest, email, menu de partage du téléphone, copie du lien. De simples liens : aucun script tiers.
 - **Questions et remarques** : un fil public par exercice, écrit une fois connecté, avec des réponses sur un niveau. On n'y donne pas la solution. Chacun retire ses messages, l'équipe retire ceux qui n'ont pas leur place, tout membre peut signaler un message (l'équipe est prévenue au premier signalement).
 
+## Affiche à imprimer
+
+`/affiche` imprime une affiche A4 (Ctrl + P, marges à zéro) pour les BU, salles de prépa et CDI : le QR code mène au site avec `?utm_source=affiche`, et huit languettes à détacher portent l'adresse. À l'écran, un aperçu ; à l'impression, seule l'affiche sort, noir sur blanc quel que soit le thème. La page n'est pas indexée.
+
 ## Classements, badges et niveaux de confiance
 
 - **Classements** (`/classements`) : hebdomadaires par niveau et global, du lundi 0 h au dimanche 23 h 59 (heure de Paris), plus un Panthéon au second plan. Les points comptent pour le niveau de l'exercice. Top 50, puis ta position avec 5 voisins de chaque côté ; filtre « mes pairs ». 24 h de consolidation pour annuler des points frauduleux.
