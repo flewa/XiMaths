@@ -24,6 +24,9 @@ export type NavAccount = {
   pendingReviews: number;
   unreadNotifications: number;
   declaredLevel: string | null;
+  /** Équipe de modération, et ce qui attend dans ses files. */
+  team: boolean;
+  moderationPending: number;
 };
 
 type Item = {
@@ -75,6 +78,18 @@ function itemsFor(account: NavAccount | null): Item[] {
         count: account.pendingReviews,
         hot: true,
       },
+      ...(account.team
+        ? [
+            {
+              href: "/moderation",
+              icon: "shield" as IconName,
+              label: "Modération",
+              match: (path: string) => path.startsWith("/moderation"),
+              count: account.moderationPending,
+              hot: true,
+            },
+          ]
+        : []),
       {
         href: "/notifications",
         icon: "bell",

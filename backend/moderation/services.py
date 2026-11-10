@@ -16,27 +16,29 @@ from datetime import timedelta
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError, transaction
-from django.db.models import Q
+from django.db.models import F, Q
 from django.utils import timezone
 
 from accounts.links import linked_ids
 from accounts.permissions import is_moderator
 from config import llm
 from config.errors import RuleError
-from content.models import Exercise, Solution
+from content.models import Exercise, Message, Solution
 from content.services import assign_reviewers, award_author_points
 from duplicates.models import DuplicatePair
 from duplicates.services import open_reported_pair
 from gamification.badges import check_badges
 from gamification.models import PointTransaction
 from gamification.services import apply_plagiarism, award, restore_points_from, reverse_points_from
+from gamification.trust import promote
 from notifications.models import Notification
 from notifications.services import notify
 
 from . import comprehension
-from .models import Appeal, ComprehensionQuestion, IntegritySignal, Report, Sanction
+from .models import Appeal, ComprehensionQuestion, IntegritySignal, ModerationLog, Report, Sanction
 
 Kind = Notification.Kind
+Action = ModerationLog.Action
 
 User = get_user_model()
 Reason = Report.Reason
@@ -54,6 +56,18 @@ PAIR_OUTCOMES = {
     DuplicatePair.Status.VARIANTS: (True, "Exercices liés comme variantes par la modération."),
     DuplicatePair.Status.DISTINCT: (False, "Exercices jugés distincts par la modération."),
 }
+
+
+def log_action(actor, action, summary, *, member=None, url=""):
+    """Une ligne du journal de modération : qui a décidé quoi, et pourquoi."""
+    return ModerationLog.objects.create(actor=actor, action=action, member=member, summary=summary, url=url)
+
+
+def target_label(report):
+    """« l'exercice « … » », « une copie de « … » » : ce que vise un signalement."""
+    if report.exercise_id:
+        return f"l'exercice « {report.exercise.title} »"
+    return f"une copie de « {report.solution.exercise.title} »"
 
 
 @transaction.atomic
@@ -157,6 +171,15 @@ def resolve_report(report, *, confirmed, moderator, note="", now=None):
     now = now or timezone.now()
     if confirmed:
         _apply(report, note=note, now=now)
+    content = report.exercise or report.solution
+    exercise_id = report.exercise_id or report.solution.exercise_id
+    log_action(
+        moderator,
+        Action.REPORT_CONFIRMED if confirmed else Action.REPORT_REJECTED,
+        f"{report.get_reason_display()} sur {target_label(report)}" + (f". Motif : {note}" if note else "."),
+        member=content.author,
+        url=f"/exercices/{exercise_id}",
+    )
     same = Report.objects.filter(
         status=Status.OPEN, reason=report.reason, exercise=report.exercise, solution=report.solution
     )
@@ -240,6 +263,7 @@ def sanction(user, kind, *, reason, moderator, report=None, now=None):
         decided_by=moderator,
     )
     _restore_status(user, now=now)
+    log_action(moderator, Action.SANCTION, f"{SANCTION_TEXT[kind]}. Motif : {decision.reason}", member=user)
     notify(
         user,
         Kind.SANCTION,
@@ -251,12 +275,29 @@ def sanction(user, kind, *, reason, moderator, report=None, now=None):
     return decision
 
 
-def lift(decision, *, reason, now=None):
+def lift(decision, *, reason, moderator=None, now=None):
+    """Lève une sanction : à la fin de sa durée, en appel, ou par un modérateur (`moderator`),
+    qui en donne la raison au membre."""
     now = now or timezone.now()
     decision.lifted_at = now
     decision.lifted_reason = reason
     decision.save(update_fields=["lifted_at", "lifted_reason"])
     _restore_status(decision.user, now=now)
+    if moderator is not None:
+        log_action(
+            moderator,
+            Action.SANCTION_LIFTED,
+            f"{SANCTION_TEXT[decision.kind]} levée. Raison : {reason}",
+            member=decision.user,
+        )
+        notify(
+            decision.user,
+            Kind.SANCTION,
+            f"Sanction levée : {SANCTION_TEXT[decision.kind].lower()}",
+            f"Raison : {reason}",
+            "/decisions",
+            now=now,
+        )
     return decision
 
 
@@ -276,6 +317,8 @@ def _decision_facts(decision):
     if isinstance(decision, Report):
         content = decision.exercise or decision.solution
         return content.author_id, decision.decided_at, decision.decided_by_id
+    if isinstance(decision, Message):
+        return decision.author_id, decision.removed_at, decision.removed_by_id
     return decision.user_id, decision.decided_at, decision.decided_by_id
 
 
@@ -289,12 +332,14 @@ def create_appeal(user, decision, statement, *, now=None):
         raise RuleError("Seul un retrait confirmé peut faire l'objet d'un appel.")
     if isinstance(decision, IntegritySignal) and decision.status != IntegritySignal.Status.CONFIRMED:
         raise RuleError("Seul un plagiat confirmé peut faire l'objet d'un appel.")
+    if isinstance(decision, Message) and not (decision.removed_at and decision.removed_by_team):
+        raise RuleError("Seul un message retiré par l'équipe peut faire l'objet d'un appel.")
     now = now or timezone.now()
     if decided_at is None or now - decided_at > APPEAL_WINDOW:
         raise RuleError("Le délai d'appel de 14 jours est dépassé.")
     if not statement.strip():
         raise RuleError("Explique en quelques mots pourquoi la décision te semble injuste.")
-    field = {Sanction: "sanction", Report: "report", IntegritySignal: "signal"}[type(decision)]
+    field = {Sanction: "sanction", Report: "report", IntegritySignal: "signal", Message: "message"}[type(decision)]
     try:
         with transaction.atomic():
             return Appeal.objects.create(user=user, statement=statement.strip(), **{field: decision})
@@ -304,6 +349,11 @@ def create_appeal(user, decision, statement, *, now=None):
 
 def _restore_content(decision, *, now):
     """Appel accepté sur un retrait : le contenu revient, avec ses points."""
+    if isinstance(decision, Message):
+        # Le message revient ; la décision reste dans l'historique, avec son appel.
+        decision.removed_at = None
+        decision.save(update_fields=["removed_at"])
+        return
     if isinstance(decision, IntegritySignal):
         solution = decision.solution
         restore_points_from(solution, now=now)
@@ -349,6 +399,12 @@ def decide_appeal(appeal, *, overturn, moderator, note, now=None):
             lift(decision, reason="Annulée en appel.", now=now)
         else:
             _restore_content(decision, now=now)
+    log_action(
+        moderator,
+        Action.APPEAL_OVERTURNED if overturn else Action.APPEAL_UPHELD,
+        f"Appel examiné. Motif : {appeal.decision_note}",
+        member=appeal.user,
+    )
     notify(
         appeal.user,
         Kind.APPEAL_DECIDED,
@@ -510,3 +566,133 @@ def comprehension_tick(*, now=None):
         ).select_related("solution__exercise"):
             comprehension.preassess_with_llm(question)
     return done
+
+
+# ---------------------------------------------------------------- messages sous les exercices
+
+
+@transaction.atomic
+def remove_message(message, *, moderator, reason, now=None):
+    """L'équipe retire un message, avec un motif communiqué à son auteur, qui peut faire
+    appel. Les signalements du message sont tranchés du même coup."""
+    if not is_moderator(moderator):
+        raise PermissionDenied("Seule l'équipe retire les messages des autres.")
+    if message.author_id == moderator.pk:
+        raise RuleError("C'est ton message : retire-le depuis le fil, sans motif.")
+    if message.removed_at is not None:
+        raise RuleError("Ce message est déjà retiré.")
+    reason = reason.strip()
+    if not reason:
+        raise RuleError("Motive le retrait : le motif est communiqué à l'auteur du message.")
+    now = now or timezone.now()
+    message.removed_at = now
+    message.removed_by_team = True
+    message.removed_by = moderator
+    message.removal_reason = reason
+    message.flags_reviewed_at = now
+    message.save(update_fields=["removed_at", "removed_by_team", "removed_by", "removal_reason", "flags_reviewed_at"])
+    exercise = message.exercise
+    log_action(
+        moderator,
+        Action.MESSAGE_REMOVED,
+        f"Message sous « {exercise.title} ». Motif : {reason}",
+        member=message.author,
+        url=f"/exercices/{exercise.pk}#discussion",
+    )
+    notify(
+        message.author,
+        Kind.CONTENT_REMOVED,
+        f"L'équipe a retiré ton message sous « {exercise.title} »",
+        f"Motif : {reason}\n\nTu peux faire appel sous 14 jours depuis la page Mes décisions.",
+        "/decisions",
+        now=now,
+    )
+    return message
+
+
+def keep_message(message, *, moderator, now=None):
+    """L'équipe examine un message signalé et le garde : ses signalements sortent de la file."""
+    if not is_moderator(moderator):
+        raise PermissionDenied("Seule l'équipe examine les messages signalés.")
+    now = now or timezone.now()
+    message.flags_reviewed_at = now
+    message.save(update_fields=["flags_reviewed_at"])
+    log_action(
+        moderator,
+        Action.FLAGS_DISMISSED,
+        f"Message signalé sous « {message.exercise.title} », gardé.",
+        member=message.author,
+        url=f"/exercices/{message.exercise_id}#discussion",
+    )
+    return message
+
+
+def flagged_messages():
+    """Messages en ligne signalés depuis leur dernier examen par l'équipe."""
+    return (
+        Message.objects.filter(removed_at=None, flags__isnull=False)
+        .filter(Q(flags_reviewed_at=None) | Q(flags__created_at__gt=F("flags_reviewed_at")))
+        .distinct()
+    )
+
+
+# ---------------------------------------------------------------- l'équipe
+
+
+def open_report_groups():
+    """Signalements ouverts hors doublon, un par contenu et par motif (ils se tranchent ensemble)."""
+    seen, groups = set(), []
+    reports = (
+        Report.objects.filter(status=Status.OPEN)
+        .exclude(reason=Reason.DUPLICATE)
+        .select_related("reporter", "exercise__author", "solution__exercise", "solution__author")
+        .order_by("created_at")
+    )
+    for report in reports:
+        key = (report.exercise_id, report.solution_id, report.reason)
+        if key in seen:
+            continue
+        seen.add(key)
+        groups.append(report)
+    return groups
+
+
+def pending_counts():
+    """Ce qui attend l'équipe, file par file."""
+    return {
+        "reports": len(open_report_groups()),
+        "messages": flagged_messages().count(),
+        "appeals": Appeal.objects.filter(status=Appeal.Status.PENDING).count(),
+        "duplicates": Report.objects.filter(status=Status.OPEN, reason=Reason.DUPLICATE).count(),
+    }
+
+
+@transaction.atomic
+def set_moderator(member, named, *, by):
+    """Nomme ou retire un modérateur. Réservé aux administrateurs du site. Retiré, le membre
+    retrouve le niveau que ses contributions lui valent."""
+    if not by.is_staff:
+        raise PermissionDenied("Seuls les administrateurs nomment les modérateurs.")
+    if member.is_staff:
+        raise RuleError("Ce membre administre le site : il modère déjà.")
+    if named:
+        if member.trust_level >= User.TrustLevel.MODERATOR:
+            return member
+        member.trust_level = User.TrustLevel.MODERATOR
+        member.save(update_fields=["trust_level"])
+        log_action(by, Action.MODERATOR_NAMED, "Rejoint l'équipe de modération.", member=member)
+        notify(
+            member,
+            Kind.PROMOTION,
+            "Tu rejoins l'équipe de modération",
+            "Tu traites les signalements, les messages signalés et les appels, depuis la page Modération.",
+            "/moderation",
+        )
+        return member
+    if member.trust_level < User.TrustLevel.MODERATOR:
+        return member
+    member.trust_level = User.TrustLevel.MEMBER
+    member.save(update_fields=["trust_level"])
+    promote(member)
+    log_action(by, Action.MODERATOR_REMOVED, "Quitte l'équipe de modération.", member=member)
+    return member

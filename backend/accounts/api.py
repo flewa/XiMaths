@@ -32,6 +32,7 @@ from gamification.services import balance
 from gamification.skills import contributor_level
 
 from . import academic, google
+from .permissions import is_moderator
 from .models import User
 from .profile import AVATAR_COLORS, AVATAR_SYMBOLS, avatar_of, profile_problems
 from .schemas import AvatarOut
@@ -74,6 +75,8 @@ class MeOut(Schema):
     academic_domain: str
     # Équipe du site (accès à l'admin) : relit et publie les rappels de cours.
     is_staff: bool
+    # Équipe de modération : ce qui attend dans ses files (signalements, messages, appels).
+    moderation_pending: int
     # Profil public.
     bio: str
     avatar: AvatarOut
@@ -122,6 +125,15 @@ class MeOut(Schema):
         return obj.comprehension_questions.filter(
             status__in=[ComprehensionQuestion.Status.SENT, ComprehensionQuestion.Status.OPENED]
         ).count()
+
+    @staticmethod
+    def resolve_moderation_pending(obj):
+        if not is_moderator(obj):
+            return 0
+        from moderation.services import pending_counts
+
+        counts = pending_counts()
+        return counts["reports"] + counts["messages"] + counts["appeals"]
 
     @staticmethod
     def resolve_pending_reviews(obj):

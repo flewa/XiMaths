@@ -8,8 +8,10 @@ import { apiDelete, apiPost } from "@/lib/client-api";
 import { dateFormat } from "@/lib/labels";
 
 import { Avatar } from "./Avatar";
+import { BadgeMedal } from "./BadgeMedal";
 import { FormMessage, inputClass, primaryButtonClass } from "./Form";
 import { MathMarkdown } from "./MathMarkdown";
+import { ModerateMessage } from "./Moderation";
 
 const MAX_LENGTH = 2000;
 const action = "text-sm text-mute underline-offset-4 hover:text-ink hover:underline disabled:opacity-60";
@@ -91,6 +93,7 @@ function Entry({
   onThread: (thread: DiscussionMessage[]) => void;
 }) {
   const [confirming, setConfirming] = useState(false);
+  const [moderating, setModerating] = useState(false);
   const [flagged, setFlagged] = useState(message.flagged);
   const [error, setError] = useState<string | null>(null);
 
@@ -121,9 +124,24 @@ function Entry({
       <div className="min-w-0 flex-1">
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
           {message.author ? (
-            <Link href={`/membres/${encodeURIComponent(message.author.username)}`} className="font-medium text-ink hover:underline">
-              {message.author.username}
-            </Link>
+            <>
+              <Link
+                href={`/membres/${encodeURIComponent(message.author.username)}`}
+                className="font-medium text-ink hover:underline"
+              >
+                {message.author.username}
+              </Link>
+              {/* La vitrine du membre, en petit : les badges qu'il a choisi de montrer. */}
+              {message.author.featured_badges.length > 0 && (
+                <span className="-ml-0.5 inline-flex items-center gap-0.5">
+                  {message.author.featured_badges.map((badge) => (
+                    <span key={badge.slug} title={badge.name} className="inline-flex">
+                      <BadgeMedal slug={badge.slug} size={18} label={badge.name} />
+                    </span>
+                  ))}
+                </span>
+              )}
+            </>
           ) : (
             <span className="text-mute">Compte supprimé</span>
           )}
@@ -165,8 +183,14 @@ function Entry({
                   Retirer
                 </button>
               ))}
+            {message.can_moderate && !moderating && (
+              <button type="button" onClick={() => setModerating(true)} className={action}>
+                Retirer (équipe)
+              </button>
+            )}
           </p>
         )}
+        {moderating && <ModerateMessage id={message.id} onThread={onThread} onCancel={() => setModerating(false)} />}
         <FormMessage error={error} />
       </div>
     </div>

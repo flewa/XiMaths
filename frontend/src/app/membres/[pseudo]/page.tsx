@@ -8,7 +8,7 @@ import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { ExerciseList } from "@/components/ExerciseList";
 import { secondaryButtonClass } from "@/components/Form";
 import { ShareProfile } from "@/components/ShareProfile";
-import { type Member, fetchBadges, fetchMember } from "@/lib/api";
+import { type Member, fetchBadges, fetchMe, fetchMember, isTeam, nullOnError } from "@/lib/api";
 import { dateFormat, plural } from "@/lib/labels";
 import { chapterPath } from "@/lib/seo-pages";
 
@@ -38,13 +38,17 @@ export default async function MemberPage({ params }: Props) {
   const { pseudo } = await params;
   let data;
   try {
-    const [member, catalog] = await Promise.all([fetchMember(decodeURIComponent(pseudo)), fetchBadges()]);
-    data = { member, catalog };
+    const [member, catalog, me] = await Promise.all([
+      fetchMember(decodeURIComponent(pseudo)),
+      fetchBadges(),
+      fetchMe().catch(nullOnError),
+    ]);
+    data = { member, catalog, me };
   } catch (error) {
     logApiError(error);
     return <ApiUnavailable />;
   }
-  const { member, catalog } = data;
+  const { member, catalog, me } = data;
   if (!member) notFound();
 
   return (
@@ -58,6 +62,16 @@ export default async function MemberPage({ params }: Props) {
               .filter(Boolean)
               .join(" · ")}
           </p>
+          {isTeam(me) && (
+            <p className="mt-2 text-sm">
+              <Link
+                href={`/moderation/membres/${encodeURIComponent(member.username)}`}
+                className="text-mute underline underline-offset-4 hover:text-ink"
+              >
+                Fiche de modération
+              </Link>
+            </p>
+          )}
           {member.bio && <p className="mt-3 max-w-[60ch] text-body">{member.bio}</p>}
           {member.favorite_topics.length > 0 && (
             <p className="mt-3 flex flex-wrap items-center gap-2 text-sm">

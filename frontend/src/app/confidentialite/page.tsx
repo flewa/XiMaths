@@ -34,6 +34,7 @@ export default function PrivacyPage() {
           items={[
             "Compte : pseudo, adresse email, mot de passe chiffré, niveau déclaré, préférences.",
             "Contributions : exercices, solutions, relectures, votes, signalements.",
+            "Modération : les signalements que tu déposes, les décisions qui te concernent (motif, appel), et le journal où l'équipe les inscrit. Seule l'équipe de modération les lit ; si tu supprimes ton compte, ton pseudo en disparaît.",
             "Messages sous les exercices : publics, avec ton pseudo. Tu peux retirer les tiens ; un message retiré n'est plus montré à personne.",
             "Photos de copie, qui sont tes solutions (en libre, en entraînement et au défi du jour) : 3 pages au plus, réencodées à la réception, ce qui efface leurs métadonnées (lieu de la prise, appareil). Elles restent privées, même validées : seuls leurs relecteurs et la modération les voient.",
             "Copie modèle : seulement si tu coches la case d'accord, et si l'équipe choisit ta copie validée. Elle est alors montrée, sans ton pseudo, aux membres qui ont envoyé leur propre copie sur l'exercice. Tu retires ton accord quand tu veux, depuis la page de l'exercice : la copie cesse aussitôt d'être montrée. Le site retient aussi qui a ouvert la copie modèle d'un exercice, car une copie envoyée ensuite ne rapporte plus de points.",

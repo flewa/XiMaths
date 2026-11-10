@@ -311,3 +311,173 @@
 .nowrap-math .katex {
   white-space: nowrap;
 }
+
+/* ---------------------------------------------------------------- affiche à imprimer (/affiche)
+ * Toujours noir sur blanc, quel que soit le thème : c'est du papier. Les tailles suivent la
+ * largeur de l'affiche (cqw), pour que l'aperçu à l'écran et le A4 imprimé se ressemblent. */
+.affiche {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 210mm;
+  aspect-ratio: 210 / 297;
+  overflow: hidden;
+  background: #ffffff;
+  color: #191919;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px var(--hairline-strong);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+.affiche-corps {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 2.2cqw;
+  padding: 6.5cqw 8cqw 4cqw;
+}
+.affiche-marque {
+  display: flex;
+  align-items: center;
+  gap: 1.6cqw;
+  font-size: 3.4cqw;
+  font-weight: 600;
+}
+.affiche-xi {
+  color: #c73e35;
+  font-family: var(--font-serif);
+  font-size: 5.2cqw;
+  line-height: 1;
+}
+.affiche-titre {
+  margin-top: 2cqw;
+  font-family: var(--font-serif);
+  font-size: 7.6cqw;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: #191919;
+  text-wrap: balance;
+}
+.affiche-sous-titre {
+  font-size: 3.1cqw;
+  color: #4b4b4b;
+}
+.affiche-points {
+  margin-top: 1.5cqw;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4cqw;
+  padding-left: 4.2cqw;
+  list-style: decimal;
+  font-size: 2.75cqw;
+  line-height: 1.35;
+  color: #2f2f2f;
+}
+.affiche-points li::marker {
+  color: #c73e35;
+  font-weight: 700;
+}
+.affiche-points strong {
+  color: #191919;
+}
+.affiche-defi {
+  font-size: 2.75cqw;
+  color: #2f2f2f;
+  border-left: 0.8cqw solid #c73e35;
+  padding-left: 2.4cqw;
+}
+.affiche-qr-ligne {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 5cqw;
+}
+.affiche-qr {
+  width: 25cqw;
+  flex-shrink: 0;
+}
+.affiche-qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.affiche-adresse {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8cqw;
+  font-size: 3cqw;
+  color: #4b4b4b;
+}
+.affiche-adresse span {
+  font-size: 5.6cqw;
+  font-weight: 700;
+  color: #191919;
+  letter-spacing: -0.01em;
+}
+.affiche-languettes {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  flex-shrink: 0;
+  height: 17cqw;
+  border-top: 1px dashed #73726e;
+}
+.affiche-languettes li {
+  position: relative;
+}
+/* Le texte tourné d'un quart de tour, centré dans sa languette. */
+.affiche-languette-texte {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3cqw;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  white-space: nowrap;
+  font-size: 2.1cqw;
+  font-weight: 600;
+  line-height: 1.1;
+  color: #191919;
+}
+.affiche-languettes li + li {
+  border-left: 1px dashed #73726e;
+}
+.affiche-languette-sous {
+  font-size: 1.6cqw;
+  font-weight: 400;
+  color: #4b4b4b;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  /* Seule l'affiche s'imprime : la navigation, les consignes et le pied de page restent à l'écran. */
+  body:has(.affiche) * {
+    visibility: hidden;
+  }
+  body:has(.affiche) .affiche,
+  body:has(.affiche) .affiche * {
+    visibility: visible;
+  }
+  html:has(.affiche),
+  body:has(.affiche) {
+    background: #ffffff;
+    padding: 0;
+  }
+  body:has(.affiche) .affiche {
+    position: fixed;
+    inset: 0;
+    margin: 0;
+    width: 210mm;
+    max-width: none;
+    height: 297mm;
+    aspect-ratio: auto;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}

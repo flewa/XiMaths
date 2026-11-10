@@ -95,6 +95,9 @@ class PushTests(ContentTestCase):
         self.note(title="Solution validée")
         self.note(Kind.REVIEW_ASSIGNED, "Relecture attribuée")
         night = today_at(23)
+        # Les notifications datent de la soirée simulée, pas de l'heure réelle du test : lancé
+        # entre minuit et 8 h, il les aurait sinon crues vieilles de plus de 24 h à 8 h.
+        Notification.objects.update(created_at=night - timedelta(hours=1))
         payloads = []
         original = push._payload
 
