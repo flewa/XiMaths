@@ -61,6 +61,7 @@ export default function TermsPage() {
             "Reformule avec tes mots un énoncé publié ailleurs, et indique la source : la formulation d'un livre ou d'un sujet est protégée.",
             "Ne recopie pas la solution d'un autre, ni un corrigé publié ailleurs.",
             "Déclare l'usage d'une IA. Une solution générée est permise, mais étiquetée et sans points.",
+            "Sous chaque exercice, un fil public de questions et de remarques, signé de ton pseudo : on y demande une précision, on y signale une coquille, on y discute d'une méthode. On n'y donne pas la solution. L'équipe retire les messages qui n'y ont pas leur place, et prévient leur auteur.",
             "Pas de contenu injurieux, hors sujet ou illicite.",
           ]}
         />
@@ -76,7 +77,7 @@ export default function TermsPage() {
       <ProseSection title="Modération et recours">
         <Bullets
           items={[
-            "Tout membre peut signaler un contenu. Un modérateur humain tranche, jamais un algorithme seul.",
+            "Tout membre peut signaler un contenu, y compris un message sous un exercice. Un modérateur humain tranche, jamais un algorithme seul.",
             "Chaque retrait ou sanction est motivé : tu reçois le motif et les contenus concernés.",
             "Échelle des sanctions : avertissement et annulation des points concernés, exclusion des classements pendant 30 jours, suspension de 7 jours, bannissement.",
             "Tu peux faire appel sous 14 jours. Un autre modérateur examine l'appel et répond sous 7 jours.",

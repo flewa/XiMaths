@@ -34,6 +34,7 @@ export default function PrivacyPage() {
           items={[
             "Compte : pseudo, adresse email, mot de passe chiffré, niveau déclaré, préférences.",
             "Contributions : exercices, solutions, relectures, votes, signalements.",
+            "Messages sous les exercices : publics, avec ton pseudo. Tu peux retirer les tiens ; un message retiré n'est plus montré à personne.",
             "Photos de copie, qui sont tes solutions (en libre, en entraînement et au défi du jour) : 3 pages au plus, réencodées à la réception, ce qui efface leurs métadonnées (lieu de la prise, appareil). Elles restent privées, même validées : seuls leurs relecteurs et la modération les voient.",
             "Activité : points, badges, sessions chronométrées (temps, nombre de sorties d'onglet, taille des collages venus d'ailleurs, jamais leur contenu), jours actifs, objectifs et mode vacances.",
             "Questions de compréhension, si l'une t'est posée : la question, ta réponse et l'évaluation.",

@@ -271,6 +271,43 @@ class ExerciseRead(models.Model):
         constraints = [models.UniqueConstraint(fields=["exercise", "user"], name="exercise_read_once_per_member")]
 
 
+class Message(models.Model):
+    """Question ou remarque sous un exercice. Les réponses n'ont qu'un niveau : on répond
+    à un message, pas à une réponse. Retiré, un message garde sa place si on lui a
+    répondu, sans son texte."""
+
+    MAX_LENGTH = 2000
+
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name="messages")
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="messages"
+    )
+    parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE, related_name="replies")
+    body = models.TextField(max_length=MAX_LENGTH, help_text="Markdown et LaTeX.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    removed_at = models.DateTimeField(null=True, blank=True)
+    # Retiré par l'équipe (et non par son auteur) : l'auteur en est prévenu.
+    removed_by_team = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["created_at", "pk"]
+        indexes = [models.Index(fields=["exercise", "created_at"])]
+
+    def __str__(self):
+        return f"Message de {self.author} sous « {self.exercise} »"
+
+
+class MessageFlag(models.Model):
+    """Un membre signale un message à l'équipe : une fois par message."""
+
+    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name="flags")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="message_flags")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["message", "user"], name="message_flag_once_per_member")]
+
+
 class Vote(models.Model):
     """Vote « utile », sur un exercice ou sur une solution. Il n'y a pas de vote négatif."""
 

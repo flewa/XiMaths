@@ -10,6 +10,7 @@ import {
 import { Avatar } from "@/components/Avatar";
 import { BadgeMedal } from "@/components/BadgeMedal";
 import { CopyPhotoList } from "@/components/CopyPhotos";
+import { Discussion } from "@/components/Discussion";
 import { ExerciseShare, ReadBeacon } from "@/components/ExerciseShare";
 import { ApiUnavailable, Difficulty, License, logApiError } from "@/components/ExerciseMeta";
 import { ExerciseList } from "@/components/ExerciseList";
@@ -22,11 +23,13 @@ import { Tag } from "@/components/Tag";
 import {
   fetchExercise,
   fetchMe,
+  fetchMessages,
   fetchMySolutions,
   fetchRelated,
   fetchTopics,
   nullOnError,
   type AuthorReview,
+  type DiscussionMessage,
   type ExerciseDetail,
   type ExerciseStats,
   type ExerciseSummary,
@@ -149,12 +152,14 @@ export default async function ExercisePage({ params }: Props) {
   let topics: Topic[];
   let related: ExerciseSummary[];
   let mySolutions: MySolution[] = [];
+  let messages: DiscussionMessage[];
   try {
-    [exercise, me, topics, related] = await Promise.all([
+    [exercise, me, topics, related, messages] = await Promise.all([
       fetchExercise(id),
       fetchMe(),
       fetchTopics(),
       fetchRelated(Number(id)),
+      fetchMessages(Number(id)),
     ]);
     if (exercise && me) mySolutions = await fetchMySolutions(exercise.id);
   } catch (error) {
@@ -316,6 +321,10 @@ export default async function ExercisePage({ params }: Props) {
           </ul>
         </section>
       )}
+
+      <section id="discussion" aria-labelledby="discussion-titre" className={`${section} scroll-mt-20`}>
+        <Discussion exerciseId={exercise.id} initial={messages} viewer={me ? { verified: me.email_verified } : null} />
+      </section>
 
       {exercise.author_profile && <AuthorCard author={exercise.author_profile} />}
 

@@ -539,6 +539,26 @@ export function fetchMe() {
   return get<Me>("/auth/me");
 }
 
+/** Un message du fil d'un exercice. Retiré, il n'a plus ni auteur ni texte. */
+export type DiscussionReply = {
+  id: number;
+  author: MemberRef | null;
+  team: boolean;
+  exercise_author: boolean;
+  body: string;
+  created_at: string;
+  removed: boolean;
+  mine: boolean;
+  can_remove: boolean;
+  flagged: boolean;
+};
+
+export type DiscussionMessage = DiscussionReply & { replies: DiscussionReply[] };
+
+export async function fetchMessages(exerciseId: number) {
+  return (await get<DiscussionMessage[]>(`/exercises/${exerciseId}/messages`)) ?? [];
+}
+
 export async function fetchMySolutions(exerciseId: number) {
   return (await get<MySolution[]>(`/exercises/${exerciseId}/my-solutions`)) ?? [];
 }

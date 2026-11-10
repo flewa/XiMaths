@@ -25,6 +25,7 @@ class Notification(models.Model):
         COMPREHENSION_QUESTION = "question_comprehension", "Question de compréhension"
         CHALLENGE = "defi", "Défi du jour"
         GOAL = "objectif", "Objectif"
+        DISCUSSION = "discussion", "Message sous un exercice"
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")
     kind = models.CharField(max_length=32, choices=Kind.choices)
