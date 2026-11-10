@@ -9,6 +9,7 @@ import { AudienceTracker } from "@/components/Audience";
 import { BottomNav } from "@/components/BottomNav";
 import { MobileBar, SidebarContent, type NavAccount } from "@/components/SidebarNav";
 import { fetchLevels, fetchMe, fetchTopics, nullOnError } from "@/lib/api";
+import { CONTACT_EMAIL } from "@/lib/legal";
 import { chaptersOf } from "@/lib/seo-pages";
 import { DEFAULT_THEME, SITE_DESCRIPTION, SITE_URL, SOCIAL_PROFILES, THEME_COOKIE, type Theme } from "@/lib/site";
 
@@ -40,6 +41,7 @@ const FOOTER_LINKS = [
   { href: "/badges", label: "Badges" },
   { href: "/cgu", label: "Conditions" },
   { href: "/confidentialite", label: "Confidentialité" },
+  { href: "/mentions-legales", label: "Mentions légales" },
 ];
 
 export default async function RootLayout({
@@ -65,7 +67,6 @@ export default async function RootLayout({
     pendingReviews: me.pending_reviews,
     unreadNotifications: me.unread_notifications,
     declaredLevel: me.declared_level,
-    isStaff: me.is_staff,
   };
   // Site déclaré dans Umami (deploy/statistiques.sh), lu au démarrage du serveur : sans lui,
   // aucune mesure d'audience.
@@ -96,7 +97,7 @@ export default async function RootLayout({
             >
               {children}
             </main>
-            <footer className="mx-auto max-w-[860px] px-5 pb-10 text-sm text-stone group-has-[.page-wide]/colonne:max-w-[1180px] sm:px-10">
+            <footer className="mx-auto max-w-[860px] px-5 pb-10 text-sm text-mute group-has-[.page-wide]/colonne:max-w-[1180px] sm:px-10">
               <nav
                 aria-label="Pied de page"
                 className="flex flex-wrap gap-x-5 gap-y-1 border-t border-hairline pt-5"
@@ -106,6 +107,9 @@ export default async function RootLayout({
                     {link.label}
                   </Link>
                 ))}
+                <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-ink">
+                  Contact
+                </a>
                 {SOCIAL_PROFILES.map((profile) => (
                   <a key={profile.url} href={profile.url} rel="me noopener" className="hover:text-ink">
                     {profile.label}

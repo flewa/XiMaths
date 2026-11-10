@@ -23,8 +23,6 @@ export type NavAccount = {
   pendingReviews: number;
   unreadNotifications: number;
   declaredLevel: string | null;
-  /** Équipe du site : voit les rappels de cours en relecture. */
-  isStaff: boolean;
 };
 
 type Item = {
@@ -57,16 +55,14 @@ function itemsFor(account: NavAccount | null): Item[] {
       label: "Défi du jour",
       match: (path) => path.startsWith("/defi"),
     },
-  ];
-  // Rappels de cours : réservés à l'équipe tant qu'ils sont en relecture.
-  if (account?.isStaff) {
-    items.push({
+    // Les fiches publiées ; l'équipe y voit aussi celles en relecture.
+    {
       href: "/rappels",
       icon: "book",
       label: "Rappels de cours",
       match: (path) => path.startsWith("/rappels"),
-    });
-  }
+    },
+  ];
   if (account) {
     items.push(
       {

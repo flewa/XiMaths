@@ -4,7 +4,7 @@
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const SITE_DESCRIPTION =
-  "Exercices de mathématiques du supérieur, de la licence au master et en prépa, résolus et relus par la communauté.";
+  "Exercices de mathématiques du supérieur, de la licence au master et en prépa. Envoie ta copie en photo : des étudiants la corrigent.";
 
 export type Theme = "system" | "light" | "dark";
 export const THEME_COOKIE = "theme";

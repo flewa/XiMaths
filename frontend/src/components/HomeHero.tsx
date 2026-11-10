@@ -317,11 +317,11 @@ export function VisitorHero() {
     <section aria-labelledby="accroche">
       {/* Le nom du site dans le titre : il aide les moteurs à associer « XiMaths » à ce site. */}
       <h1 id="accroche" className="max-w-[22ch]">
-        XiMaths : des maths du supérieur, résolues et relues par la communauté.
+        XiMaths : des exercices de maths du supérieur, et ta copie corrigée par des étudiants.
       </h1>
       <p className="mt-5 max-w-[58ch] text-lg text-body">
-        De la L1 au M2 et en prépa : publie des exercices, propose tes solutions, et fais-les relire par trois
-        pairs tirés au sort.
+        De la L1 au M2 et en prépa. Choisis un exercice, écris ta solution à la main, envoie-la en photo : on te
+        dit ce qui est juste, ce qui manque et ce qui est faux.
       </p>
       <p className="mt-8 flex flex-wrap items-center gap-3">
         <Link href="/inscription" className={primaryButtonClass}>
@@ -345,8 +345,8 @@ const STEPS = [
     text: "Puis photographie ta copie avec ton téléphone, en scannant un QR code : trois pages au plus.",
   },
   {
-    title: "Trois pairs la corrigent.",
-    text: "Tu lis leurs commentaires. S'ils la jugent tous juste, elle rapporte des points, des badges et une place au classement.",
+    title: "Des étudiants la corrigent.",
+    text: "Trois relecteurs tirés au sort, ou l'équipe du site s'ils manquent. Tu lis leurs commentaires ; jugée juste, ta copie rapporte des points et des badges.",
   },
 ];
 
@@ -364,6 +364,13 @@ export function HowItWorks() {
           </li>
         ))}
       </ol>
+      <p className="mt-6 text-[15px] text-body">
+        Besoin de revoir le cours avant ?{" "}
+        <Link href="/rappels" className="text-ink underline decoration-stone underline-offset-4 hover:decoration-ink">
+          Les rappels de cours de prépa
+        </Link>
+        , chapitre par chapitre.
+      </p>
     </section>
   );
 }

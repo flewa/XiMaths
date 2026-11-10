@@ -170,7 +170,7 @@ export function VoteButton({
 
   if (disabledReason) {
     return (
-      <span title={disabledReason} className="rounded-sm bg-surface-card px-3 text-sm leading-7 text-ash">
+      <span title={disabledReason} className="rounded-sm bg-surface-card px-3 text-sm leading-7 text-mute">
         ▲ {label}
       </span>
     );

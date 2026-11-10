@@ -179,7 +179,11 @@ export default async function ExercisePage({ params }: Props) {
       <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-body">
         <span className="flex gap-1.5 font-medium">
           {exercise.levels.map((code) => (
-            <Link key={code} href={levelPath(code)} className="text-ink hover:underline hover:underline-offset-4">
+            <Link
+              key={code}
+              href={levelPath(code)}
+              className="rounded-full bg-surface-card px-2.5 py-1 text-xs text-ink hover:bg-hover"
+            >
               {code}
             </Link>
           ))}
@@ -193,7 +197,10 @@ export default async function ExercisePage({ params }: Props) {
               return topic ? (
                 <span key={name}>
                   {separator}
-                  <Link href={chapterPath(topic.slug)} className="hover:text-ink hover:underline hover:underline-offset-4">
+                  <Link
+                    href={chapterPath(topic.slug)}
+                    className="inline-block py-1 hover:text-ink hover:underline hover:underline-offset-4"
+                  >
                     {name}
                   </Link>
                 </span>
@@ -216,7 +223,11 @@ export default async function ExercisePage({ params }: Props) {
           </Link>
         )}
         {/* Les solutions restent privées : seul leur nombre est public. */}
-        <span>{count === 0 ? "aucune solution envoyée" : `${count} solution${count > 1 ? "s" : ""} envoyée${count > 1 ? "s" : ""}`}</span>
+        <span>
+          {count === 0
+            ? "pas encore de copie envoyée"
+            : `${count} solution${count > 1 ? "s" : ""} envoyée${count > 1 ? "s" : ""}`}
+        </span>
         <VoteButton
           path={`/exercises/${exercise.id}/vote`}
           count={exercise.votes}
