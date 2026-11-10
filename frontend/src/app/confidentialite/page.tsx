@@ -37,6 +37,7 @@ export default function PrivacyPage() {
             "Photos de copie, qui sont tes solutions (en libre, en entraînement et au défi du jour) : 3 pages au plus, réencodées à la réception, ce qui efface leurs métadonnées (lieu de la prise, appareil). Elles restent privées, même validées : seuls leurs relecteurs et la modération les voient.",
             "Activité : points, badges, sessions chronométrées (temps, nombre de sorties d'onglet, taille des collages venus d'ailleurs, jamais leur contenu), jours actifs, objectifs et mode vacances.",
             "Questions de compréhension, si l'une t'est posée : la question, ta réponse et l'évaluation.",
+            "Lecture des exercices : pour chaque exercice que tu ouvres une fois connecté, la date de la première ouverture. Elle sert aux statistiques de l'exercice (combien l'ont lu, tenté, résolu) et n'est montrée à personne. Sans compte, la lecture est seulement comptée, sans rien retenir de toi.",
             "Connexion Google, si tu l'utilises : ton adresse email et l'identifiant de ton compte Google.",
             "Notifications push, si tu les actives sur un appareil : l'adresse du service de push de ton navigateur et ses clés de chiffrement.",
             "Email académique, si tu en vérifies un : seulement son domaine et une empreinte chiffrée, qui l'empêche de vérifier un second compte. L'adresse elle-même n'est pas conservée.",

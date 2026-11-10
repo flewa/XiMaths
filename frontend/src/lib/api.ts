@@ -79,7 +79,11 @@ export type ExerciseDetail = ExerciseSummary & {
   /** Exercice canonique, si celui-ci a été fusionné comme doublon. */
   merged_into: number | null;
   variants: ExerciseLink[];
+  stats: ExerciseStats;
 };
+
+/** Des personnes, pas des copies : qui a lu l'énoncé, qui a envoyé une copie, qui l'a réussi. */
+export type ExerciseStats = { readers: number; senders: number; solvers: number };
 
 export type SimilarityBand = "quasi_copie" | "tres_similaire" | "variante" | "peut_etre_lie";
 

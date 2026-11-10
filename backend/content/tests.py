@@ -424,3 +424,33 @@ class SitemapTests(ContentTestCase):
         ids = [entry["id"] for entry in self.client.get("/api/sitemap").json()]
         self.assertIn(self.exercise.pk, ids)
         self.assertNotIn(draft.pk, ids)
+
+
+class ExerciseStatsTests(ContentTestCase):
+    def read(self):
+        return self.client.post(f"/api/exercises/{self.exercise.pk}/read")
+
+    def stats(self):
+        return self.client.get(f"/api/exercises/{self.exercise.pk}").json()["stats"]
+
+    def test_readers_senders_and_solvers_are_people_counted_once(self):
+        # Un visiteur : compté à chaque appel (le site ne l'envoie qu'une fois par navigateur).
+        self.assertEqual(self.read().status_code, 204)
+        self.assertEqual(self.stats(), {"readers": 1, "senders": 0, "solvers": 0})
+
+        # Un membre : une seule fois, même s'il revient. L'auteur de l'exercice ne compte pas.
+        self.client.force_login(self.student)
+        self.read()
+        self.read()
+        self.client.force_login(self.author)
+        self.read()
+        self.assertEqual(self.stats(), {"readers": 2, "senders": 0, "solvers": 0})
+
+        # Qui envoie une copie est un lecteur, même sans lecture enregistrée.
+        other = make_user("yanis", level="L1")
+        self.validate(self.publish(author=other))
+        self.publish()
+        self.assertEqual(self.stats(), {"readers": 3, "senders": 2, "solvers": 1})
+
+    def test_reading_an_unpublished_exercise_is_not_found(self):
+        self.assertEqual(self.client.post("/api/exercises/99999/read").status_code, 404)

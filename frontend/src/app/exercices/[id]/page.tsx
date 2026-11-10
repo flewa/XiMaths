@@ -10,6 +10,7 @@ import {
 import { Avatar } from "@/components/Avatar";
 import { BadgeMedal } from "@/components/BadgeMedal";
 import { CopyPhotoList } from "@/components/CopyPhotos";
+import { ExerciseShare, ReadBeacon } from "@/components/ExerciseShare";
 import { ApiUnavailable, Difficulty, License, logApiError } from "@/components/ExerciseMeta";
 import { ExerciseList } from "@/components/ExerciseList";
 import { secondaryButtonClass } from "@/components/Form";
@@ -27,6 +28,7 @@ import {
   nullOnError,
   type AuthorReview,
   type ExerciseDetail,
+  type ExerciseStats,
   type ExerciseSummary,
   type Me,
   type MemberRef,
@@ -163,7 +165,6 @@ export default async function ExercisePage({ params }: Props) {
   // Doublon fusionné : son adresse redirige vers l'exercice canonique, qui a repris ses solutions.
   if (exercise.merged_into) permanentRedirect(`/exercices/${exercise.merged_into}`);
 
-  const count = exercise.submitted_solutions;
   const pending = mySolutions.some((s) => s.status === "under_review");
 
   return (
@@ -222,18 +223,15 @@ export default async function ExercisePage({ params }: Props) {
             par {exercise.author}
           </Link>
         )}
-        {/* Les solutions restent privées : seul leur nombre est public. */}
-        <span>
-          {count === 0
-            ? "pas encore de copie envoyée"
-            : `${count} solution${count > 1 ? "s" : ""} envoyée${count > 1 ? "s" : ""}`}
-        </span>
         <VoteButton
           path={`/exercises/${exercise.id}/vote`}
           count={exercise.votes}
           disabledReason={voteBlocker(me, exercise.author)}
         />
       </p>
+
+      <ReadBeacon exerciseId={exercise.id} member={Boolean(me)} />
+      <ExerciseStatsLine stats={exercise.stats} />
 
       <section aria-labelledby="enonce" className="mt-10">
         <h2 id="enonce" className={sectionTitle}>
@@ -243,6 +241,11 @@ export default async function ExercisePage({ params }: Props) {
         <div className="rounded-r-xl border-l-2 border-accent bg-surface-soft px-5 py-1 sm:px-6">
           <MathMarkdown>{exercise.statement}</MathMarkdown>
         </div>
+        <ExerciseShare
+          url={`${SITE_URL}/exercices/${exercise.id}`}
+          title={exercise.title_text}
+          image={`${SITE_URL}${SHARE_IMAGE.url}`}
+        />
       </section>
 
       {exercise.hints.length > 0 && (
@@ -362,6 +365,35 @@ function AuthorCard({ author }: { author: MemberRef }) {
         </span>
       </Link>
     </section>
+  );
+}
+
+/** Les solutions restent privées : seuls ces trois nombres sont publics. */
+function ExerciseStatsLine({ stats }: { stats: ExerciseStats }) {
+  if (stats.readers === 0) return null;
+  const share = (count: number) => `${Math.round((100 * count) / stats.readers)} %`;
+  const items = [
+    { value: stats.readers, label: stats.readers > 1 ? "personnes l'ont lu" : "personne l'a lu", share: null },
+    { value: stats.senders, label: stats.senders > 1 ? "ont envoyé une copie" : "a envoyé une copie", share: share(stats.senders) },
+    { value: stats.solvers, label: stats.solvers > 1 ? "l'ont réussi" : "l'a réussi", share: share(stats.solvers) },
+  ];
+  return (
+    <dl className="mt-5 grid max-w-xl grid-cols-3 gap-2">
+      {items.map((item) => (
+        <div key={item.label} className="flex flex-col-reverse justify-end rounded-xl bg-surface-soft px-3 py-2">
+          <dt className="text-[13px] leading-snug text-mute">{item.label}</dt>
+          <dd className="font-serif text-xl leading-tight text-ink-deep tabular-nums">
+            {item.value}
+            {item.share && item.value > 0 && (
+              <span className="ml-1.5 font-sans text-[13px] text-mute">
+                {item.share}
+                <span className="sr-only"> des lecteurs</span>
+              </span>
+            )}
+          </dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 

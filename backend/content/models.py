@@ -67,6 +67,9 @@ class Exercise(models.Model):
     feed_impressions = models.PositiveIntegerField(
         default=0, help_text="Affichages dans le fil d'accueil, pour l'exposition minimale."
     )
+    visitor_reads = models.PositiveIntegerField(
+        default=0, help_text="Lectures de la page par des visiteurs non connectés, une par navigateur."
+    )
     merged_into = models.ForeignKey(
         "self",
         null=True,
@@ -254,6 +257,18 @@ class Review(models.Model):
                 fields=["solution", "reviewer"], name="review_unique_reviewer"
             ),
         ]
+
+
+class ExerciseRead(models.Model):
+    """Un membre a ouvert la page d'un exercice : une ligne par membre et par exercice. Sert
+    aux statistiques de l'exercice (combien l'ont lu, combien ont envoyé une copie)."""
+
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name="reads")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="exercise_reads")
+    first_read_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["exercise", "user"], name="exercise_read_once_per_member")]
 
 
 class Vote(models.Model):
