@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import TestCase
 
+from catalog.models import Level
+from training.challenges import group_of
 from training.models import Challenge, ChallengeTemplate
 
 from .editorial import EXERCISES
@@ -38,9 +40,10 @@ class EditorialExercisesTests(TestCase):
         self.assertEqual(Exercise.objects.filter(status=Exercise.Status.PUBLISHED).count(), len(EXERCISES))
         templates = sum("challenge" in spec for spec in EXERCISES)
         self.assertEqual(ChallengeTemplate.objects.count(), templates)
-        # Un défi du jour, un seul, s'ouvre dans chaque niveau qui a reçu un gabarit.
+        # Un défi du jour, un seul, s'ouvre dans chaque groupe de niveaux qui a reçu un gabarit.
         levels = {spec["primary_level"] for spec in EXERCISES if "challenge" in spec}
-        self.assertEqual(Challenge.objects.count(), len(levels))
+        groups = {group_of(level)[0] for level in Level.objects.filter(code__in=levels)}
+        self.assertEqual(Challenge.objects.count(), len(groups))
 
         self.assertIn(f"Déjà là : {len(EXERCISES)}.", run())
         self.assertEqual(Exercise.objects.count(), len(EXERCISES))
