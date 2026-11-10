@@ -163,6 +163,12 @@ class Solution(models.Model):
     recommended_at = models.DateTimeField(
         null=True, blank=True, help_text="Recommandée par l'auteur de l'exercice (une par exercice)."
     )
+    # Copie modèle : l'auteur donne son accord, l'équipe choisit une copie validée par
+    # exercice. Elle est montrée sans nom aux membres qui ont envoyé la leur.
+    model_consent = models.BooleanField(default=False)
+    model_at = models.DateTimeField(null=True, blank=True)
+    # Envoyée (ou révisée) après que son auteur a ouvert la copie modèle : sans points.
+    after_model = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-validated_at", "-published_at"]
@@ -269,6 +275,18 @@ class ExerciseRead(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["exercise", "user"], name="exercise_read_once_per_member")]
+
+
+class ModelCopyView(models.Model):
+    """Un membre a ouvert la copie modèle d'un exercice : ses copies suivantes sur cet
+    exercice ne rapportent plus de points."""
+
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name="model_views")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="model_views")
+    viewed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["exercise", "user"], name="model_copy_view_once_per_member")]
 
 
 class Message(models.Model):

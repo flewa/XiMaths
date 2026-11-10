@@ -8,7 +8,8 @@ import { apiPost } from "@/lib/client-api";
 import { AI_USAGE_OPTIONS, SOLUTION_STATUS_LABELS } from "@/lib/labels";
 
 import { CopyPhotoPicker, type PickedPhotos } from "./CopyPhotoPicker";
-import { Field, FormMessage, SubmitButton, inputClass, secondaryButtonClass } from "./Form";
+import { Checkbox, Field, FormMessage, SubmitButton, inputClass, secondaryButtonClass } from "./Form";
+import { MODEL_CONSENT_LABEL } from "./ModelCopy";
 
 // Une solution est la copie manuscrite, en photos : rien ne se tape.
 const NO_PHOTOS: PickedPhotos = { token: null, count: 0 };
@@ -50,6 +51,7 @@ export function SolutionForm({ exerciseId }: { exerciseId: number }) {
   const router = useRouter();
   const [aiUsage, setAiUsage] = useState<AiUsage>("aucune");
   const [picked, setPicked] = useState<PickedPhotos>(NO_PHOTOS);
+  const [modelConsent, setModelConsent] = useState(false);
   // Changée après l'envoi : un nouvel envoi de photos pour la prochaine solution.
   const [round, setRound] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +62,11 @@ export function SolutionForm({ exerciseId }: { exerciseId: number }) {
     if (picked.count === 0 || !picked.token) return setError(PHOTOS_NEEDED);
     setPending(true);
     setError(null);
-    const result = await apiPost(`/exercises/${exerciseId}/solutions`, { ai_usage: aiUsage, photo_upload: picked.token });
+    const result = await apiPost(`/exercises/${exerciseId}/solutions`, {
+      ai_usage: aiUsage,
+      photo_upload: picked.token,
+      model_consent: modelConsent,
+    });
     setPending(false);
     if (!result.ok) return setError(result.error);
     setPicked(NO_PHOTOS);
@@ -75,6 +81,11 @@ export function SolutionForm({ exerciseId }: { exerciseId: number }) {
         <CopyPhotoPicker key={round} source={{ exerciseId }} onChange={setPicked} />
       </fieldset>
       <AiUsageChoice name="ai_usage" value={aiUsage} onChange={setAiUsage} />
+      <div className="text-sm text-body">
+        <Checkbox checked={modelConsent} onChange={setModelConsent}>
+          {MODEL_CONSENT_LABEL} <span className="text-mute">Facultatif, et modifiable ensuite.</span>
+        </Checkbox>
+      </div>
       <FormMessage error={error} />
       <SubmitButton pending={pending}>Envoyer en relecture</SubmitButton>
     </form>

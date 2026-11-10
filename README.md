@@ -106,7 +106,8 @@ Clés VAPID : `uv run python manage.py generate_vapid_keys`, à copier dans `.en
 
 ## Relecture par les pairs
 
-- **Les solutions sont privées.** Une copie n'est vue que de son auteur, de ses relecteurs et de la modération, même validée ; le site n'affiche que le nombre de solutions envoyées. Pas de vote ni de recommandation de solution.
+- **Les solutions sont privées.** Une copie n'est vue que de son auteur, de ses relecteurs et de la modération, même validée ; le site n'affiche que le nombre de solutions envoyées. Pas de vote de solution.
+- **Copie modèle** (la seule exception) : l'auteur coche une case d'accord, à l'envoi ou plus tard ; l'équipe choisit une copie validée par exercice, depuis la page de l'exercice ; elle est montrée sans nom aux membres qui ont envoyé leur propre copie, quand ils décident de l'ouvrir. Une copie envoyée après l'avoir ouverte peut être validée mais ne rapporte pas de points. L'accord se retire à tout moment, et prend fin avec le compte.
 - 3 relecteurs tirés au sort, anonymes et à l'aveugle. Relance à 48 h, réattribution à 72 h, sans pénalité ; un tirage incomplet (pas assez de relecteurs possibles) est complété dès que possible.
 - Chaque relecteur laisse un verdict et un **commentaire obligatoire** : c'est la seule correction que reçoit l'auteur. Il la lit dès qu'elle arrive, et en est prévenu par une notification (« Ta copie a été relue », 1 sur 3, 2 sur 3).
 - **Consensus** : une fois toutes les relectures tirées au sort rendues, la copie est validée si tous les relecteurs la jugent juste (« correcte » ou « correcte avec lacunes »). Elle rapporte alors ses points ; sinon elle est à reprendre, et ne rapporte rien. Une copie envoyée ne rapporte rien en soi. Les relecteurs de la majorité gagnent leurs points de relecture.
@@ -150,6 +151,16 @@ Un titre peut contenir des formules entre `$…$` (« Reste de `$3^{100}$` modul
 Une seule page de 20 exercices, sans défilement infini : 60 % de Tendances, 25 % d'« À résoudre » (moins de 14 jours, moins de 2 solutions validées), 15 % d'exploration. Les scores sont logarithmiques : cent fois plus de solutions ne donnent qu'un score sept fois plus élevé. Chaque exercice affiche son état, pas la raison de sa présence : « Tendance », « Nouveau » (publié depuis moins de 7 jours), et le nombre de solutions validées, en gris.
 
 Sur l'accueil, des onglets (`?vue=`) passent du fil aux vues triées : sans solution, tendance (score T), nouveaux. Connecté, l'accueil a deux colonnes sur grand écran : le défi du jour et les exercices, puis « Ta semaine », « À faire » et « Revoir le cours » (rappels publiés proches du fil) ; sur téléphone, une seule colonne. `/exercices` parcourt tout le catalogue : récents, populaires ou sans solution validée, et la recherche (`?q=`) y cherche chaque mot dans le titre, l'énoncé et les chapitres, sans tenir compte de la casse (les accents comptent).
+
+## Niveaux et filières
+
+Vingt niveaux, rangés en trois familles dans les menus : université (L1 à M2), prépas scientifiques (MPSI, MP2I, PCSI, PTSI, BCPST 1, MP, MPI, PC, PSI, PT, BCPST 2) et prépas ECG et B/L (deux années chacune). Les exercices de la rédaction rattachés aux filières BCPST, ECG et B/L sont listés à la main dans `backend/content/editorial/filieres.py`, d'après leurs programmes ; ceux de MP vont aussi en MPI. `import_exercises` ajoute ces niveaux aux exercices déjà publiés, sans jamais en retirer.
+
+## Page d'un exercice
+
+- **Statistiques** : combien de personnes l'ont lu, ont envoyé une copie, l'ont réussi, avec la part des lecteurs. Un membre compte une fois (`ExerciseRead`), un visiteur une fois par navigateur (liste gardée dans son navigateur, sans cookie ni identifiant).
+- **Partage** : WhatsApp, Facebook, X, Pinterest, email, menu de partage du téléphone, copie du lien. De simples liens : aucun script tiers.
+- **Questions et remarques** : un fil public par exercice, écrit une fois connecté, avec des réponses sur un niveau. On n'y donne pas la solution. Chacun retire ses messages, l'équipe retire ceux qui n'ont pas leur place, tout membre peut signaler un message (l'équipe est prévenue au premier signalement).
 
 ## Classements, badges et niveaux de confiance
 

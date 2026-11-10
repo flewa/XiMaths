@@ -163,6 +163,8 @@ def export_user_data(user):
                 "texte": s.body,
                 "photos": [photo["url"] for photo in photos.described(s)],
                 "usage_ia": s.ai_usage,
+                "accord_copie_modele": s.model_consent,
+                "copie_modele": s.model_at is not None,
                 "statut": s.status,
                 "publiee": dates(s.published_at),
             }
@@ -245,7 +247,7 @@ def delete_account(user):
     """Efface les données personnelles. Les contributions, sous licence CC BY-SA,
     restent publiées sans pseudo ; le ledger, en ajout seul, reste attaché au
     compte anonymisé pour que les classements passés ne changent pas."""
-    from content.models import Exercise, ExerciseRead, Message, MessageFlag, Solution
+    from content.models import Exercise, ExerciseRead, Message, MessageFlag, ModelCopyView, Solution
     from gamification.models import Goal, UserBadge, WeeklyStreak
     from moderation.models import ComprehensionQuestion
     from notifications.models import Notification, PushSubscription
@@ -253,10 +255,12 @@ def delete_account(user):
 
     Exercise.objects.filter(author=user).update(author=None)
     PushSubscription.objects.filter(user=user).delete()
-    Solution.objects.filter(author=user).update(author=None)
+    # L'accord pour la copie modèle ne survit pas au compte : il ne pourrait plus être retiré.
+    Solution.objects.filter(author=user).update(author=None, model_consent=False, model_at=None)
     # Les messages restent dans les fils, sans pseudo ; lectures et signalements s'effacent.
     Message.objects.filter(author=user).update(author=None)
     MessageFlag.objects.filter(user=user).delete()
+    ModelCopyView.objects.filter(user=user).delete()
     # Une lecture reste comptée dans les statistiques de l'exercice, sans plus dire de qui.
     Exercise.objects.filter(reads__user=user).update(visitor_reads=F("visitor_reads") + 1)
     ExerciseRead.objects.filter(user=user).delete()

@@ -50,6 +50,13 @@ export default function TermsPage() {
           copie et de la modération. Le site affiche seulement le nombre de solutions envoyées.
         </p>
         <p>
+          Une exception, la copie modèle : si tu donnes ton accord (une case, à l&apos;envoi ou plus tard) et que
+          l&apos;équipe choisit ta copie validée, elle est montrée sans ton pseudo aux membres qui ont déjà envoyé
+          leur copie sur cet exercice. Tu peux retirer ton accord à tout moment ; elle n&apos;est alors plus montrée.
+          Après avoir ouvert une copie modèle, tu peux encore envoyer une copie sur cet exercice, mais elle ne
+          rapporte plus de points.
+        </p>
+        <p>
           La licence autorise aussi la réutilisation pour entraîner des modèles d&apos;IA, dans le
           respect de ses conditions. XiMaths ne vend pas les contenus à des tiers.
         </p>

@@ -18,12 +18,15 @@ import { secondaryButtonClass } from "@/components/Form";
 import { Icon } from "@/components/Icon";
 import { JsonLd, breadcrumb } from "@/components/JsonLd";
 import { MathMarkdown } from "@/components/MathMarkdown";
+import { ModelCandidates, ModelConsent, ModelCopyPanel } from "@/components/ModelCopy";
 import { ReportButton } from "@/components/ReportButton";
 import { Tag } from "@/components/Tag";
 import {
   fetchExercise,
   fetchMe,
   fetchMessages,
+  fetchModelCandidates,
+  fetchModelCopy,
   fetchMySolutions,
   fetchRelated,
   fetchTopics,
@@ -35,6 +38,8 @@ import {
   type ExerciseSummary,
   type Me,
   type MemberRef,
+  type ModelCandidate,
+  type ModelCopy,
   type MySolution,
   type Topic,
 } from "@/lib/api";
@@ -60,6 +65,7 @@ function voteBlocker(me: Me | null, author: string | null) {
 
 // Signaler un doublon est un droit du niveau Relecteur.
 const REVIEWER_TRUST_LEVEL = 2;
+const MODERATOR_TRUST_LEVEL = 4;
 
 /** Bouton « Signaler », pour un membre vérifié et sur le contenu des autres seulement. */
 function Report({ me, author, ...target }: { me: Me | null; author: string | null } & Omit<
@@ -153,15 +159,22 @@ export default async function ExercisePage({ params }: Props) {
   let related: ExerciseSummary[];
   let mySolutions: MySolution[] = [];
   let messages: DiscussionMessage[];
+  let modelCopy: ModelCopy | null;
+  let candidates: ModelCandidate[] = [];
   try {
-    [exercise, me, topics, related, messages] = await Promise.all([
+    [exercise, me, topics, related, messages, modelCopy] = await Promise.all([
       fetchExercise(id),
       fetchMe(),
       fetchTopics(),
       fetchRelated(Number(id)),
       fetchMessages(Number(id)),
+      fetchModelCopy(Number(id)),
     ]);
     if (exercise && me) mySolutions = await fetchMySolutions(exercise.id);
+    // L'équipe choisit la copie modèle depuis la page de l'exercice.
+    if (exercise && me && (me.is_staff || me.trust_level >= MODERATOR_TRUST_LEVEL)) {
+      candidates = await fetchModelCandidates(exercise.id);
+    }
   } catch (error) {
     logApiError(error);
     return <ApiUnavailable />;
@@ -322,6 +335,20 @@ export default async function ExercisePage({ params }: Props) {
         </section>
       )}
 
+      {(modelCopy?.exists || candidates.length > 0) && (
+        <section id="copie-modele" aria-labelledby="copie-modele-titre" className={`${section} scroll-mt-20`}>
+          <h2 id="copie-modele-titre" className={sectionTitle}>
+            Copie modèle
+          </h2>
+          {modelCopy?.exists ? (
+            <ModelCopyPanel exerciseId={exercise.id} initial={modelCopy} />
+          ) : (
+            <p className="mt-3 text-body">Pas encore de copie modèle pour cet exercice.</p>
+          )}
+          {candidates.length > 0 && <ModelCandidates initial={candidates} />}
+        </section>
+      )}
+
       <section id="discussion" aria-labelledby="discussion-titre" className={`${section} scroll-mt-20`}>
         <Discussion exerciseId={exercise.id} initial={messages} viewer={me ? { verified: me.email_verified } : null} />
       </section>
@@ -423,6 +450,12 @@ function MySolutionCard({ solution, exerciseId }: { solution: MySolution; exerci
         {solution.body && <MathMarkdown>{solution.body}</MathMarkdown>}
       </details>
       <ReviewsReceived solution={solution} />
+      {solution.after_model && (
+        <p className="mt-3 text-sm text-mute">
+          Envoyée après avoir ouvert la copie modèle : elle peut être validée, sans rapporter de points.
+        </p>
+      )}
+      {solution.status !== "hidden" && solution.ai_usage !== "generee" && <ModelConsent solution={solution} />}
       {(solution.status === "needs_work" || solution.status === "validated") && (
         <ReviseSolution
           solutionId={solution.id}

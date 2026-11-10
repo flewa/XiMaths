@@ -396,6 +396,8 @@ class SolutionIn(Schema):
     ai_usage: Literal["aucune", "relecture", "aide_idee", "generee"] = "aucune"
     # Jeton de l'envoi de photos (QR code).
     photo_upload: str = Field(min_length=1, max_length=64)
+    # Accord pour que la copie, une fois validée, puisse servir de copie modèle, sans nom.
+    model_consent: bool = False
 
 
 NO_PHOTOS = "Joins les photos de ta copie : une solution s'envoie en photos."
@@ -439,6 +441,15 @@ class MySolutionOut(Schema):
     # l'auteur dès qu'elles arrivent ; et le nombre de relectures attendues.
     reviews: list[AuthorReviewOut]
     reviews_expected: int
+    # Copie modèle : l'accord de l'auteur, et si l'équipe a choisi cette copie.
+    model_consent: bool
+    is_model: bool
+    # Envoyée après avoir ouvert la copie modèle : elle ne rapporte pas de points.
+    after_model: bool
+
+    @staticmethod
+    def resolve_is_model(obj):
+        return obj.model_at is not None and obj.model_consent and obj.status == Solution.Status.VALIDATED
 
     @staticmethod
     def resolve_photos(obj):
@@ -710,7 +721,9 @@ def propose_solution(request, exercise_id: int, payload: SolutionIn):
         raise HttpError(409, "Tu as déjà une solution en cours d'évaluation sur cet exercice.")
     upload = pending_upload(user, exercise, payload.photo_upload)
     with transaction.atomic():
-        solution = Solution.objects.create(exercise=exercise, author=user, ai_usage=payload.ai_usage)
+        solution = Solution.objects.create(
+            exercise=exercise, author=user, ai_usage=payload.ai_usage, model_consent=payload.model_consent
+        )
         # Les photos d'abord : la publication les lit (plagiat, question de compréhension).
         photos.attach(upload, solution)
         publish_solution(solution)

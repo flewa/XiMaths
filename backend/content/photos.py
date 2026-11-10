@@ -28,7 +28,7 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 from accounts.permissions import is_moderator
 from config.errors import RuleError
 
-from .models import PhotoUpload, Solution, SolutionPhoto
+from .models import ModelCopyView, PhotoUpload, Solution, SolutionPhoto
 
 MAX_PHOTOS = 3
 MAX_BYTES = 10 * 1024 * 1024
@@ -201,12 +201,21 @@ def is_note(solution):
 
 def can_view(user, solution, *, now=None):
     """Une copie est privée, même validée : son auteur, ses relecteurs et la modération
-    (dont les experts qui évaluent une question de compréhension) la voient."""
+    (dont les experts qui évaluent une question de compréhension) la voient. Seule
+    exception, la copie modèle : choisie par l'équipe avec l'accord de son auteur, elle
+    est lisible par les membres qui l'ont ouverte (après avoir envoyé leur propre copie)."""
     if not user.is_authenticated:
         return False
     if solution.author_id == user.pk or is_moderator(user):
         return True
     if solution.reviews.filter(reviewer=user).exists():
+        return True
+    if (
+        solution.model_at is not None
+        and solution.model_consent
+        and solution.status == Solution.Status.VALIDATED
+        and ModelCopyView.objects.filter(exercise_id=solution.exercise_id, user=user).exists()
+    ):
         return True
     if user.trust_level >= user.TrustLevel.EXPERT:
         # Évaluation d'une question de compréhension.
