@@ -1,6 +1,7 @@
 /** Icônes au trait, dessinées sur une grille de 20 px. Décoratives : le texte voisin dit tout. */
 const PATHS = {
   home: <path d="M3.5 9 10 3.5 16.5 9v7.5h-4.25v-5h-4.5v5H3.5z" />,
+  grid: <path d="M3.75 3.75h5v5h-5zM11.25 3.75h5v5h-5zM3.75 11.25h5v5h-5zM11.25 11.25h5v5h-5z" />,
   browse: <path d="M4 5h12M4 10h12M4 15h7" />,
   book: <path d="M10 5.5C8.5 4.3 6.3 4 3.5 4.25v11c2.8-.25 5 .05 6.5 1.25 1.5-1.2 3.7-1.5 6.5-1.25v-11C13.7 4 11.5 4.3 10 5.5zm0 0v11" />,
   timer: (
