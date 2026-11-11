@@ -102,7 +102,7 @@ def promote_new_member(user, *, now=None):
             user,
             Notification.Kind.PROMOTION,
             "Tu es maintenant Membre",
-            "Tes votes comptent, et tu apparais dans les classements.",
+            "Tes votes sur les exercices comptent désormais.",
             "/classements",
             now=now,
         )

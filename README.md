@@ -169,7 +169,7 @@ Vingt niveaux, rangés en trois familles dans les menus : université (L1 à M2)
 ## Classements, badges et niveaux de confiance
 
 - **Classements** (`/classements`) : hebdomadaires par niveau et global, du lundi 0 h au dimanche 23 h 59 (heure de Paris), plus un Panthéon au second plan. Les points comptent pour le niveau de l'exercice. Top 50, puis ta position avec 5 voisins de chaque côté ; filtre « mes pairs ». 24 h de consolidation pour annuler des points frauduleux.
-- **Qui est classé** : les membres (niveau 1 ou plus), sans sanction d'exclusion en cours. Chacun peut masquer sa présence.
+- **Qui est classé** : tout compte actif qui a des points, dès le premier, sans sanction d'exclusion en cours. Chacun peut masquer sa présence.
 - **Badges** (`/badges`), critères publics : Premier pas, Validé !, Pionnier, Auteur, Relecteur fiable, Touche-à-tout, Élégance, Chasseur de doublons, Sous pression (5 défis validés), Régulier bronze, argent et or (4, 12 et 30 semaines d'objectif atteint), Étudiant vérifié (email académique confirmé).
 - **Niveaux de confiance**, attribués automatiquement, jamais retirés automatiquement :
     - Membre : 7 jours et 30 points ;

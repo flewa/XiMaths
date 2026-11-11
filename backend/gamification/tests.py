@@ -192,13 +192,14 @@ class RankingTests(TestCase):
             self.credit(self.member(name), points)
         self.assertEqual([rank for *_, rank in self.board()], [1, 2, 2, 4])
 
-    def test_new_hidden_and_restricted_accounts_are_left_out(self):
+    def test_hidden_and_restricted_accounts_are_left_out_but_new_ones_are_ranked(self):
         self.credit(self.member("lea"), 10)
+        # Un compte tout neuf est classé comme les autres, dès qu'il a des points.
         self.credit(make_user("nouveau", trust=TL.NEW), 10)
         self.credit(self.member("discret", leaderboard_visible=False), 10)
         self.credit(self.member("suspendu", status=User.Status.SUSPENDED), 10)
         self.credit(self.member("negatif"), -50)
-        self.assertEqual(self.board(), [("lea", 10, 1)])
+        self.assertEqual(self.board(), [("lea", 10, 1), ("nouveau", 10, 1)])
 
     def test_reversals_correct_a_week_only_during_consolidation(self):
         lea, yanis = self.member("lea"), self.member("yanis")
@@ -264,11 +265,19 @@ class LeaderboardApiTests(TestCase):
         self.assertTrue(neighbours[5]["is_me"])
         self.assertIsNone(board["next_week"])
 
-    def test_a_new_account_is_told_why_it_is_not_ranked(self):
-        self.client.force_login(make_user("nouveau", trust=TL.NEW))
+    def test_a_new_account_is_ranked_as_soon_as_it_has_points(self):
+        newcomer = make_user("nouveau", trust=TL.NEW, joined_days_ago=0)
+        self.client.force_login(newcomer)
+        # Sans point, il n'est pas classé, et on lui dit pourquoi.
         me = self.get(board="MP")["me"]
         self.assertIsNone(me["rank"])
-        self.assertIn("niveau Membre", me["message"])
+        self.assertIn("Pas de points", me["message"])
+
+        # Dès ses premiers points, il est au classement : ni ancienneté ni niveau requis.
+        self.credit(newcomer, 10)
+        board = self.get()
+        self.assertEqual([entry["username"] for entry in board["top"]], ["nouveau"])
+        self.assertEqual(board["me"]["rank"], 1)
 
     def test_hiding_removes_me_from_rankings_and_my_public_points(self):
         lea = self.member("lea")
