@@ -163,6 +163,15 @@ export default async function RankingsPage({ searchParams }: { searchParams: Pro
           <Link href="/" className="mt-4 inline-block underline underline-offset-4">
             Trouver un exercice à résoudre
           </Link>
+          {!pantheon && (
+            <p className="mt-4 text-sm text-mute">
+              Ce classement repart de zéro chaque lundi.{" "}
+              <Link href={rankingsHref({ board: "pantheon", peers })} className="underline underline-offset-4 hover:text-ink">
+                Le Panthéon
+              </Link>{" "}
+              garde tous les points depuis l&apos;inscription.
+            </p>
+          )}
         </div>
       ) : (
         <>
@@ -194,7 +203,7 @@ export default async function RankingsPage({ searchParams }: { searchParams: Pro
         <p className="text-sm text-mute">
           {pantheon
             ? "Le Panthéon cumule tous les points depuis l'inscription. Il reste au second plan : ce sont les classements de la semaine qui comptent."
-            : "Un classement devient définitif le mardi à 0 h : les 24 heures qui suivent la fin de la semaine servent à annuler d'éventuels points frauduleux."}{" "}
+            : "Seuls comptent ici les points gagnés cette semaine-là : le classement repart de zéro chaque lundi, et le Panthéon garde le total. Un classement devient définitif le mardi à 0 h : les 24 heures qui suivent la fin de la semaine servent à annuler d'éventuels points frauduleux."}{" "}
           <Link href="/badges" className="underline underline-offset-4">
             Les badges et leurs critères
           </Link>

@@ -96,12 +96,13 @@ def excluded_ids(now=None):
 
 
 def ranked_users():
-    """Présents dans les classements : membres actifs, sans exclusion en cours, qui
-    n'ont pas masqué leur présence."""
+    """Présents dans les classements : tout compte actif qui a des points, sans exclusion
+    en cours, et qui n'a pas masqué sa présence. Pas de seuil d'ancienneté ni de niveau :
+    les points ne viennent que de contributions relues, et sur un site jeune un podium
+    réservé aux anciens resterait vide."""
     return User.objects.filter(
         is_active=True,
         status=User.Status.ACTIVE,
-        trust_level__gte=User.TrustLevel.MEMBER,
         leaderboard_visible=True,
     ).exclude(pk__in=excluded_ids())
 
@@ -158,8 +159,6 @@ def absence_reason(user, *, week=None, where=""):
         return "Tu as masqué ta présence dans les classements."
     if user.status != User.Status.ACTIVE or excluded_ids().filter(user_id=user.pk).exists():
         return "Ton compte n'apparaît pas dans les classements pendant une sanction en cours."
-    if user.trust_level < User.TrustLevel.MEMBER:
-        return "Les classements s'ouvrent au niveau Membre : 7 jours d'ancienneté et 30 points."
     if week is None:
         return "Tu n'as pas encore de points."
     when = "cette semaine-là." if week < Week.containing() else "cette semaine."
