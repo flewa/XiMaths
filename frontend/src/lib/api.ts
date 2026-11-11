@@ -899,3 +899,129 @@ export function fetchModerationLog() {
 export function fetchMemberFile(username: string) {
   return teamGet<MemberFile>(`/moderation/members/${encodeURIComponent(username)}`);
 }
+
+// ---------------------------------------------------------------- panneau d'administration
+
+export type PanelDay = { date: string; signups: number; solutions: number; reviews: number };
+
+export type PanelOverview = {
+  members: number;
+  members_week: number;
+  members_active_week: number;
+  reviewers: number;
+  exercises: number;
+  exercises_week: number;
+  under_review: number;
+  validated: number;
+  needs_work: number;
+  hidden: number;
+  solutions_week: number;
+  /** Copies en relecture depuis plus de 72 heures. */
+  late: number;
+  reviews_week: number;
+  messages_week: number;
+  moderation_pending: number;
+  /** Les 14 derniers jours, du plus ancien au plus récent. */
+  days: PanelDay[];
+};
+
+type PanelPage<T> = { total: number; page: number; pages: number; items: T[] };
+
+export type PanelReview = {
+  reviewer: string;
+  team: boolean;
+  assigned: boolean;
+  verdict: "" | AuthorReview["verdict"];
+  verdict_label: string;
+  feedback: string;
+  assigned_at: string;
+  submitted_at: string | null;
+  expired: boolean;
+};
+
+export type PanelSolution = {
+  id: number;
+  exercise_id: number;
+  exercise_title: string;
+  author: string | null;
+  status: SolutionStatus;
+  status_label: string;
+  origin: string;
+  origin_label: string;
+  ai_usage: AiUsage;
+  ai_usage_label: string;
+  published_at: string | null;
+  validated_at: string | null;
+  waiting_hours: number | null;
+  late: boolean;
+  review_round: number;
+  reviews_done: number;
+  reviews_expected: number;
+  reviews: PanelReview[];
+  /** Points que la copie a rapportés à son auteur, annulations déduites. */
+  points: number;
+  photos: CopyPhoto[];
+  is_model: boolean;
+  after_model: boolean;
+  /** L'administrateur peut la corriger lui-même : sa relecture vaut décision. */
+  can_take: boolean;
+};
+
+export type PanelMember = {
+  username: string;
+  joined_at: string;
+  last_login: string | null;
+  status: string;
+  status_label: string;
+  trust_label: string;
+  is_staff: boolean;
+  is_moderator: boolean;
+  email_verified: boolean;
+  points: number;
+  exercises: number;
+  solutions: number;
+  validated: number;
+  reviews: number;
+};
+
+export type PanelExercise = {
+  id: number;
+  title: string;
+  author: string | null;
+  status: string;
+  status_label: string;
+  primary_level: string;
+  difficulty: number;
+  published_at: string | null;
+  solutions: number;
+  validated: number;
+  under_review: number;
+  readers: number;
+  messages: number;
+};
+
+function panelQuery(params: Record<string, string | number | undefined>) {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== "") query.set(key, String(value));
+  }
+  const text = query.toString();
+  return text ? `?${text}` : "";
+}
+
+/** Réservé aux administrateurs : null pour les autres (l'API répond 403). */
+export function fetchPanelOverview() {
+  return teamGet<PanelOverview>("/panel/overview");
+}
+
+export function fetchPanelSolutions(params: { status?: string; q?: string; page?: number }) {
+  return teamGet<PanelPage<PanelSolution>>(`/panel/solutions${panelQuery(params)}`);
+}
+
+export function fetchPanelMembers(params: { show?: string; q?: string; page?: number }) {
+  return teamGet<PanelPage<PanelMember>>(`/panel/members${panelQuery(params)}`);
+}
+
+export function fetchPanelExercises(params: { status?: string; q?: string; page?: number }) {
+  return teamGet<PanelPage<PanelExercise>>(`/panel/exercises${panelQuery(params)}`);
+}

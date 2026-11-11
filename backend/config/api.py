@@ -6,6 +6,7 @@ from accounts.api import router as auth_router
 from content.api import router as content_router
 from content.discussion import router as discussion_router
 from content.model_copy import router as model_copy_router
+from content.panel import router as panel_router
 from courses.api import router as courses_router
 from gamification.api import router as progression_router
 from moderation.api import router as moderation_router
@@ -27,6 +28,7 @@ api.add_router("/auth", auth_router)
 api.add_router("/", content_router)
 api.add_router("/", discussion_router)
 api.add_router("/", model_copy_router)
+api.add_router("/", panel_router)
 api.add_router("/", progression_router)
 api.add_router("/", moderation_router)
 api.add_router("/", moderation_team_router)

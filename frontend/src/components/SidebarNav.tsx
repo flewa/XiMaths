@@ -27,6 +27,8 @@ export type NavAccount = {
   /** Équipe de modération, et ce qui attend dans ses files. */
   team: boolean;
   moderationPending: number;
+  /** Administrateur du site : il a le panneau d'administration. */
+  staff: boolean;
 };
 
 type Item = {
@@ -87,6 +89,16 @@ function itemsFor(account: NavAccount | null): Item[] {
               match: (path: string) => path.startsWith("/moderation"),
               count: account.moderationPending,
               hot: true,
+            },
+          ]
+        : []),
+      ...(account.staff
+        ? [
+            {
+              href: "/administration",
+              icon: "grid" as IconName,
+              label: "Administration",
+              match: (path: string) => path.startsWith("/administration"),
             },
           ]
         : []),

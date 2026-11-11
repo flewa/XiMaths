@@ -210,6 +210,15 @@ Sur `/progression` également :
 
 Depuis la fiche d'un exercice : 15, 30, 45 ou 60 minutes, ou le temps conseillé. Non classé, documents autorisés, deux pauses. Le serveur fait foi : un signe de vie toutes les 10 s fait avancer le chrono, et un onglet fermé l'arrête. La copie est manuscrite : le QR code s'affiche au départ, et les photos doivent arriver avant la fin du temps, avec 60 s de grâce. Au rendu : copie envoyée en relecture, temps comparé à la médiane, auto-évaluation de la difficulté. Le vérificateur SymPy (`training/answers.py`, grammaire restreinte) ne sert plus qu'à valider les réponses et les gabarits de la rédaction, qu'on montre aux relecteurs.
 
+## Panneau d'administration
+
+`/administration`, réservé aux administrateurs (`is_staff`), avec une entrée dans le menu. Il montre, il ne décide pas : les décisions restent dans Relectures et Modération.
+
+- **Vue d'ensemble** : ce qui attend (copies en relecture depuis plus de 72 h, files de modération), les copies par statut, les membres (inscrits, actifs sur 7 jours, relecteurs), les exercices publiés, et l'activité des 14 derniers jours (inscriptions, copies envoyées, relectures rendues), jour par jour.
+- **Copies** : toutes les copies envoyées, filtrées par statut (en relecture, en retard, validées, à reprendre, masquées) ou cherchées par exercice ou par pseudo. Pour chacune : auteur, dates, relectures du tour en cours (qui, tiré au sort ou volontaire, verdict, commentaire), points rapportés, photos. Un administrateur peut prendre lui-même une copie en relecture : sa relecture vaut décision.
+- **Membres** : inscription, statut, niveau de confiance, points, exercices, copies, relectures, dernière connexion ; chaque pseudo mène à sa fiche de modération. Aucune adresse email n'y figure.
+- **Exercices** : tous les statuts (publiés, brouillons, retirés, fusionnés), avec lecteurs, copies, messages ; un filtre « sans copie validée ».
+
 ## Modération et intégrité
 
 - **Espace de modération** (`/moderation`, pour les modérateurs et les administrateurs, avec un compteur dans le menu) : trois files et un journal.
