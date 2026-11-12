@@ -866,6 +866,10 @@ export type MemberFile = {
   log: LogEntry[];
   can_sanction: boolean;
   can_appoint: boolean;
+  /** Administrateur : points, niveau, adresse, pseudo, suppression. */
+  can_administer: boolean;
+  /** Propriétaire du site : nommer ou retirer un administrateur. */
+  can_make_admin: boolean;
 };
 
 /** Réservé à l'équipe : null pour un autre visiteur (l'API répond 403). */
@@ -1024,4 +1028,30 @@ export function fetchPanelMembers(params: { show?: string; q?: string; page?: nu
 
 export function fetchPanelExercises(params: { status?: string; q?: string; page?: number }) {
   return teamGet<PanelPage<PanelExercise>>(`/panel/exercises${panelQuery(params)}`);
+}
+
+/** Un exercice tel que l'administration le modifie. */
+export type PanelExerciseDetail = {
+  id: number;
+  title: string;
+  statement: string;
+  hints: string[];
+  final_answer: string;
+  difficulty: number;
+  primary_level: string;
+  levels: string[];
+  topics: string[];
+  source_type: string;
+  source_reference: string;
+  status: string;
+  status_label: string;
+  author: string | null;
+  published_at: string | null;
+  edited_by_team_at: string | null;
+  /** Exercice de la rédaction. */
+  editorial: boolean;
+};
+
+export function fetchPanelExercise(id: number) {
+  return teamGet<PanelExerciseDetail>(`/panel/exercises/${id}`);
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import { SolutionDecision } from "@/components/AdminActions";
 import { VolunteerButton } from "@/components/ContributionForms";
 import { CopyPhotoList } from "@/components/CopyPhotos";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
@@ -406,6 +407,7 @@ function SolutionRow({ solution, me }: { solution: PanelSolution; me: string }) 
           <span>Ta relecture vaut décision ; la copie t&apos;attend ensuite dans Relectures.</span>
         </p>
       )}
+      {solution.author && solution.author !== me && <SolutionDecision id={solution.id} status={solution.status} />}
       {mine && (
         <p className="mt-3 text-sm text-mute">
           Elle attend ta correction, qui vaut décision :{" "}
@@ -497,7 +499,10 @@ function ExercisesTable({ exercises }: { exercises: PanelExercise[] }) {
                   </span>
                 )}
                 <span className="block text-[13px] text-mute">
-                  {exercise.author ? `par ${exercise.author}` : "auteur supprimé"} · difficulté {exercise.difficulty}/5
+                  {exercise.author ? `par ${exercise.author}` : "auteur supprimé"} · difficulté {exercise.difficulty}/5 ·{" "}
+                  <Link href={`/administration/exercices/${exercise.id}`} className="text-ink underline underline-offset-4">
+                    Modifier
+                  </Link>
                 </span>
               </td>
               <td className={td}>{exercise.primary_level}</td>
@@ -558,16 +563,13 @@ export default async function AdministrationPage({
     <div className="page-wide">
       <h1>Administration</h1>
       <p className="mt-2 max-w-[70ch] text-body">
-        Tout ce qui se passe sur le site : les copies et leurs relectures, les membres, les exercices. Ici, tu regardes ;
-        les décisions se prennent dans{" "}
-        <Link href="/relectures" className="underline underline-offset-4">
-          Relectures
-        </Link>{" "}
-        et dans{" "}
-        <Link href="/moderation" className="underline underline-offset-4">
-          Modération
+        Tout ce qui se passe sur le site, et la main dessus : décider d&apos;une copie, corriger ou retirer un exercice,
+        gérer un compte depuis sa fiche (un clic sur un pseudo). Chaque action demande un motif, prévient la personne
+        concernée et s&apos;inscrit au{" "}
+        <Link href="/moderation?file=journal" className="underline underline-offset-4">
+          journal
         </Link>
-        , où elles sont motivées et gardées au journal.
+        .
       </p>
 
       <Tabs label="Vues du panneau" className="mt-8">

@@ -237,11 +237,21 @@ class ModerationLog(models.Model):
         APPEAL_OVERTURNED = "appel_accepte", "Appel accepté"
         MODERATOR_NAMED = "moderateur_nomme", "Modérateur nommé"
         MODERATOR_REMOVED = "moderateur_retire", "Modérateur retiré"
+        SOLUTION_DECIDED = "copie_decidee", "Copie décidée par l'administration"
+        EXERCISE_EDITED = "exercice_modifie", "Exercice modifié"
+        EXERCISE_RESTORED = "exercice_retabli", "Exercice rétabli"
+        POINTS_ADJUSTED = "points_ajustes", "Points ajustés"
+        TRUST_CHANGED = "niveau_change", "Niveau de confiance changé"
+        EMAIL_VERIFIED = "email_verifie", "Adresse vérifiée à la main"
+        ACCOUNT_RENAMED = "compte_renomme", "Pseudo changé"
+        ACCOUNT_DELETED = "compte_supprime", "Compte supprimé"
+        ADMIN_NAMED = "admin_nomme", "Administrateur nommé"
+        ADMIN_REMOVED = "admin_retire", "Administrateur retiré"
 
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+", verbose_name="par"
     )
-    action = models.CharField(max_length=24, choices=Action.choices)
+    action = models.CharField(max_length=32, choices=Action.choices)
     # Le membre concerné, s'il y en a un : sa fiche de modération reprend ces lignes.
     member = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="moderation_log"

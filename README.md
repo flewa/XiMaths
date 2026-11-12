@@ -219,6 +219,12 @@ Depuis la fiche d'un exercice : 15, 30, 45 ou 60 minutes, ou le temps conseillé
 - **Membres** : inscription, statut, niveau de confiance, points, exercices, copies, relectures, dernière connexion ; chaque pseudo mène à sa fiche de modération. Aucune adresse email n'y figure.
 - **Exercices** : tous les statuts (publiés, brouillons, retirés, fusionnés), avec lecteurs, copies, messages ; un filtre « sans copie validée ».
 
+Et il agit, avec un motif à chaque fois, envoyé à la personne concernée et gardé au journal de modération :
+- **Copies** : valider, renvoyer à reprendre (les points d'une copie validée sont repris), remettre en relecture (nouveau tour), retirer pour plagiat ou contenu inapproprié. Un retrait passe par un signalement que l'administrateur dépose et tranche aussitôt : l'auteur peut faire appel, et un autre membre de l'équipe examine l'appel ; ce signalement ne rapporte pas de points.
+- **Exercices** (`/administration/exercices/<id>`) : corriger titre, énoncé, indications, réponse, difficulté, niveaux et chapitres ; retirer (avec appel possible) ou rétablir avec ses points. Un exercice de la rédaction modifié ici garde son titre et ses chapitres aux imports suivants (`edited_by_team_at`).
+- **Comptes**, depuis la fiche de modération : ajouter ou retirer des points (écriture « Ajustement par l'administration » dans le ledger), changer le niveau de confiance, vérifier l'adresse à la main, changer le pseudo, supprimer le compte (le pseudo est à retaper). Le propriétaire du site (superutilisateur) nomme ou retire les administrateurs.
+- Personne n'agit sur son propre compte, sa copie ou son exercice ; seul le propriétaire du site agit sur le compte d'un autre administrateur.
+
 ## Modération et intégrité
 
 - **Espace de modération** (`/moderation`, pour les modérateurs et les administrateurs, avec un compteur dans le menu) : trois files et un journal.

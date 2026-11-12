@@ -457,6 +457,10 @@ class MemberFileOut(Schema):
     # Ce que la personne qui consulte peut faire.
     can_sanction: bool
     can_appoint: bool
+    # Administrateur : points, niveau, adresse, pseudo, suppression du compte.
+    can_administer: bool
+    # Propriétaire du site : nommer ou retirer un administrateur.
+    can_make_admin: bool
 
 
 def log_out(entry):
@@ -580,6 +584,8 @@ def member_file(member, me):
         # On ne se sanctionne pas soi-même, et seul un administrateur sanctionne un modérateur.
         "can_sanction": member.pk != me.pk and not member.is_staff and (me.is_staff or not is_moderator(member)),
         "can_appoint": me.is_staff and not member.is_staff and member.pk != me.pk,
+        "can_administer": me.is_staff and member.pk != me.pk and (not member.is_staff or me.is_superuser),
+        "can_make_admin": me.is_superuser and member.pk != me.pk,
     }
 
 
