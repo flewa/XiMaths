@@ -102,6 +102,7 @@ class PanelActionTests(ContentTestCase):
         self.assertEqual(balance(self.student), 20)
 
         self.post(f"members/{lea}/trust", {"level": 2, "reason": "Relectures sérieuses."})
+        self.assertEqual(self.post(f"members/{lea}/trust", {"level": 2, "reason": "x"}).status_code, 409)
         self.student.refresh_from_db()
         self.assertEqual(self.student.trust_level, 2)
 

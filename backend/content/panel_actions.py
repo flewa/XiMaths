@@ -353,6 +353,8 @@ def change_trust(request, username: str, payload: TrustIn):
     reason = reason_of(payload.reason)
     if member.trust_level >= TL.MODERATOR:
         raise HttpError(409, "Retire d'abord ce membre de l'équipe de modération.")
+    if member.trust_level == payload.level:
+        raise HttpError(409, "Le membre est déjà à ce niveau.")
     before, member.trust_level = member.get_trust_level_display(), payload.level
     member.save(update_fields=["trust_level"])
     after = member.get_trust_level_display()

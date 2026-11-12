@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { MathText } from "@/components/MathText";
+import { MemberAdmin } from "@/components/AdminActions";
 import { LiftSanction, ModeratorToggle, SanctionForm } from "@/components/Moderation";
 import { LogList } from "@/components/ModerationLog";
 import { Tag } from "@/components/Tag";
@@ -169,6 +170,22 @@ export default async function MemberFilePage({ params }: Props) {
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {file.can_administer && (
+        <section aria-labelledby="administration" className={section}>
+          <h2 id="administration">Administration du compte</h2>
+          <p className="mt-2 text-sm text-mute">Chaque action demande un motif, prévient le membre et s&apos;inscrit au journal.</p>
+          <div className="mt-3">
+            <MemberAdmin
+              username={file.username}
+              trustLevel={file.trust_level}
+              emailVerified={file.email_verified}
+              isStaff={file.is_staff}
+              canMakeAdmin={file.can_make_admin}
+            />
+          </div>
         </section>
       )}
 
