@@ -27,6 +27,7 @@ class PointTransaction(models.Model):
         APPEAL_RESTORED = "appeal_restored", "Points rétablis en appel"
         CHALLENGE_ANSWER = "challenge_answer", "Défi du jour : réponse juste"
         CHALLENGE_JUSTIFIED = "challenge_justified", "Défi du jour : justification validée"
+        ADMIN_ADJUSTMENT = "admin_adjustment", "Ajustement par l'administration"
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

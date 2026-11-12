@@ -150,6 +150,9 @@ class Command(BaseCommand):
         ne bouge pas. 1 s'il a changé."""
         fields, levels, topics = draft_fields(payload(spec))
         changed = False
+        # Modifié par l'administration : son titre et ses chapitres sont les siens désormais.
+        if exercise.edited_by_team_at is not None:
+            fields["title"], topics = exercise.title, list(exercise.topics.all())
         # Les niveaux ne font que s'ajouter (une filière ouverte depuis) : rien n'est retiré.
         missing = set(levels) - set(exercise.levels.all())
         if missing:

@@ -105,6 +105,10 @@ def _settle(report, *, confirmed, moderator, note, now):
     report.decided_at = now
     report.decision_note = note
     report.save()
+    # Un retrait décidé par l'équipe passe par un signalement qu'elle dépose elle-même :
+    # il ne lui rapporte rien, et elle n'a pas à en être prévenue.
+    if report.reporter_id == moderator.pk:
+        return
     rewarded = confirmed and report.reason in REWARDED_REASONS
     if rewarded:
         level = (report.exercise or report.solution.exercise).primary_level

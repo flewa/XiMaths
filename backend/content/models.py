@@ -81,6 +81,9 @@ class Exercise(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     published_at = models.DateTimeField(null=True, blank=True)
+    # Modifié par l'administration : l'import de la rédaction ne touche plus à son titre ni
+    # à ses chapitres.
+    edited_by_team_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-published_at", "-created_at"]
