@@ -1,5 +1,5 @@
 import random
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
@@ -337,6 +337,11 @@ class WriteApiTests(ContentTestCase):
         self.client.force_login(self.reviewers[0])
         [task] = self.client.get("/api/reviews").json()
         self.assertNotIn("author", task)  # relecture anonyme
+        # Tirée au sort : à rendre 72 heures après l'attribution.
+        self.assertTrue(task["assigned"])
+        self.assertEqual(
+            datetime.fromisoformat(task["due_at"]) - datetime.fromisoformat(task["assigned_at"]), timedelta(hours=72)
+        )
         self.post(f"/api/reviews/{task['id']}", {"verdict": "correcte", "feedback": "Clair."})
 
         # L'auteur lit le premier commentaire aussitôt, et en est prévenu.

@@ -64,7 +64,7 @@ export function ReportButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 text-sm text-mute hover:text-ink"
+        className="inline-flex min-h-8 items-center gap-1.5 text-sm text-mute hover:text-ink"
       >
         <Icon name="flag" size={15} />
         {target === "exercise" ? "Signaler" : "Signaler cette copie"}

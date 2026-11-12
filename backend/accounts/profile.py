@@ -36,6 +36,11 @@ def is_editorial(user):
     return user.username == EDITORIAL_USERNAME
 
 
+def trust_label(user):
+    """Niveau affiché à l'équipe ; le compte de la rédaction n'en a pas : il publie pour le site."""
+    return "Rédaction" if is_editorial(user) else user.get_trust_level_display()
+
+
 def profile_problems(*, bio, avatar_color, avatar_symbol, featured_badges, owned_badges, favorite_topics, known_topics):
     """Erreurs d'un profil soumis, dans l'ordre des champs du formulaire."""
     problems = []

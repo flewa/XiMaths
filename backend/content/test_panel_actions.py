@@ -137,3 +137,30 @@ class PanelActionTests(ContentTestCase):
         self.client.force_login(owner)
         file = self.client.get(f"/api/moderation/members/{self.student.username}").json()
         self.assertTrue(file["can_administer"] and file["can_make_admin"])
+
+    def test_one_role_form_from_newcomer_to_administrator(self):
+        lea = self.student.username
+        self.assertEqual(self.post(f"members/{lea}/role", {"role": "relecteur", "reason": ""}).status_code, 422)
+        self.assertEqual(self.post(f"members/{lea}/role", {"role": "relecteur", "reason": "Relectures justes."}).status_code, 200)
+        self.assertEqual(self.post(f"members/{lea}/role", {"role": "relecteur", "reason": "x"}).status_code, 409)
+        self.post(f"members/{lea}/role", {"role": "moderateur", "reason": "Signalements toujours justes."})
+        self.student.refresh_from_db()
+        self.assertEqual(self.student.trust_level, 4)
+        self.assertTrue(self.logged(Action.MODERATOR_NAMED))
+
+        # Seul le propriétaire du site nomme un administrateur, et le retire.
+        self.assertEqual(self.post(f"members/{lea}/role", {"role": "administrateur", "reason": "x"}).status_code, 403)
+        owner = make_user("proprietaire", is_staff=True, is_superuser=True, level=None)
+        self.assertEqual(self.post(f"members/{lea}/role", {"role": "administrateur", "reason": "Gère le site."}, owner).status_code, 200)
+        self.student.refresh_from_db()
+        self.assertTrue(self.student.is_staff)
+        self.assertEqual(self.post(f"members/{lea}/role", {"role": "membre", "reason": "x"}).status_code, 403)
+        self.post(f"members/{lea}/role", {"role": "expert", "reason": "Moins disponible."}, owner)
+        self.student.refresh_from_db()
+        self.assertEqual((self.student.is_staff, self.student.trust_level), (False, 3))
+
+        self.client.force_login(self.admin)
+        file = self.client.get(f"/api/moderation/members/{lea}").json()
+        self.assertEqual((file["role"], file["trust_label"]), ("expert", "Expert"))
+        roles = Notification.objects.filter(user=self.student, title__startswith="Ton rôle").count()
+        self.assertEqual(roles, 4)

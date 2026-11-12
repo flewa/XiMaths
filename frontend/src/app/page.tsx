@@ -14,6 +14,7 @@ import {
   VisitorHero,
   WeekCard,
 } from "@/components/HomeHero";
+import { secondaryButtonClass } from "@/components/Form";
 import { JsonLd } from "@/components/JsonLd";
 import { LevelPicker } from "@/components/LevelPicker";
 import {
@@ -29,7 +30,7 @@ import {
   fetchMe,
   fetchProgress,
 } from "@/lib/api";
-import { ALL_LEVELS, HOME_VIEWS, dayLabel, homeHref, homeView, openChallenge, suggestedNotes } from "@/lib/home";
+import { ALL_LEVELS, HOME_VIEWS, dayLabel, homeHref, homeView, suggestedNotes, todayChallenge } from "@/lib/home";
 import { SITE_URL, SOCIAL_PROFILES } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -51,8 +52,9 @@ const SITE_DATA = [
   },
 ];
 
-// Autant d'exercices dans une vue triée que dans le fil.
-const VIEW_SIZE = 20;
+// Une poignée d'exercices : l'accueil oriente, le catalogue fait le reste. Au-delà, sur
+// téléphone, le cours et le classement passaient à trois écrans de distance.
+const VIEW_SIZE = 8;
 
 type View = (typeof HOME_VIEWS)[number];
 
@@ -108,8 +110,8 @@ function ExerciseFeed({
         <ExerciseList exercises={exercises} />
       )}
       <p className="mt-5">
-        <Link href={browseHref} className="text-sm text-body underline decoration-stone underline-offset-4 hover:text-ink">
-          Voir tout le catalogue{level ? ` de ${level}` : ""}
+        <Link href={browseHref} className={secondaryButtonClass}>
+          Voir tout le catalogue{level ? ` de ${level}` : ""} →
         </Link>
       </p>
     </section>
@@ -144,7 +146,7 @@ export default async function Home({
     // Par défaut, les exercices du niveau déclaré.
     const level = niveau === ALL_LEVELS ? undefined : (niveau ?? me?.declared_level ?? undefined);
     const [exercises, progress, challenges, notes, leaders] = await Promise.all([
-      view.sort ? fetchExercises(level, view.sort).then((list) => list.slice(0, VIEW_SIZE)) : fetchFeed(level),
+      (view.sort ? fetchExercises(level, view.sort) : fetchFeed(level)).then((list) => list && list.slice(0, VIEW_SIZE)),
       me ? fetchProgress() : null,
       me ? fetchDailyChallenges() : [],
       me ? fetchCourseNotes().catch(() => []) : [],
@@ -175,7 +177,7 @@ export default async function Home({
   }
 
   const declared = levels.find((item) => item.code === me.declared_level) ?? null;
-  const challenge = openChallenge(challenges, me.declared_level);
+  const challenge = todayChallenge(challenges, me.declared_level);
   const topics = exercises.flatMap((exercise) => [...exercise.topics, ...exercise.notions]);
   const courseNotes = suggestedNotes(notes, { year: declared?.year ?? null, topics });
 
@@ -189,7 +191,7 @@ export default async function Home({
         <div className="contents xl:flex xl:min-w-0 xl:flex-col xl:gap-9">
           {challenge && (
             <div className="order-2 xl:order-none">
-              <ChallengeCard challenge={challenge} />
+              <ChallengeCard challenge={challenge.challenge} state={challenge.state} />
             </div>
           )}
           <div className="order-4 min-w-0 xl:order-none">{feed}</div>

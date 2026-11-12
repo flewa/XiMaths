@@ -43,6 +43,26 @@ export const LEVEL_TRACKS = [
 
 export const dateFormat = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" });
 
+// À l'heure de Paris : la page est rendue par un serveur réglé sur UTC.
+const deadlineFormat = new Intl.DateTimeFormat("fr-FR", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  hour: "numeric",
+  minute: "2-digit",
+  timeZone: "Europe/Paris",
+});
+
+/** Échéance lisible, après « à rendre » : « dans 5 h » quand elle approche, sinon « avant
+ * jeudi 14 novembre à 18:05 » ; null une fois passée. */
+export function dueLabel(iso: string, now = new Date()) {
+  const hours = Math.floor((new Date(iso).getTime() - now.getTime()) / 3_600_000);
+  if (hours < 0) return null;
+  if (hours < 1) return "dans moins d'une heure";
+  if (hours < 24) return `dans ${hours} h`;
+  return `avant ${deadlineFormat.format(new Date(iso))}`;
+}
+
 /** Une décimale, à la française : « 2,4 ». */
 export const oneDecimal = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 

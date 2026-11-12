@@ -449,6 +449,9 @@ export type ReviewTask = {
   /** La copie relue, pour pouvoir la signaler ; son auteur reste anonyme. */
   solution_id: number;
   assigned_at: string;
+  /** Tirée au sort : à rendre avant `due_at`, sinon réattribuée. Spontanée : pas d'échéance. */
+  assigned: boolean;
+  due_at: string | null;
   exercise_id: number;
   exercise_title: string;
   exercise_statement: string;
@@ -759,6 +762,9 @@ export type MemberBrief = {
   past_decisions: number;
 };
 
+/** Prise en charge d'un dossier de modération par un membre de l'équipe. */
+export type Claim = { username: string; since: string; mine: boolean };
+
 export type ReportGroup = {
   id: number;
   reason: string;
@@ -775,6 +781,8 @@ export type ReportGroup = {
   /** Ce que change la confirmation. */
   effect: string;
   can_decide: boolean;
+  /** « Je m'en occupe » : qui a ouvert le dossier ; null si personne. */
+  claim: Claim | null;
 };
 
 export type FlaggedMessage = {
@@ -788,6 +796,8 @@ export type FlaggedMessage = {
   flags: { username: string; created_at: string }[];
   kept_before: boolean;
   can_decide: boolean;
+  /** « Je m'en occupe » : qui a ouvert le dossier ; null si personne. */
+  claim: Claim | null;
 };
 
 export type AppealItem = {
@@ -804,6 +814,8 @@ export type AppealItem = {
   decided_by: string | null;
   url: string | null;
   can_decide: boolean;
+  /** « Je m'en occupe » : qui a ouvert le dossier ; null si personne. */
+  claim: Claim | null;
 };
 
 export type LogEntry = {
@@ -817,6 +829,8 @@ export type LogEntry = {
   url: string;
 };
 
+export type MemberRole = "nouveau" | "membre" | "relecteur" | "expert" | "moderateur" | "administrateur";
+
 export type MemberFile = {
   username: string;
   joined_at: string;
@@ -824,6 +838,8 @@ export type MemberFile = {
   status_label: string;
   trust_level: number;
   trust_label: string;
+  /** Le rôle, d'un mot ; changé par le formulaire unique de la fiche. */
+  role: MemberRole;
   is_staff: boolean;
   is_moderator: boolean;
   email_verified: boolean;
@@ -1022,11 +1038,13 @@ export function fetchPanelSolutions(params: { status?: string; q?: string; page?
   return teamGet<PanelPage<PanelSolution>>(`/panel/solutions${panelQuery(params)}`);
 }
 
-export function fetchPanelMembers(params: { show?: string; q?: string; page?: number }) {
+export type PanelSort = { sort?: string; direction?: "asc" | "desc" };
+
+export function fetchPanelMembers(params: { show?: string; q?: string; page?: number } & PanelSort) {
   return teamGet<PanelPage<PanelMember>>(`/panel/members${panelQuery(params)}`);
 }
 
-export function fetchPanelExercises(params: { status?: string; q?: string; page?: number }) {
+export function fetchPanelExercises(params: { status?: string; q?: string; page?: number } & PanelSort) {
   return teamGet<PanelPage<PanelExercise>>(`/panel/exercises${panelQuery(params)}`);
 }
 

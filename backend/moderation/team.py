@@ -19,12 +19,15 @@ from ninja.errors import HttpError
 from ninja.security import django_auth
 
 from accounts.permissions import is_moderator
+from accounts.profile import trust_label
 from config.errors import RuleError
 from content import photos
 from content.api import PhotoOut
+from content.panel_actions import role_of
 from content.models import Exercise, Message, Review, Solution
 from gamification.services import balance
 
+from . import claims
 from .models import Appeal, IntegritySignal, ModerationLog, Report, Sanction
 from .services import (
     APPEAL_RESPONSE,
@@ -110,6 +113,14 @@ def brief(user):
     }
 
 
+class ClaimOut(Schema):
+    """« Je m'en occupe » : qui a ouvert le dossier, depuis quand ; `mine` si c'est moi."""
+
+    username: str
+    since: datetime
+    mine: bool
+
+
 class SummaryOut(Schema):
     reports: int
     messages: int
@@ -153,6 +164,7 @@ class ReportGroupOut(Schema):
     effect: str
     # Faux si le contenu est celui du modérateur : un autre doit trancher.
     can_decide: bool
+    claim: ClaimOut | None
 
 
 class ReportDecisionIn(Schema):
@@ -162,7 +174,7 @@ class ReportDecisionIn(Schema):
     sanction: SanctionKind | None = None
 
 
-def group_out(report, me):
+def group_out(report, me, held=None):
     target = "exercise" if report.exercise_id else "solution"
     solution = report.solution
     exercise = report.exercise or solution.exercise
@@ -191,6 +203,7 @@ def group_out(report, me):
         "created_at": report.created_at,
         "effect": EFFECTS.get((target, report.reason), ""),
         "can_decide": content.author_id != me.pk,
+        "claim": claims.claim_out((held or {}).get(f"report:{report.pk}"), me),
     }
 
 
@@ -198,7 +211,9 @@ def group_out(report, me):
 def reports_queue(request):
     """Signalements à trancher, les plus anciens d'abord. Les doublons ont leur propre file."""
     me = team(request)
-    return [group_out(report, me) for report in open_report_groups()]
+    groups = list(open_report_groups())
+    held = claims.current(f"report:{report.pk}" for report in groups)
+    return [group_out(report, me, held) for report in groups]
 
 
 @router.post("/moderation/reports/{int:report_id}/decide", response={204: None}, auth=django_auth)
@@ -224,6 +239,7 @@ def decide_report(request, report_id: int, payload: ReportDecisionIn):
             )
     except RuleError as error:
         raise refused(error)
+    claims.settle(f"report:{report_id}")
     return 204, None
 
 
@@ -248,6 +264,7 @@ class FlaggedMessageOut(Schema):
     # Déjà examiné et gardé une fois, puis signalé à nouveau.
     kept_before: bool
     can_decide: bool
+    claim: ClaimOut | None
 
 
 class MessageDecisionIn(Schema):
@@ -259,7 +276,8 @@ class MessageDecisionIn(Schema):
 def messages_queue(request):
     me = team(request)
     out = []
-    queue = flagged_messages().select_related("exercise", "author", "parent").order_by("created_at")
+    queue = list(flagged_messages().select_related("exercise", "author", "parent").order_by("created_at"))
+    held = claims.current(f"message:{message.pk}" for message in queue)
     for message in queue:
         flags = message.flags.select_related("user").order_by("created_at")
         if message.flags_reviewed_at:
@@ -276,6 +294,7 @@ def messages_queue(request):
                 "flags": [{"username": flag.user.username, "created_at": flag.created_at} for flag in flags],
                 "kept_before": message.flags_reviewed_at is not None,
                 "can_decide": message.author_id != me.pk,
+                "claim": claims.claim_out(held.get(f"message:{message.pk}"), me),
             }
         )
     return out
@@ -294,6 +313,7 @@ def decide_message(request, message_id: int, payload: MessageDecisionIn):
             keep_message(message, moderator=me)
     except RuleError as error:
         raise refused(error)
+    claims.settle(f"message:{message_id}")
     return 204, None
 
 
@@ -316,6 +336,7 @@ class AppealQueueOut(Schema):
     url: str | None
     # Faux pour l'auteur de la décision : un autre modérateur tranche l'appel.
     can_decide: bool
+    claim: ClaimOut | None
 
 
 class AppealDecisionIn(Schema):
@@ -323,7 +344,7 @@ class AppealDecisionIn(Schema):
     note: str = Field(min_length=1, max_length=2000)
 
 
-def appeal_out(appeal, me):
+def appeal_out(appeal, me, held=None):
     decision = appeal.decision
     if isinstance(decision, Sanction):
         kind, title, reason = "sanction", SANCTION_TEXT[decision.kind], decision.reason
@@ -355,6 +376,7 @@ def appeal_out(appeal, me):
         "decided_by": decider.username if decider else None,
         "url": url,
         "can_decide": decider is None or decider.pk != me.pk,
+        "claim": claims.claim_out((held or {}).get(f"appeal:{appeal.pk}"), me),
     }
 
 
@@ -371,7 +393,9 @@ def appeals_queue(request):
         "message__exercise",
         "message__removed_by",
     )
-    return [appeal_out(appeal, me) for appeal in appeals.order_by("created_at")]
+    appeals = list(appeals.order_by("created_at"))
+    held = claims.current(f"appeal:{appeal.pk}" for appeal in appeals)
+    return [appeal_out(appeal, me, held) for appeal in appeals]
 
 
 @router.post("/moderation/appeals/{int:appeal_id}/decide", response={204: None}, auth=django_auth)
@@ -384,6 +408,33 @@ def decide(request, appeal_id: int, payload: AppealDecisionIn):
         decide_appeal(appeal, overturn=payload.overturn, moderator=me, note=payload.note)
     except RuleError as error:
         raise refused(error)
+    claims.settle(f"appeal:{appeal_id}")
+    return 204, None
+
+
+# ---------------------------------------------------------------- prise en charge
+
+
+class ClaimIn(Schema):
+    key: str = Field(max_length=32)
+    # Prendre le relais d'un collègue (absent, ou qui a laissé le dossier en plan).
+    take_over: bool = False
+
+
+@router.post("/moderation/claims", response=ClaimOut, auth=django_auth)
+def take_claim(request, payload: ClaimIn):
+    """« Je m'en occupe » : les collègues voient le dossier pris, pendant deux heures."""
+    me = team(request)
+    try:
+        return claims.claim_out(claims.take(payload.key, me, take_over=payload.take_over), me)
+    except RuleError as error:
+        raise refused(error)
+
+
+@router.delete("/moderation/claims/{key}", response={204: None}, auth=django_auth)
+def release_claim(request, key: str):
+    """Rendre le dossier, pour qu'un collègue le prenne."""
+    claims.release(key, team(request))
     return 204, None
 
 
@@ -439,6 +490,8 @@ class MemberFileOut(Schema):
     status_label: str
     trust_level: int
     trust_label: str
+    # Le rôle, d'un mot : nouveau, membre, relecteur, expert, moderateur ou administrateur.
+    role: str
     is_staff: bool
     is_moderator: bool
     email_verified: bool
@@ -555,7 +608,8 @@ def member_file(member, me):
         "status": member.status,
         "status_label": member.get_status_display(),
         "trust_level": member.trust_level,
-        "trust_label": member.get_trust_level_display(),
+        "trust_label": trust_label(member),
+        "role": role_of(member),
         "is_staff": member.is_staff,
         "is_moderator": is_moderator(member),
         "email_verified": member.email_verified_at is not None,

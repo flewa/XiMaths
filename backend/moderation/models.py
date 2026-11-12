@@ -323,3 +323,22 @@ class ComprehensionQuestion(models.Model):
 
     def __str__(self):
         return f"Question à {self.user} ({self.get_status_display()})"
+
+
+class ModerationClaim(models.Model):
+    """« Je m'en occupe » : un membre de l'équipe ouvre un dossier (signalement, message
+    signalé, appel) et ses collègues le voient, pour ne pas le traiter à deux. Simple
+    indication : elle n'empêche personne de trancher, expire d'elle-même et disparaît avec la
+    décision."""
+
+    # « report:12 », « message:5 », « appeal:3 » : le dossier tel que la file le présente.
+    key = models.CharField(max_length=32, unique=True)
+    moderator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+")
+    claimed_at = models.DateTimeField()
+
+    class Meta:
+        verbose_name = "prise en charge"
+        verbose_name_plural = "prises en charge"
+
+    def __str__(self):
+        return f"{self.key} : {self.moderator}"

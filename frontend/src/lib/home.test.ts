@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { DailyChallenge, Skill } from "./api";
 import type { CourseNoteSummary } from "./api";
-import { dayLabel, homeHref, homeView, nextSkill, openChallenge, suggestedNotes } from "./home";
+import { dayLabel, homeHref, homeView, nextSkill, suggestedNotes, todayChallenge } from "./home";
 
 const skill = (topic: string, solved: number, mastery: number, next = true): Skill => ({
   topic,
@@ -26,20 +26,25 @@ describe("nextSkill", () => {
   });
 });
 
-describe("openChallenge", () => {
+describe("todayChallenge", () => {
   const FIRST_YEAR = ["L1", "MPSI", "MP2I", "PCSI", "PTSI"];
   const SECOND_YEAR = ["L2", "MP", "PC", "PSI", "PT"];
-  const challenge = (level: string, group_levels: string[], attempted: boolean) =>
-    ({ level, group_levels, attempt: attempted ? { session_id: 1 } : null }) as DailyChallenge;
+  const challenge = (level: string, group_levels: string[], status: string | null = null) =>
+    ({ level, group_levels, attempt: status ? { session_id: 1, status } : null }) as DailyChallenge;
 
-  it("returns the challenge of the declared level's group while it is still to be taken", () => {
-    const today = [challenge("L2", SECOND_YEAR, false), challenge("L1", FIRST_YEAR, false)];
-    expect(openChallenge(today, "L1")?.level).toBe("L1");
+  it("returns the challenge of the declared level's group, with where the member stands", () => {
+    const today = [challenge("L2", SECOND_YEAR), challenge("L1", FIRST_YEAR)];
+    expect(todayChallenge(today, "L1")).toMatchObject({ challenge: { level: "L1" }, state: "a-faire" });
     // Le défi de 1re année vaut pour tous ses niveaux, quel que soit celui de l'exercice tiré.
-    expect(openChallenge(today, "MPSI")?.level).toBe("L1");
-    expect(openChallenge(today, "M1")).toBeNull();
-    expect(openChallenge([challenge("L1", FIRST_YEAR, true)], "L1")).toBeNull();
-    expect(openChallenge([challenge("L1", FIRST_YEAR, false)], null)).toBeNull();
+    expect(todayChallenge(today, "MPSI")?.challenge.level).toBe("L1");
+    expect(todayChallenge(today, "M1")).toBeNull();
+    expect(todayChallenge([challenge("L1", FIRST_YEAR, "en_pause")], "L1")?.state).toBe("en-cours");
+    expect(todayChallenge([challenge("L1", FIRST_YEAR, "rendue")], "L1")?.state).toBe("fait");
+  });
+
+  it("falls back to the first open challenge when no level is declared", () => {
+    expect(todayChallenge([challenge("L2", SECOND_YEAR), challenge("L1", FIRST_YEAR)], null)?.challenge.level).toBe("L2");
+    expect(todayChallenge([], null)).toBeNull();
   });
 });
 

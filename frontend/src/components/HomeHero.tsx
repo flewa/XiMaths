@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import type { CourseNoteSummary, DailyChallenge, Leaderboard, Me, Progress } from "@/lib/api";
 import { courseNotePath } from "@/lib/course-notes";
-import { nextSkill } from "@/lib/home";
+import { type ChallengeState, nextSkill } from "@/lib/home";
 import { ordinal, plural } from "@/lib/labels";
 import { PODIUM_TINTS } from "@/lib/profile-art";
 
@@ -111,7 +111,24 @@ export function MemberHeader({ me, levelName, today }: { me: Me; levelName: stri
 }
 
 /** Le défi du jour du niveau déclaré, s'il reste à relever. */
-export function ChallengeCard({ challenge }: { challenge: DailyChallenge }) {
+export function ChallengeCard({ challenge, state = "a-faire" }: { challenge: DailyChallenge; state?: ChallengeState }) {
+  // Déjà relevé : une ligne suffit, pour ne pas pousser le reste de l'accueil.
+  if (state === "fait") {
+    return (
+      <section aria-labelledby="defi" className={`${card} flex flex-wrap items-center gap-x-3 gap-y-2`}>
+        <span className="grid size-7 place-items-center rounded-lg bg-accent-soft text-accent-text">
+          <Icon name="check" size={16} />
+        </span>
+        <h2 id="defi" className={cardTitle}>
+          Défi du jour
+        </h2>
+        <span className="text-sm text-body">Fait. Le prochain ouvre à minuit.</span>
+        <Link href="/defi" className="text-sm text-mute underline underline-offset-4 hover:text-ink sm:ml-auto">
+          Voir mon résultat
+        </Link>
+      </section>
+    );
+  }
   return (
     <section aria-labelledby="defi" className="rounded-2xl border border-hairline bg-surface-soft px-5 py-6 sm:px-7">
       <div className="flex flex-wrap items-center gap-2.5 text-[13px] text-mute">
@@ -130,7 +147,7 @@ export function ChallengeCard({ challenge }: { challenge: DailyChallenge }) {
       </p>
       <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3">
         <Link href="/defi" className={`${primaryButtonClass} min-h-11 px-5`}>
-          Commencer le défi
+          {state === "en-cours" ? "Reprendre le défi" : "Commencer le défi"}
         </Link>
         <span className="text-sm text-body">
           Jusqu&apos;à <strong className="font-semibold text-ink-deep">{challenge.points_max} points</strong>, comptés

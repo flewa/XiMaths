@@ -10,10 +10,26 @@ export function nextSkill(skills: Skill[]): Skill | null {
   );
 }
 
-/** Le défi du jour du niveau déclaré, s'il reste à relever. */
-export function openChallenge(challenges: DailyChallenge[], level: string | null) {
-  const mine = (level && challenges.find((challenge) => challenge.group_levels.includes(level))) || null;
-  return mine && mine.attempt === null ? mine : null;
+/** Où en est le membre du défi du jour. */
+export type ChallengeState = "a-faire" | "en-cours" | "fait";
+
+/** Le défi du jour à montrer sur l'accueil, quel que soit son état : celui du niveau déclaré,
+ * ou le premier ouvert si le membre n'a pas déclaré de niveau. */
+export function todayChallenge(
+  challenges: DailyChallenge[],
+  level: string | null,
+): { challenge: DailyChallenge; state: ChallengeState } | null {
+  const mine = level
+    ? challenges.find((challenge) => challenge.group_levels.includes(level))
+    : challenges[0];
+  if (!mine) return null;
+  const status = mine.attempt?.status;
+  const state: ChallengeState = !mine.attempt
+    ? "a-faire"
+    : status === "en_cours" || status === "en_pause"
+      ? "en-cours"
+      : "fait";
+  return { challenge: mine, state };
 }
 
 /** Valeur de ?niveau= pour le fil de tous les niveaux. */
