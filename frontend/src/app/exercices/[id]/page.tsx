@@ -187,7 +187,7 @@ export default async function ExercisePage({ params }: Props) {
 
   return (
     <article>
-      <Link href="/exercices" className="text-sm text-mute hover:text-ink">
+      <Link href="/exercices" className="inline-flex min-h-6 items-center text-sm text-mute hover:text-ink">
         ← Tous les exercices
       </Link>
       <h1 className="mt-3">
@@ -235,7 +235,7 @@ export default async function ExercisePage({ params }: Props) {
         {exercise.author && (
           <Link
             href={`/membres/${encodeURIComponent(exercise.author)}`}
-            className="inline-flex items-center gap-1.5 hover:underline"
+            className="inline-flex min-h-6 items-center gap-1.5 hover:underline"
           >
             {exercise.author_profile && <Avatar avatar={exercise.author_profile.avatar} size={18} />}
             par {exercise.author}
@@ -250,6 +250,14 @@ export default async function ExercisePage({ params }: Props) {
 
       <ReadBeacon exerciseId={exercise.id} member={Boolean(me)} />
       <ExerciseStatsLine stats={exercise.stats} />
+      {/* Un énoncé long repousse la copie sous le pli, surtout sur téléphone : un raccourci. */}
+      {me && !pending && (
+        <p className="mt-3">
+          <a href="#ta-solution" className="inline-flex min-h-8 items-center text-sm text-mute underline underline-offset-4 hover:text-ink">
+            Envoyer ma copie ↓
+          </a>
+        </p>
+      )}
 
       <section aria-labelledby="enonce" className="mt-10">
         <h2 id="enonce" className={sectionTitle}>
@@ -259,11 +267,6 @@ export default async function ExercisePage({ params }: Props) {
         <div className="rounded-r-xl border-l-2 border-accent bg-surface-soft px-5 py-1 sm:px-6">
           <MathMarkdown>{exercise.statement}</MathMarkdown>
         </div>
-        <ExerciseShare
-          url={`${SITE_URL}/exercices/${exercise.id}`}
-          title={exercise.title_text}
-          image={`${SITE_URL}${SHARE_IMAGE.url}`}
-        />
       </section>
 
       {exercise.hints.length > 0 && (
@@ -281,7 +284,7 @@ export default async function ExercisePage({ params }: Props) {
       )}
 
       <section aria-labelledby="ta-solution" className={section}>
-        <h2 id="ta-solution" className={sectionTitle}>
+        <h2 id="ta-solution" className={`${sectionTitle} scroll-mt-20`}>
           Ta solution
         </h2>
         {!me ? (
@@ -316,6 +319,14 @@ export default async function ExercisePage({ params }: Props) {
           </>
         )}
       </section>
+
+      {/* Après la copie, pas avant : sur téléphone, six boutons de partage repoussaient
+          « Ta solution » d'un écran entier. */}
+      <ExerciseShare
+        url={`${SITE_URL}/exercices/${exercise.id}`}
+        title={exercise.title_text}
+        image={`${SITE_URL}${SHARE_IMAGE.url}`}
+      />
 
       {exercise.variants.length > 0 && (
         <section aria-labelledby="variantes" className={section}>

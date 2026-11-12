@@ -6,7 +6,7 @@ import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { MathText } from "@/components/MathText";
 import { MemberAdmin } from "@/components/AdminActions";
-import { LiftSanction, ModeratorToggle, SanctionForm } from "@/components/Moderation";
+import { LiftSanction, SanctionForm } from "@/components/Moderation";
 import { LogList } from "@/components/ModerationLog";
 import { Tag } from "@/components/Tag";
 import { fetchMe, fetchMemberFile } from "@/lib/api";
@@ -46,8 +46,11 @@ export default async function MemberFilePage({ params }: Props) {
 
   return (
     <div className="max-w-[760px]">
-      <Link href="/moderation" className="text-sm text-mute hover:text-ink">
-        ← Modération
+      <Link
+        href={me.is_staff ? "/administration?vue=membres" : "/moderation"}
+        className="inline-flex min-h-6 items-center text-sm text-mute hover:text-ink"
+      >
+        ← {me.is_staff ? "Membres" : "Modération"}
       </Link>
       <h1 className="mt-3 break-words">{file.username}</h1>
       <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">
@@ -180,25 +183,10 @@ export default async function MemberFilePage({ params }: Props) {
           <div className="mt-3">
             <MemberAdmin
               username={file.username}
-              trustLevel={file.trust_level}
+              role={file.role}
               emailVerified={file.email_verified}
-              isStaff={file.is_staff}
               canMakeAdmin={file.can_make_admin}
             />
-          </div>
-        </section>
-      )}
-
-      {file.can_appoint && (
-        <section aria-labelledby="equipe" className={section}>
-          <h2 id="equipe">Équipe de modération</h2>
-          <p className="mt-2 text-sm text-mute">
-            {file.is_moderator
-              ? "Ce membre modère : il traite les signalements, les messages signalés et les appels."
-              : "Un modérateur traite les signalements, les messages signalés et les appels. Choisis quelqu'un de fiable, dont les relectures et les signalements sont justes."}
-          </p>
-          <div className="mt-3">
-            <ModeratorToggle username={file.username} moderator={file.is_moderator} />
           </div>
         </section>
       )}

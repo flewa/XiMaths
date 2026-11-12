@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import type { Level, PanelExerciseDetail, SolutionStatus, Topic } from "@/lib/api";
+import type { Level, MemberRole, PanelExerciseDetail, SolutionStatus, Topic } from "@/lib/api";
 import { apiPost, apiPut } from "@/lib/client-api";
 import { LEVEL_TRACKS } from "@/lib/labels";
 
@@ -59,7 +59,7 @@ export function SolutionDecision({ id, status }: { id: number; status: SolutionS
   if (options.length === 0) return null;
   return (
     <details className="mt-2">
-      <summary className="text-sm font-medium text-ink">Décider de cette copie</summary>
+      <summary className="inline-flex min-h-8 items-center text-sm font-medium text-ink">Décider de cette copie</summary>
       <form
         onSubmit={(event) => {
           event.preventDefault();
@@ -70,8 +70,8 @@ export function SolutionDecision({ id, status }: { id: number; status: SolutionS
         <fieldset className="space-y-1.5">
           <legend className="sr-only">Décision</legend>
           {options.map((option) => (
-            <label key={option.value} className="flex cursor-pointer gap-2.5 text-sm">
-              <input type="radio" name={`decision-${id}`} value={option.value} checked={decision === option.value} onChange={() => setDecision(option.value)} />
+            <label key={option.value} className="flex min-h-10 cursor-pointer items-start gap-2.5 rounded-lg px-1 py-1.5 text-sm hover:bg-hover">
+              <input type="radio" name={`decision-${id}`} value={option.value} checked={decision === option.value} onChange={() => setDecision(option.value)} className="mt-px size-5 shrink-0" />
               <span>
                 <span className="font-medium text-ink">{option.label}</span> <span className="text-mute">· {option.help}</span>
               </span>
@@ -85,6 +85,130 @@ export function SolutionDecision({ id, status }: { id: number; status: SolutionS
         <FormMessage error={error} success={success} />
       </form>
     </details>
+  );
+}
+
+// ---------------------------------------------------------------- actions groupées
+
+const BULK_CHOICES = {
+  copies: {
+    path: "/panel/solutions/decide",
+    field: "decision",
+    options: DECISIONS.map(({ value, label }) => ({ value, label })),
+  },
+  exercices: {
+    path: "/panel/exercises/status",
+    field: "action",
+    options: [
+      { value: "remove_plagiarism", label: "Retirer : plagiat" },
+      { value: "remove_inappropriate", label: "Retirer : contenu inapproprié" },
+      { value: "restore", label: "Rétablir" },
+    ],
+  },
+} as const;
+
+type BulkResult = { done: number; failed: { id: number; title: string; error: string }[] };
+
+/** Case à cocher d'une ligne, rattachée au formulaire des actions groupées par son id :
+ * la liste reste rendue par le serveur. */
+export function BulkCheckbox({ formId, id, label }: { formId: string; id: number; label: string }) {
+  return (
+    <label className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-md hover:bg-hover">
+      <input type="checkbox" form={formId} name="ids" value={id} className="size-[18px]" />
+      <span className="sr-only">Sélectionner : {label}</span>
+    </label>
+  );
+}
+
+/** Une décision et un motif pour toutes les lignes cochées. Chacune est appliquée, notifiée
+ * et journalisée à part ; celles qui ne s'y prêtent pas sont listées avec la raison. */
+export function BulkActions({ formId, kind }: { formId: string; kind: keyof typeof BULK_CHOICES }) {
+  const config = BULK_CHOICES[kind];
+  const router = useRouter();
+  const form = useRef<HTMLFormElement>(null);
+  const [count, setCount] = useState(0);
+  const [choice, setChoice] = useState<string>(config.options[0].value);
+  const [reason, setReason] = useState("");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<BulkResult | null>(null);
+
+  const boxes = () => Array.from(document.querySelectorAll<HTMLInputElement>(`input[form="${formId}"][name="ids"]`));
+  useEffect(() => {
+    const update = () => setCount(boxes().filter((box) => box.checked).length);
+    document.addEventListener("change", update);
+    return () => document.removeEventListener("change", update);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formId]);
+
+  function selectAll(checked: boolean) {
+    for (const box of boxes()) box.checked = checked;
+    setCount(checked ? boxes().length : 0);
+  }
+
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const ids = new FormData(event.currentTarget).getAll("ids").map(Number);
+    setPending(true);
+    setError(null);
+    setResult(null);
+    const response = await apiPost<BulkResult>(config.path, { ids, [config.field]: choice, reason });
+    setPending(false);
+    if (!response.ok) return setError(response.error);
+    setResult(response.data);
+    setReason("");
+    selectAll(false);
+    router.refresh();
+  }
+
+  return (
+    <form id={formId} ref={form} onSubmit={submit} className="mt-4 rounded-2xl border border-hairline px-4 py-3">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+        <span className="font-medium text-ink">
+          {count === 0 ? "Aucune ligne cochée" : `${count} ligne${count > 1 ? "s" : ""} cochée${count > 1 ? "s" : ""}`}
+        </span>
+        <button type="button" onClick={() => selectAll(true)} className="inline-flex min-h-8 items-center text-mute underline underline-offset-4 hover:text-ink">
+          Tout cocher sur cette page
+        </button>
+        {count > 0 && (
+          <button type="button" onClick={() => selectAll(false)} className="inline-flex min-h-8 items-center text-mute underline underline-offset-4 hover:text-ink">
+            Tout décocher
+          </button>
+        )}
+      </div>
+      {count > 0 && (
+        <div className="mt-3 space-y-3">
+          <Field label="Décision pour la sélection" htmlFor={`${formId}-choix`}>
+            <select id={`${formId}-choix`} value={choice} onChange={(event) => setChoice(event.target.value)} className={`${inputClass} sm:max-w-80`}>
+              {config.options.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Reason id={`${formId}-motif`} value={reason} onChange={setReason} />
+          <button type="submit" disabled={pending || !reason.trim()} className={primaryButtonClass}>
+            {pending ? "Application…" : `Appliquer aux ${count} lignes`}
+          </button>
+        </div>
+      )}
+      <FormMessage error={error} />
+      {result && (
+        <div role="status" className="mt-3 text-sm">
+          <p className="text-success">{result.done > 1 ? `${result.done} lignes traitées.` : result.done === 1 ? "Une ligne traitée." : "Aucune ligne traitée."}</p>
+          {result.failed.length > 0 && (
+            <ul className="mt-1 space-y-0.5 text-danger-text">
+              {result.failed.map((failure) => (
+                <li key={failure.id}>
+                  {failure.title} : {failure.error}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </form>
   );
 }
 
@@ -259,11 +383,13 @@ export function ExerciseEditor({ initial, levels, topics }: { initial: PanelExer
 
 // ---------------------------------------------------------------- comptes
 
-const TRUST_LEVELS = [
-  { value: 0, label: "Nouveau" },
-  { value: 1, label: "Membre" },
-  { value: 2, label: "Relecteur" },
-  { value: 3, label: "Expert" },
+const ROLES: { value: MemberRole; label: string; help: string }[] = [
+  { value: "nouveau", label: "Nouveau", help: "Vient d'arriver : publie et envoie des copies." },
+  { value: "membre", label: "Membre", help: "Contribue régulièrement." },
+  { value: "relecteur", label: "Relecteur", help: "Tiré au sort pour relire les copies des autres." },
+  { value: "expert", label: "Expert", help: "Relit, et évalue les réponses aux questions de compréhension." },
+  { value: "moderateur", label: "Modérateur", help: "Traite signalements, messages et appels ; sa relecture vaut décision." },
+  { value: "administrateur", label: "Administrateur", help: "Toute la gestion du site et l'admin technique : quelqu'un de confiance." },
 ];
 
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
@@ -278,33 +404,31 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
 /** Ce qu'un administrateur fait sur un compte, depuis sa fiche. */
 export function MemberAdmin({
   username,
-  trustLevel,
+  role,
   emailVerified,
-  isStaff,
   canMakeAdmin,
 }: {
   username: string;
-  trustLevel: number;
+  role: MemberRole;
   emailVerified: boolean;
-  isStaff: boolean;
+  /** Propriétaire du site : lui seul nomme ou retire un administrateur. */
   canMakeAdmin: boolean;
 }) {
   const router = useRouter();
   const base = `/panel/members/${encodeURIComponent(username)}`;
   const [amount, setAmount] = useState("");
   const [pointsReason, setPointsReason] = useState("");
-  const [level, setLevel] = useState(Math.min(trustLevel, 3));
-  const [levelReason, setLevelReason] = useState("");
+  const [nextRole, setNextRole] = useState<MemberRole>(role);
+  const [roleReason, setRoleReason] = useState("");
   const [newName, setNewName] = useState(username);
   const [renameReason, setRenameReason] = useState("");
   const [confirm, setConfirm] = useState("");
   const [deleteReason, setDeleteReason] = useState("");
   const points = useAction();
-  const trust = useAction();
+  const roleChange = useAction();
   const email = useAction();
   const renaming = useAction();
   const removal = useAction();
-  const adminRole = useAction();
 
   return (
     <div className="space-y-3">
@@ -324,24 +448,46 @@ export function MemberAdmin({
         <FormMessage error={points.error} success={points.success} />
       </Block>
 
-      {trustLevel < 4 && (
-        <Block title="Changer le niveau de confiance">
-          <Field label="Niveau" htmlFor="niveau-confiance" hint="Un niveau baissé peut remonter seul si le membre en remplit de nouveau les conditions.">
-            <select id="niveau-confiance" value={level} onChange={(event) => setLevel(Number(event.target.value))} className={`${inputClass} sm:max-w-60`}>
-              {TRUST_LEVELS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Reason id="niveau-motif" value={levelReason} onChange={setLevelReason} />
-          <button type="button" disabled={trust.pending || !levelReason.trim() || level === trustLevel} onClick={() => trust.run(() => apiPost(`${base}/trust`, { level, reason: levelReason }), "Niveau changé.")} className={primaryButtonClass}>
-            Changer le niveau
-          </button>
-          <FormMessage error={trust.error} success={trust.success} />
-        </Block>
-      )}
+      <Block title="Changer le rôle">
+        <fieldset className="space-y-1">
+          <legend className="mb-1 text-sm text-mute">
+            Un seul choix, de Nouveau à Administrateur. Un rôle baissé à la main peut remonter seul si le membre en remplit
+            de nouveau les conditions.
+          </legend>
+          {ROLES.filter((option) => canMakeAdmin || option.value !== "administrateur").map((option) => (
+            <label key={option.value} className="flex min-h-10 cursor-pointer items-start gap-2.5 rounded-lg px-1 py-1.5 text-sm hover:bg-hover">
+              <input
+                type="radio"
+                name="role"
+                value={option.value}
+                checked={nextRole === option.value}
+                onChange={() => setNextRole(option.value)}
+                className="mt-px size-5 shrink-0"
+              />
+              <span>
+                <span className="font-medium text-ink">{option.label}</span>
+                {option.value === role && <span className="text-accent-text"> · actuel</span>}
+                <span className="text-mute"> · {option.help}</span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
+        <Reason id="role-motif" value={roleReason} onChange={setRoleReason} />
+        <button
+          type="button"
+          disabled={roleChange.pending || !roleReason.trim() || nextRole === role}
+          onClick={() =>
+            roleChange.run(() => apiPost(`${base}/role`, { role: nextRole, reason: roleReason }), "Rôle changé.", () => {
+              setRoleReason("");
+              router.refresh();
+            })
+          }
+          className={primaryButtonClass}
+        >
+          Changer le rôle
+        </button>
+        <FormMessage error={roleChange.error} success={roleChange.success} />
+      </Block>
 
       {!emailVerified && (
         <Block title="Vérifier l'adresse à la main">
@@ -368,20 +514,6 @@ export function MemberAdmin({
         </button>
         <FormMessage error={renaming.error} success={renaming.success} />
       </Block>
-
-      {canMakeAdmin && (
-        <Block title={isStaff ? "Retirer les droits d'administration" : "Nommer administrateur du site"}>
-          <p className="text-sm text-mute">
-            {isStaff
-              ? "Il perd le panneau d'administration et l'accès à l'admin technique."
-              : "Il aura le panneau d'administration, la modération, et l'admin technique : choisis quelqu'un de confiance."}
-          </p>
-          <button type="button" disabled={adminRole.pending} onClick={() => adminRole.run(() => apiPost(`${base}/admin`, { admin: !isStaff }), isStaff ? "Droits retirés." : "Administrateur nommé.")} className={secondaryButtonClass}>
-            {isStaff ? "Retirer les droits" : "Nommer administrateur"}
-          </button>
-          <FormMessage error={adminRole.error} success={adminRole.success} />
-        </Block>
-      )}
 
       <Block title="Supprimer le compte">
         <p className="text-sm text-mute">

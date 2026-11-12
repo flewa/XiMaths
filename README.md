@@ -210,19 +210,20 @@ Sur `/progression` également :
 
 Depuis la fiche d'un exercice : 15, 30, 45 ou 60 minutes, ou le temps conseillé. Non classé, documents autorisés, deux pauses. Le serveur fait foi : un signe de vie toutes les 10 s fait avancer le chrono, et un onglet fermé l'arrête. La copie est manuscrite : le QR code s'affiche au départ, et les photos doivent arriver avant la fin du temps, avec 60 s de grâce. Au rendu : copie envoyée en relecture, temps comparé à la médiane, auto-évaluation de la difficulté. Le vérificateur SymPy (`training/answers.py`, grammaire restreinte) ne sert plus qu'à valider les réponses et les gabarits de la rédaction, qu'on montre aux relecteurs.
 
-## Panneau d'administration
+## Gestion du site (administration)
 
-`/administration`, réservé aux administrateurs (`is_staff`), avec une entrée dans le menu. Il montre, il ne décide pas : les décisions restent dans Relectures et Modération.
+`/administration`, réservé aux administrateurs (`is_staff`). Avec la modération, c'est un seul espace, « Gestion du site » dans le menu : les mêmes onglets en haut des deux pages (vue d'ensemble, signalements, messages, appels, copies, membres, exercices, journal), avec le nombre de dossiers en attente. Un modérateur ne voit que les onglets de modération.
 
-- **Vue d'ensemble** : ce qui attend (copies en relecture depuis plus de 72 h, files de modération), les copies par statut, les membres (inscrits, actifs sur 7 jours, relecteurs), les exercices publiés, et l'activité des 14 derniers jours (inscriptions, copies envoyées, relectures rendues), jour par jour.
+- **Vue d'ensemble** : ce qui attend (copies en relecture depuis plus de 72 h, signalements, messages signalés, appels, chacun avec son lien), les copies par statut, les membres (inscrits, actifs sur 7 jours, relecteurs), les exercices publiés, et l'activité des 14 derniers jours (inscriptions, copies envoyées, relectures rendues), jour par jour.
 - **Copies** : toutes les copies envoyées, filtrées par statut (en relecture, en retard, validées, à reprendre, masquées) ou cherchées par exercice ou par pseudo. Pour chacune : auteur, dates, relectures du tour en cours (qui, tiré au sort ou volontaire, verdict, commentaire), points rapportés, photos. Un administrateur peut prendre lui-même une copie en relecture : sa relecture vaut décision.
-- **Membres** : inscription, statut, niveau de confiance, points, exercices, copies, relectures, dernière connexion ; chaque pseudo mène à sa fiche de modération. Aucune adresse email n'y figure.
-- **Exercices** : tous les statuts (publiés, brouillons, retirés, fusionnés), avec lecteurs, copies, messages ; un filtre « sans copie validée ».
+- **Membres** : inscription, statut, niveau de confiance, points, exercices, copies, relectures, dernière connexion ; chaque pseudo mène à sa fiche de modération. Aucune adresse email n'y figure. Un clic sur un titre de colonne trie (`?tri=points`, `&sens=asc`).
+- **Exercices** : tous les statuts (publiés, brouillons, retirés, fusionnés), avec lecteurs, copies, messages ; un filtre « sans copie validée » ; tri par colonne.
 
 Et il agit, avec un motif à chaque fois, envoyé à la personne concernée et gardé au journal de modération :
 - **Copies** : valider, renvoyer à reprendre (les points d'une copie validée sont repris), remettre en relecture (nouveau tour), retirer pour plagiat ou contenu inapproprié. Un retrait passe par un signalement que l'administrateur dépose et tranche aussitôt : l'auteur peut faire appel, et un autre membre de l'équipe examine l'appel ; ce signalement ne rapporte pas de points.
 - **Exercices** (`/administration/exercices/<id>`) : corriger titre, énoncé, indications, réponse, difficulté, niveaux et chapitres ; retirer (avec appel possible) ou rétablir avec ses points. Un exercice de la rédaction modifié ici garde son titre et ses chapitres aux imports suivants (`edited_by_team_at`).
-- **Comptes**, depuis la fiche de modération : ajouter ou retirer des points (écriture « Ajustement par l'administration » dans le ledger), changer le niveau de confiance, vérifier l'adresse à la main, changer le pseudo, supprimer le compte (le pseudo est à retaper). Le propriétaire du site (superutilisateur) nomme ou retire les administrateurs.
+- **Actions groupées**, sur les copies et les exercices : cocher des lignes, choisir une décision, écrire un motif. Chaque ligne est traitée, notifiée et journalisée à part ; celles qui ne s'y prêtent pas (statut, contenu de la personne qui décide) sont listées avec la raison. 30 lignes au plus par envoi.
+- **Comptes**, depuis la fiche de modération : ajouter ou retirer des points (écriture « Ajustement par l'administration » dans le ledger), changer le rôle (un seul formulaire, de Nouveau à Administrateur ; Administrateur réservé au propriétaire du site, le superutilisateur), vérifier l'adresse à la main, changer le pseudo, supprimer le compte (le pseudo est à retaper).
 - Personne n'agit sur son propre compte, sa copie ou son exercice ; seul le propriétaire du site agit sur le compte d'un autre administrateur.
 
 ## Modération et intégrité
@@ -232,7 +233,8 @@ Et il agit, avec un motif à chaque fois, envoyé à la personne concernée et g
   - *Messages signalés* sous les exercices : les garder (ils ne reviennent que s'ils sont signalés à nouveau) ou les retirer avec un motif, que l'auteur reçoit et dont il peut faire appel.
   - *Appels*, avec l'échéance de 7 jours ; un appel en retard est signalé en tête de page.
   - *Journal* : chaque décision de l'équipe (signalement, retrait, sanction, levée, appel, nomination), qui l'a prise et pourquoi.
-- **Fiche de modération** d'un membre (`/moderation/membres/<pseudo>`, liée depuis son profil pour l'équipe) : activité, sanctions, contenus retirés, derniers messages, journal ; sanctionner, lever une sanction ; les administrateurs y nomment ou retirent les modérateurs.
+- **« Je m'en occupe »** sur chaque signalement, message signalé ou appel : les collègues voient qui a ouvert le dossier, et depuis quand. Simple indication (`ModerationClaim`) : elle expire au bout de 2 heures, disparaît avec la décision, et un collègue peut « prendre le relais ». Une file vide propose les autres files qui attendent.
+- **Fiche de modération** d'un membre (`/moderation/membres/<pseudo>`, liée depuis son profil pour l'équipe) : activité, sanctions, contenus retirés, derniers messages, journal ; sanctionner, lever une sanction ; les administrateurs y changent le rôle (modérateur compris).
 - Personne ne tranche ce qui le concerne : son propre contenu, son propre message, l'appel d'une décision qu'il a prise. Seul un administrateur sanctionne un modérateur.
 - **Signalements** : doublon, plagiat, erreur, contenu inapproprié, IA non déclarée. Un signalement confirmé de doublon, plagiat ou erreur rapporte +3.
 - **Comptes liés** (réciprocité des votes, ou à la main) : leurs interactions mutuelles sont neutralisées, sans sanction.

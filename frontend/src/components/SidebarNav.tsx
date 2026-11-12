@@ -80,25 +80,16 @@ function itemsFor(account: NavAccount | null): Item[] {
         count: account.pendingReviews,
         hot: true,
       },
+      // Un seul espace pour l'équipe : l'administrateur y trouve aussi la modération.
       ...(account.team
         ? [
             {
-              href: "/moderation",
-              icon: "shield" as IconName,
-              label: "Modération",
-              match: (path: string) => path.startsWith("/moderation"),
+              href: account.staff ? "/administration" : "/moderation",
+              icon: (account.staff ? "grid" : "shield") as IconName,
+              label: account.staff ? "Gestion du site" : "Modération",
+              match: (path: string) => path.startsWith("/moderation") || path.startsWith("/administration"),
               count: account.moderationPending,
               hot: true,
-            },
-          ]
-        : []),
-      ...(account.staff
-        ? [
-            {
-              href: "/administration",
-              icon: "grid" as IconName,
-              label: "Administration",
-              match: (path: string) => path.startsWith("/administration"),
             },
           ]
         : []),
@@ -271,9 +262,15 @@ export function SidebarContent({
   return (
     <div className="flex min-h-full flex-col px-2.5 py-3 text-sm">
       <Brand className="px-2 pb-3.5 pt-1" />
+      {/* Pour un membre, publier est une action parmi d'autres : le corail est gardé pour le
+        geste principal de chaque page (envoyer sa copie, rendre sa relecture). */}
       <Link
         href={account ? "/exercices/nouveau" : "/inscription"}
-        className="mx-0.5 mb-3.5 flex h-9 items-center justify-center gap-1.5 rounded-lg bg-accent font-semibold text-accent-ink hover:brightness-110"
+        className={`mx-0.5 mb-3.5 flex h-9 items-center justify-center gap-1.5 rounded-lg font-semibold ${
+          account
+            ? "border border-hairline bg-surface-card text-ink hover:bg-hover"
+            : "bg-accent text-accent-ink hover:brightness-110"
+        }`}
       >
         {account && <Icon name="plus" size={16} />}
         {account ? "Publier un exercice" : "Créer un compte"}
@@ -325,6 +322,11 @@ export function SidebarContent({
               Chapitres
             </summary>
             <ul>
+              <li>
+                <Link href="/chapitres" className={`${row} pl-7 text-mute hover:bg-hover hover:text-ink`}>
+                  Tous les chapitres
+                </Link>
+              </li>
               {topics.map((topic) => (
                 <li key={topic.slug}>
                   <Link

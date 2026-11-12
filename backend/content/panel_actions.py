@@ -244,33 +244,100 @@ def edit_exercise(request, exercise_id: int, payload: ExerciseEditIn):
     return exercise_detail(get_exercise(exercise_id))
 
 
-@router.post("/panel/exercises/{int:exercise_id}/status", response=PanelExerciseDetailOut, auth=django_auth)
-def exercise_status(request, exercise_id: int, payload: ExerciseStatusIn):
+@transaction.atomic
+def set_exercise_status(exercise, action, *, me, reason):
     """Retire un exercice publié (son auteur reçoit le motif et peut faire appel), ou rétablit
     un exercice retiré, avec ses points."""
+    if action == "restore":
+        if exercise.status != Exercise.Status.REMOVED:
+            raise RuleError("Seul un exercice retiré se rétablit.")
+        restore_points_from(exercise)
+        exercise.status = Exercise.Status.PUBLISHED
+        exercise.save(update_fields=["status", "updated_at"])
+        url = f"/exercices/{exercise.pk}"
+        log_action(me, Action.EXERCISE_RESTORED, f"« {exercise.title} » rétabli. Motif : {reason}", member=exercise.author, url=url)
+        notify(exercise.author, Kind.APPEAL_DECIDED, f"Ton exercice « {exercise.title} » est rétabli", f"Motif : {reason}", url)
+    else:
+        if exercise.status != Exercise.Status.PUBLISHED:
+            raise RuleError("Seul un exercice publié se retire.")
+        remove_by_report(me, action, reason, exercise=exercise)
+
+
+@router.post("/panel/exercises/{int:exercise_id}/status", response=PanelExerciseDetailOut, auth=django_auth)
+def exercise_status(request, exercise_id: int, payload: ExerciseStatusIn):
     me = admin(request)
     reason = reason_of(payload.reason)
-    exercise = get_exercise(exercise_id)
     try:
-        with transaction.atomic():
-            if payload.action == "restore":
-                if exercise.status != Exercise.Status.REMOVED:
-                    raise RuleError("Seul un exercice retiré se rétablit.")
-                restore_points_from(exercise)
-                exercise.status = Exercise.Status.PUBLISHED
-                exercise.save(update_fields=["status", "updated_at"])
-                url = f"/exercices/{exercise.pk}"
-                log_action(me, Action.EXERCISE_RESTORED, f"« {exercise.title} » rétabli. Motif : {reason}", member=exercise.author, url=url)
-                notify(exercise.author, Kind.APPEAL_DECIDED, f"Ton exercice « {exercise.title} » est rétabli", f"Motif : {reason}", url)
-            else:
-                if exercise.status != Exercise.Status.PUBLISHED:
-                    raise RuleError("Seul un exercice publié se retire.")
-                remove_by_report(me, payload.action, reason, exercise=exercise)
+        set_exercise_status(get_exercise(exercise_id), payload.action, me=me, reason=reason)
     except PermissionDenied as error:
         raise HttpError(403, str(error))
     except RuleError as error:
         raise refused(error)
     return exercise_detail(get_exercise(exercise_id))
+
+
+# ---------------------------------------------------------------- actions groupées
+
+# Assez pour vider une page du panneau, pas assez pour tout retirer d'un geste.
+BULK_MAX = 30
+
+
+class BulkFailure(Schema):
+    id: int
+    title: str
+    error: str
+
+
+class BulkOut(Schema):
+    done: int
+    failed: list[BulkFailure]
+
+
+class BulkSolutionsIn(SolutionDecisionIn):
+    ids: list[int] = Field(min_length=1, max_length=BULK_MAX)
+
+
+class BulkExercisesIn(ExerciseStatusIn):
+    ids: list[int] = Field(min_length=1, max_length=BULK_MAX)
+
+
+def run_bulk(objects, apply, title):
+    """Applique la même décision à chaque objet : chacun réussit ou échoue seul, et l'échec
+    dit pourquoi (statut qui ne s'y prête pas, contenu de la personne qui décide)."""
+    done, failed = 0, []
+    for obj in objects:
+        try:
+            apply(obj)
+            done += 1
+        except (RuleError, PermissionDenied) as error:
+            failed.append({"id": obj.pk, "title": title(obj), "error": str(error)})
+    return {"done": done, "failed": failed}
+
+
+@router.post("/panel/solutions/decide", response=BulkOut, auth=django_auth)
+def solutions_decision(request, payload: BulkSolutionsIn):
+    """Une décision, un motif, plusieurs copies : chacune est notifiée et journalisée à part."""
+    me = admin(request)
+    reason = reason_of(payload.reason)
+    solutions = Solution.objects.filter(pk__in=payload.ids).select_related("exercise", "author").order_by("pk")
+    return run_bulk(
+        solutions,
+        lambda solution: decide_solution(solution, payload.decision, me=me, reason=reason),
+        lambda solution: solution.exercise.title,
+    )
+
+
+@router.post("/panel/exercises/status", response=BulkOut, auth=django_auth)
+def exercises_status(request, payload: BulkExercisesIn):
+    """Retirer ou rétablir plusieurs exercices d'un coup, avec un seul motif."""
+    me = admin(request)
+    reason = reason_of(payload.reason)
+    exercises = Exercise.objects.filter(pk__in=payload.ids).select_related("author", "primary_level").order_by("pk")
+    return run_bulk(
+        exercises,
+        lambda exercise: set_exercise_status(exercise, payload.action, me=me, reason=reason),
+        lambda exercise: exercise.title,
+    )
 
 
 # ---------------------------------------------------------------- comptes
@@ -423,4 +490,74 @@ def set_admin(request, username: str, payload: AdminIn):
         notify(member, Kind.PROMOTION, "Tu es maintenant administrateur du site", "Le panneau Administration est dans le menu.", "/administration")
     else:
         log_action(me, Action.ADMIN_REMOVED, "N'est plus administrateur du site.", member=member)
+    return {"username": member.username}
+
+
+# ---------------------------------------------------------------- rôle
+
+Role = Literal["nouveau", "membre", "relecteur", "expert", "moderateur", "administrateur"]
+
+ROLE_LEVELS = {"nouveau": TL.NEW, "membre": TL.MEMBER, "relecteur": TL.REVIEWER, "expert": TL.EXPERT, "moderateur": TL.MODERATOR}
+ROLE_LABELS = {
+    "nouveau": "Nouveau",
+    "membre": "Membre",
+    "relecteur": "Relecteur",
+    "expert": "Expert",
+    "moderateur": "Modérateur",
+    "administrateur": "Administrateur",
+}
+
+
+def role_of(member):
+    """Le rôle tel que l'équipe le pense : administrateur, sinon le niveau de confiance."""
+    if member.is_staff:
+        return "administrateur"
+    return next(role for role, level in ROLE_LEVELS.items() if level == member.trust_level)
+
+
+class RoleIn(Schema):
+    role: Role
+    reason: str = Field(max_length=2000)
+
+
+@router.post("/panel/members/{username}/role", response=Done, auth=django_auth)
+def change_role(request, username: str, payload: RoleIn):
+    """Un seul geste pour tout rôle, de Nouveau à Administrateur, au lieu de trois (niveau,
+    modérateur, administrateur). Nommer ou retirer un administrateur reste réservé au
+    propriétaire du site. Un niveau baissé à la main peut remonter tout seul si le membre en
+    remplit de nouveau les conditions."""
+    me = admin(request)
+    member = member_for(me, username)
+    reason = reason_of(payload.reason)
+    before, after = role_of(member), payload.role
+    if before == after:
+        raise HttpError(409, f"Ce membre est déjà {ROLE_LABELS[after]}.")
+    if "administrateur" in (before, after) and not me.is_superuser:
+        raise HttpError(403, "Seul le propriétaire du site nomme ou retire un administrateur.")
+
+    summary = f"{ROLE_LABELS[before]} → {ROLE_LABELS[after]}. Motif : {reason}"
+    if after == "administrateur":
+        action, url = Action.ADMIN_NAMED, "/administration"
+    elif before == "administrateur":
+        action, url = Action.ADMIN_REMOVED, "/progression"
+    elif after == "moderateur":
+        action, url = Action.MODERATOR_NAMED, "/moderation"
+    elif before == "moderateur":
+        action, url = Action.MODERATOR_REMOVED, "/progression"
+    else:
+        action, url = Action.TRUST_CHANGED, "/progression"
+    with transaction.atomic():
+        member.is_staff = after == "administrateur"
+        if after != "administrateur":
+            member.trust_level = ROLE_LEVELS[after]
+        member.save(update_fields=["is_staff", "trust_level"])
+        log_action(me, action, summary, member=member)
+        notify(
+            member,
+            Kind.PROMOTION,
+            f"Ton rôle sur XiMaths est maintenant : {ROLE_LABELS[after]}",
+            f"Motif : {reason}",
+            url,
+            email=after in ("moderateur", "administrateur"),
+        )
     return {"username": member.username}

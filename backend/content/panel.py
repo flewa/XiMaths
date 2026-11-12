@@ -13,7 +13,7 @@ from datetime import date, datetime, timedelta
 from typing import Literal
 
 from django.contrib.auth import get_user_model
-from django.db.models import Count, IntegerField, OuterRef, Q, Subquery, Sum
+from django.db.models import Count, F, IntegerField, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Coalesce, TruncDate
 from django.utils import timezone
 from ninja import Router, Schema
@@ -21,6 +21,7 @@ from ninja.errors import HttpError
 from ninja.security import django_auth
 
 from accounts.permissions import is_moderator
+from accounts.profile import trust_label
 from gamification.models import PointTransaction
 from moderation.services import pending_counts
 from training.models import TimedSession
@@ -331,6 +332,37 @@ class MemberPageOut(PageOut):
 
 MemberFilter = Literal["", "team", "sanctioned", "unverified"]
 
+# Colonnes triables : clé d'adresse → champ. Un clic trie d'abord du plus grand au plus petit
+# (le plus récent d'abord pour une date), sauf le pseudo, dans l'ordre alphabétique.
+MEMBER_SORTS = {
+    "inscription": "date_joined",
+    "pseudo": "username",
+    "points": "points_total",
+    "exercices": "exercises_count",
+    "copies": "validated_count",
+    "relectures": "reviews_count",
+    "connexion": "last_login",
+}
+EXERCISE_SORTS = {
+    "publication": "published_at",
+    "titre": "title",
+    "lectures": "readers_count",
+    "copies": "validated_count",
+    "relecture": "review_count",
+    "messages": "messages_count",
+    "difficulte": "difficulty",
+}
+Direction = Literal["asc", "desc"]
+
+
+def sorted_by(queryset, sorts, key, direction, default):
+    """Trie sur une colonne connue (les vides en dernier), départage par identifiant."""
+    field = sorts.get(key)
+    if field is None:
+        return queryset.order_by(*default)
+    expression = F(field).asc(nulls_last=True) if direction == "asc" else F(field).desc(nulls_last=True)
+    return queryset.order_by(expression, "-pk")
+
 
 def counted(model, owner, **filters):
     """Nombre d'objets de `model` rattachés au membre, en sous-requête (sans jointure)."""
@@ -339,8 +371,10 @@ def counted(model, owner, **filters):
 
 
 @router.get("/panel/members", response=MemberPageOut, auth=django_auth)
-def members(request, show: MemberFilter = "", q: str = "", page: int = 1):
-    """Les membres, les derniers inscrits d'abord."""
+def members(
+    request, show: MemberFilter = "", q: str = "", page: int = 1, sort: str = "", direction: Direction = "desc"
+):
+    """Les membres, les derniers inscrits d'abord, ou triés sur une colonne."""
     admin(request)
     queryset = User.objects.filter(is_active=True)
     if show == "team":
@@ -361,7 +395,8 @@ def members(request, show: MemberFilter = "", q: str = "", page: int = 1):
         solutions_count=counted(Solution, "author", status__in=SENT),
         validated_count=counted(Solution, "author", status=Status.VALIDATED),
         reviews_count=counted(Review, "reviewer", submitted_at__isnull=False),
-    ).order_by("-date_joined", "-pk")
+    )
+    queryset = sorted_by(queryset, MEMBER_SORTS, sort, direction, ["-date_joined", "-pk"])
     items, total, page, pages = paginate(queryset, page)
     return {
         "total": total,
@@ -374,7 +409,7 @@ def members(request, show: MemberFilter = "", q: str = "", page: int = 1):
                 "last_login": member.last_login,
                 "status": member.status,
                 "status_label": member.get_status_display(),
-                "trust_label": member.get_trust_level_display(),
+                "trust_label": trust_label(member),
                 "is_staff": member.is_staff,
                 "is_moderator": is_moderator(member),
                 "email_verified": member.email_verified_at is not None,
@@ -416,8 +451,10 @@ ExerciseFilter = Literal["", "published", "draft", "removed", "merged", "unsolve
 
 
 @router.get("/panel/exercises", response=ExercisePageOut, auth=django_auth)
-def exercises(request, status: ExerciseFilter = "", q: str = "", page: int = 1):
-    """Les exercices, quel que soit leur statut, les plus récents d'abord."""
+def exercises(
+    request, status: ExerciseFilter = "", q: str = "", page: int = 1, sort: str = "", direction: Direction = "desc"
+):
+    """Les exercices, quel que soit leur statut, les plus récents d'abord, ou triés sur une colonne."""
     admin(request)
     queryset = Exercise.objects.all()
     if status == "unsolved":
@@ -436,8 +473,9 @@ def exercises(request, status: ExerciseFilter = "", q: str = "", page: int = 1):
             reads_count=counted(ExerciseRead, "exercise"),
             messages_count=counted(Message, "exercise", removed_at__isnull=True),
         )
-        .order_by("-created_at", "-pk")
+        .annotate(readers_count=F("visitor_reads") + F("reads_count"))
     )
+    queryset = sorted_by(queryset, EXERCISE_SORTS, sort, direction, ["-created_at", "-pk"])
     items, total, page, pages = paginate(queryset, page)
     return {
         "total": total,
@@ -456,7 +494,7 @@ def exercises(request, status: ExerciseFilter = "", q: str = "", page: int = 1):
                 "solutions": exercise.sent_count,
                 "validated": exercise.validated_count,
                 "under_review": exercise.review_count,
-                "readers": exercise.visitor_reads + exercise.reads_count,
+                "readers": exercise.readers_count,
                 "messages": exercise.messages_count,
             }
             for exercise in items

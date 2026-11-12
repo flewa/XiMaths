@@ -37,6 +37,7 @@ from .feed import FEED_LABELS, build_feed, compute_scores, record_impressions
 from .latex import forbidden_commands, plain_math, title_problems
 from .models import TEXT_MAX_LENGTH, Exercise, ExerciseRead, Review, Solution, SolutionPhoto, Vote
 from .services import (
+    REASSIGN_AFTER,
     can_review,
     cast_vote,
     publish_solution,
@@ -486,6 +487,10 @@ class ReviewTaskOut(Schema):
 
     id: int
     assigned_at: datetime
+    # Relecture tirée au sort : à rendre avant cette heure, sinon réattribuée. Une relecture
+    # spontanée n'a pas d'échéance.
+    assigned: bool
+    due_at: datetime | None
     solution_id: int
     exercise_id: int
     exercise_title: str
@@ -499,6 +504,10 @@ class ReviewTaskOut(Schema):
     @staticmethod
     def resolve_exercise_id(obj):
         return obj.solution.exercise_id
+
+    @staticmethod
+    def resolve_due_at(obj):
+        return obj.assigned_at + REASSIGN_AFTER if obj.assigned else None
 
     @staticmethod
     def resolve_expected_answer(obj):

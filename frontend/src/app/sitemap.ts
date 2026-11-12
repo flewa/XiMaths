@@ -9,7 +9,7 @@ import { SITE_URL } from "@/lib/site";
 // après chaque mise à jour. Les robots le lisent quelques fois par jour : trois requêtes légères.
 export const dynamic = "force-dynamic";
 
-const PAGES = ["", "/exercices", "/defi", "/classements", "/badges", "/cgu", "/confidentialite", "/mentions-legales"];
+const PAGES = ["", "/exercices", "/chapitres", "/defi", "/classements", "/badges", "/cgu", "/confidentialite", "/mentions-legales"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const pages: MetadataRoute.Sitemap = PAGES.map((path) => ({ url: `${SITE_URL}${path}` }));

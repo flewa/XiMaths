@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import type { DiscussionMessage, SanctionKind } from "@/lib/api";
-import { apiPost } from "@/lib/client-api";
+import type { Claim, DiscussionMessage, SanctionKind } from "@/lib/api";
+import { apiDelete, apiPost } from "@/lib/client-api";
 
 import { FormMessage, inputClass, primaryButtonClass, secondaryButtonClass } from "./Form";
 
@@ -73,6 +73,55 @@ function ReasonField({
         </div>
       )}
       <textarea id={id} value={value} onChange={(event) => onChange(event.target.value)} rows={rows} className={inputClass} />
+    </div>
+  );
+}
+
+/** « Je m'en occupe » : montre aux collègues qu'un dossier est ouvert, pour ne pas le traiter
+ * à deux. Simple indication, deux heures au plus : tout le monde peut encore trancher. */
+export function ClaimControl({ claimKey, claim, since }: { claimKey: string; claim: Claim | null; since: string }) {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  async function act(call: () => Promise<{ ok: boolean; error?: string }>) {
+    setPending(true);
+    setError(null);
+    const result = await call();
+    setPending(false);
+    if (!result.ok) return setError(result.error ?? "Action impossible.");
+    router.refresh();
+  }
+  const take = (takeOver: boolean) => act(() => apiPost("/moderation/claims", { key: claimKey, take_over: takeOver }));
+  const small = "inline-flex min-h-8 items-center rounded-lg px-3 text-sm font-medium";
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+      {!claim ? (
+        <button type="button" disabled={pending} onClick={() => take(false)} className={`${small} bg-surface-card text-ink hover:bg-surface-dark-elevated`}>
+          Je m&apos;en occupe
+        </button>
+      ) : claim.mine ? (
+        <>
+          <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-accent-text">Tu t&apos;en occupes</span>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => act(() => apiDelete(`/moderation/claims/${encodeURIComponent(claimKey)}`))}
+            className={`${small} text-mute hover:bg-hover hover:text-ink`}
+          >
+            Rendre le dossier
+          </button>
+        </>
+      ) : (
+        <>
+          <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-accent-text">
+            {claim.username} s&apos;en occupe {since}
+          </span>
+          <button type="button" disabled={pending} onClick={() => take(true)} className={`${small} text-mute hover:bg-hover hover:text-ink`}>
+            Prendre le relais
+          </button>
+        </>
+      )}
+      <FormMessage error={error} />
     </div>
   );
 }
@@ -296,24 +345,6 @@ export function LiftSanction({ id }: { id: number }) {
           Annuler
         </button>
       </div>
-      <FormMessage error={error} />
-    </div>
-  );
-}
-
-/** Pour les administrateurs : nommer ou retirer un modérateur. */
-export function ModeratorToggle({ username, moderator }: { username: string; moderator: boolean }) {
-  const { pending, error, run } = useAction();
-  return (
-    <div>
-      <button
-        type="button"
-        disabled={pending}
-        onClick={() => run(`/moderation/members/${encodeURIComponent(username)}/moderator`, { moderator: !moderator })}
-        className={secondaryButtonClass}
-      >
-        {moderator ? "Retirer de l'équipe de modération" : "Nommer modérateur"}
-      </button>
       <FormMessage error={error} />
     </div>
   );

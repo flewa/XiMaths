@@ -10,7 +10,7 @@ import { MathMarkdown } from "@/components/MathMarkdown";
 import { ProseSection } from "@/components/Prose";
 import { Tag } from "@/components/Tag";
 import { fetchMe, fetchOpenSolutions, fetchReviewTasks } from "@/lib/api";
-import { AI_USAGE_BADGES } from "@/lib/labels";
+import { AI_USAGE_BADGES, dueLabel, plural } from "@/lib/labels";
 import { MathText } from "@/components/MathText";
 
 export const metadata: Metadata = { title: "Relectures", robots: { index: false } };
@@ -22,6 +22,8 @@ const EXPERT_TRUST_LEVEL = 3;
 const MODERATOR_TRUST_LEVEL = 4;
 // Au-delà, une copie attend trop : l'équipe est prévenue.
 const LATE_HOURS = 72;
+// Moins de 12 heures avant l'échéance : elle s'affiche en corail.
+const SOON_MS = 12 * 3_600_000;
 
 function waiting(hours: number) {
   if (hours < 1) return "à l'instant";
@@ -43,6 +45,10 @@ export default async function ReviewsPage() {
   // L'équipe du site : sa relecture vaut décision, et elle voit toutes les copies en attente.
   const team = me.is_staff || me.trust_level >= MODERATOR_TRUST_LEVEL;
   const reviewer = team || me.trust_level >= REVIEWER_TRUST_LEVEL;
+  const now = new Date();
+  // La plus urgente : la première échéance ; à défaut (relectures spontanées), la plus ancienne.
+  const urgent =
+    [...tasks].filter((task) => task.due_at).sort((a, b) => a.due_at!.localeCompare(b.due_at!))[0] ?? tasks[0];
 
   return (
     <>
@@ -73,36 +79,63 @@ export default async function ReviewsPage() {
             : "Les relectures sont confiées aux membres de niveau Relecteur : 50 points et 2 copies validées. Continue à résoudre des exercices pour y accéder."}
         </p>
       ) : (
-        tasks.map((task) => {
-          const aiBadge = AI_USAGE_BADGES[task.ai_usage];
-          return (
-            <article key={task.id} className="mt-10 border border-hairline p-4">
-              <p className="text-sm text-mute">
-                [{task.primary_level}]{" "}
-                <Link href={`/exercices/${task.exercise_id}`} className="font-medium text-ink hover:underline">
-                  <MathText>{task.exercise_title}</MathText>
-                </Link>
-              </p>
-              <MathMarkdown>{task.exercise_statement}</MathMarkdown>
-              <div className="mt-4 border-l-2 border-hairline-strong bg-surface-soft px-4 py-1">
-                <p className="mt-2 flex items-center gap-3 font-bold">
-                  Solution proposée
-                  {aiBadge && <Tag>{aiBadge}</Tag>}
-                </p>
-                <CopyPhotoList photos={task.solution_photos} />
-                {task.solution_body && <MathMarkdown>{task.solution_body}</MathMarkdown>}
-                <ExpectedAnswer value={task.expected_answer} />
-              </div>
-              <div className="mt-4">
-                <ReviewForm reviewId={task.id} />
-              </div>
-              {/* Plagiat, IA non déclarée : le verdict ne le dit pas, un signalement si. */}
-              <div className="mt-4 flex justify-end border-t border-hairline pt-3">
-                <ReportButton target="solution" targetId={task.solution_id} canReportDuplicates={false} />
-              </div>
-            </article>
-          );
-        })
+        <>
+          <p className="mt-8 rounded-xl border border-hairline bg-surface-soft px-4 py-3">
+            <strong className="font-semibold text-ink-deep">{plural(tasks.length, "copie")} à relire</strong>
+            {urgent?.due_at && (
+              <span className="text-body">
+                {" "}
+                · {dueLabel(urgent.due_at, now) ? `la plus urgente est à rendre ${dueLabel(urgent.due_at, now)}` : "la plus urgente a dépassé son échéance"}
+              </span>
+            )}
+          </p>
+          {/* Une copie ouverte à la fois, la plus urgente : les autres se déplient au besoin. */}
+          {tasks.map((task) => {
+            const aiBadge = AI_USAGE_BADGES[task.ai_usage];
+            const soon = task.due_at !== null && new Date(task.due_at).getTime() - now.getTime() < SOON_MS;
+            return (
+              <details key={task.id} open={task.id === urgent?.id} className="mt-4 rounded-xl border border-hairline">
+                <summary className="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3">
+                  <span className="text-sm text-mute">[{task.primary_level}]</span>
+                  <span className="font-medium text-ink">
+                    <MathText>{task.exercise_title}</MathText>
+                  </span>
+                  <span className={`text-sm sm:ml-auto ${soon ? "font-medium text-accent-text" : "text-mute"}`}>
+                    {!task.due_at
+                      ? "Relecture spontanée, sans échéance"
+                      : dueLabel(task.due_at, now)
+                        ? `À rendre ${dueLabel(task.due_at, now)}`
+                        : "Échéance passée : bientôt confiée à un autre"}
+                  </span>
+                </summary>
+                <div className="border-t border-hairline px-4 pb-4">
+                  <p className="mt-3 text-sm">
+                    <Link href={`/exercices/${task.exercise_id}`} className="text-mute underline underline-offset-4 hover:text-ink">
+                      Page de l&apos;exercice
+                    </Link>
+                  </p>
+                  <MathMarkdown>{task.exercise_statement}</MathMarkdown>
+                  <div className="mt-4 border-l-2 border-hairline-strong bg-surface-soft px-4 py-1">
+                    <p className="mt-2 flex items-center gap-3 font-bold">
+                      Solution proposée
+                      {aiBadge && <Tag>{aiBadge}</Tag>}
+                    </p>
+                    <CopyPhotoList photos={task.solution_photos} />
+                    {task.solution_body && <MathMarkdown>{task.solution_body}</MathMarkdown>}
+                    <ExpectedAnswer value={task.expected_answer} />
+                  </div>
+                  <div className="mt-4">
+                    <ReviewForm reviewId={task.id} />
+                  </div>
+                  {/* Plagiat, IA non déclarée : le verdict ne le dit pas, un signalement si. */}
+                  <div className="mt-4 flex justify-end border-t border-hairline pt-3">
+                    <ReportButton target="solution" targetId={task.solution_id} canReportDuplicates={false} />
+                  </div>
+                </div>
+              </details>
+            );
+          })}
+        </>
       )}
 
       {reviewer && (

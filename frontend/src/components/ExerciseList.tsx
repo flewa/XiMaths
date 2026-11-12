@@ -23,8 +23,10 @@ function tagOf(exercise: ExerciseSummary | FeedItem): Tag | null {
   return null;
 }
 
-// Sur téléphone, les deux premiers niveaux, puis « +n ».
+// Les premiers niveaux, puis « +n » : deux sur téléphone, quatre sur ordinateur. Un exercice
+// de 1re année en compte jusqu'à huit, qui noyaient le titre.
 const PHONE_LEVELS = 2;
+const DESKTOP_LEVELS = 4;
 
 const levelPill = "rounded-full bg-surface-card px-2 py-px text-xs font-medium text-body";
 
@@ -43,7 +45,8 @@ export function ExerciseList({
     <ul className="divide-y divide-hairline">
       {exercises.map((exercise) => {
         const tag = tagOf(exercise);
-        const moreLevels = exercise.levels.length - PHONE_LEVELS;
+        const morePhone = exercise.levels.length - PHONE_LEVELS;
+        const moreDesktop = exercise.levels.length - DESKTOP_LEVELS;
         const author = showAuthor ? exercise.author_profile : null;
         const sent = solutionsLabel(exercise.submitted_solutions);
         return (
@@ -62,7 +65,7 @@ export function ExerciseList({
                     <>
                       <Link
                         href={`/membres/${encodeURIComponent(author.username)}`}
-                        className="relative z-10 inline-flex items-center gap-1.5 text-body hover:text-ink hover:underline"
+                        className="relative z-10 inline-flex min-h-6 items-center gap-1.5 text-body hover:text-ink hover:underline"
                       >
                         <Avatar avatar={author.avatar} size={18} />
                         <span className="sr-only">Par </span>
@@ -82,14 +85,19 @@ export function ExerciseList({
                     <span
                       key={level}
                       aria-hidden="true"
-                      className={`${levelPill} ${index >= PHONE_LEVELS ? "max-sm:hidden" : ""}`}
+                      className={`${levelPill} ${index >= DESKTOP_LEVELS ? "hidden" : index >= PHONE_LEVELS ? "max-sm:hidden" : ""}`}
                     >
                       {level}
                     </span>
                   ))}
-                  {moreLevels > 0 && (
+                  {morePhone > 0 && (
                     <span aria-hidden="true" className={`${levelPill} sm:hidden`}>
-                      +{moreLevels}
+                      +{morePhone}
+                    </span>
+                  )}
+                  {moreDesktop > 0 && (
+                    <span aria-hidden="true" title={exercise.levels.slice(DESKTOP_LEVELS).join(", ")} className={`${levelPill} max-sm:hidden`}>
+                      +{moreDesktop}
                     </span>
                   )}
                   <span aria-hidden="true">·</span>

@@ -100,3 +100,46 @@ class PanelTests(ContentTestCase):
         self.assertEqual(len(self.get("members?page=2").json()["items"]), first["total"] - 30)
         # Une page trop grande ramène à la dernière.
         self.assertEqual(self.get("members?page=99").json()["page"], 2)
+
+    def test_lists_sort_on_a_column(self):
+        self.validate(self.publish())
+        names = lambda path: [item["username"] for item in self.get(path).json()["items"]]  # noqa: E731
+        by_points = names("members?sort=points")
+        self.assertEqual(by_points[0], "lea")
+        self.assertEqual(names("members?sort=points&direction=asc")[-1], "lea")
+        self.assertEqual(names("members?sort=pseudo&direction=asc"), sorted(by_points))
+        # Une colonne inconnue garde l'ordre par défaut.
+        self.assertEqual(self.get("members?sort=mot-de-passe").status_code, 200)
+
+        second = self.make_exercise(author=self.author)
+        second.visitor_reads = 9
+        second.save(update_fields=["visitor_reads"])
+        [first, *_] = self.get("exercises?sort=lectures").json()["items"]
+        self.assertEqual((first["id"], first["readers"]), (second.pk, 9))
+
+    def test_bulk_decisions_apply_one_by_one(self):
+        import json
+
+        from .models import Exercise
+
+        other = self.make_exercise(author=self.author)
+        own = self.make_exercise(author=self.admin)
+        self.client.force_login(self.admin)
+
+        def post(path, payload):
+            return self.client.post(f"/api/panel/{path}", json.dumps(payload), content_type="application/json")
+
+        ids = [self.exercise.pk, other.pk, own.pk]
+        self.assertEqual(post("exercises/status", {"ids": ids, "action": "remove_inappropriate", "reason": ""}).status_code, 422)
+        result = post("exercises/status", {"ids": ids, "action": "remove_inappropriate", "reason": "Hors sujet."}).json()
+        # Son propre exercice, un autre membre de l'équipe en décide.
+        self.assertEqual(result["done"], 2)
+        self.assertEqual([failure["id"] for failure in result["failed"]], [own.pk])
+        self.assertEqual(Exercise.objects.filter(status=Exercise.Status.REMOVED).count(), 2)
+        restored = post("exercises/status", {"ids": ids, "action": "restore", "reason": "Erreur de ma part."}).json()
+        self.assertEqual((restored["done"], len(restored["failed"])), (2, 1))
+
+        copies = [self.publish(), self.publish(author=make_user("yanis", level="L1"))]
+        decided = post("solutions/decide", {"ids": [c.pk for c in copies], "decision": "validate", "reason": "Justes."}).json()
+        self.assertEqual(decided, {"done": 2, "failed": []})
+        self.assertEqual(Solution.objects.filter(status=Solution.Status.VALIDATED).count(), 2)

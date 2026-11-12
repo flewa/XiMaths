@@ -4,14 +4,15 @@ import { notFound, redirect } from "next/navigation";
 
 import { CopyPhotoList } from "@/components/CopyPhotos";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
-import { FilterChip, Tabs } from "@/components/FilterChip";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { MathText } from "@/components/MathText";
-import { AppealDecision, MessageDecision, ReportDecision } from "@/components/Moderation";
+import { AppealDecision, ClaimControl, MessageDecision, ReportDecision } from "@/components/Moderation";
 import { LogList } from "@/components/ModerationLog";
 import { Tag } from "@/components/Tag";
+import { TeamHeader, type TeamTab } from "@/components/TeamNav";
 import {
   type AppealItem,
+  type Claim,
   type FlaggedMessage,
   type LogEntry,
   type MemberBrief,
@@ -26,6 +27,14 @@ import {
 import { dateFormat } from "@/lib/labels";
 
 export const metadata: Metadata = { title: "Modération", robots: { index: false } };
+
+/** « depuis 25 min » : calculé au rendu de la page, qui se recharge à chaque décision. */
+function claimSince(claim: Claim | null, now: Date) {
+  if (!claim) return "";
+  const minutes = Math.max(0, Math.round((now.getTime() - new Date(claim.since).getTime()) / 60_000));
+  if (minutes < 1) return "à l'instant";
+  return minutes < 60 ? `depuis ${minutes} min` : `depuis ${Math.floor(minutes / 60)} h`;
+}
 
 const FILES = [
   { value: "signalements", label: "Signalements" },
@@ -65,11 +74,38 @@ function NotYours({ children }: { children: React.ReactNode }) {
   return <p className="mt-4 border-t border-hairline pt-4 text-sm text-mute">{children}</p>;
 }
 
-function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="mt-6 rounded-2xl bg-surface-soft px-5 py-4 text-body">{children}</p>;
+type Elsewhere = { href: string; label: string; count: number };
+
+/** File vide : ce qui attend ailleurs, pour que la page ne soit pas un cul-de-sac. */
+function Empty({ children, elsewhere = [] }: { children: React.ReactNode; elsewhere?: Elsewhere[] }) {
+  const waiting = elsewhere.filter((item) => item.count > 0);
+  return (
+    <div className="mt-6 rounded-2xl bg-surface-soft px-5 py-4 text-body">
+      <p>{children}</p>
+      {waiting.length > 0 ? (
+        <ul className="mt-3 space-y-1.5">
+          {waiting.map((item) => (
+            <li key={item.href}>
+              <Link href={item.href} className="inline-flex min-h-8 items-center gap-1 text-accent-text hover:underline">
+                {item.label} : {item.count} →
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 text-sm text-mute">
+          Rien n&apos;attend ailleurs non plus.{" "}
+          <Link href="/relectures" className="underline underline-offset-4 hover:text-ink">
+            Les copies en attente de correction
+          </Link>{" "}
+          sont dans Relectures.
+        </p>
+      )}
+    </div>
+  );
 }
 
-function ReportCard({ group }: { group: ReportGroup }) {
+function ReportCard({ group, now }: { group: ReportGroup; now: Date }) {
   return (
     <li className={card}>
       <p className="flex flex-wrap items-center gap-2 text-sm">
@@ -106,6 +142,7 @@ function ReportCard({ group }: { group: ReportGroup }) {
         </ul>
         {group.effect && <p className="text-sm text-mute">{group.effect}</p>}
       </div>
+      {group.can_decide && <ClaimControl claimKey={`report:${group.id}`} claim={group.claim} since={claimSince(group.claim, now)} />}
       {group.can_decide ? (
         <ReportDecision id={group.id} hasAuthor={Boolean(group.author)} />
       ) : (
@@ -115,7 +152,7 @@ function ReportCard({ group }: { group: ReportGroup }) {
   );
 }
 
-function MessageCard({ message }: { message: FlaggedMessage }) {
+function MessageCard({ message, now }: { message: FlaggedMessage; now: Date }) {
   return (
     <li className={card}>
       <p className="text-sm text-mute">
@@ -146,6 +183,9 @@ function MessageCard({ message }: { message: FlaggedMessage }) {
         </p>
         {message.kept_before && <p className="text-sm text-mute">Déjà examiné et gardé une fois, puis signalé à nouveau.</p>}
       </div>
+      {message.can_decide && (
+        <ClaimControl claimKey={`message:${message.id}`} claim={message.claim} since={claimSince(message.claim, now)} />
+      )}
       {message.can_decide ? (
         <MessageDecision id={message.id} />
       ) : (
@@ -155,7 +195,7 @@ function MessageCard({ message }: { message: FlaggedMessage }) {
   );
 }
 
-function AppealCard({ appeal }: { appeal: AppealItem }) {
+function AppealCard({ appeal, now }: { appeal: AppealItem; now: Date }) {
   return (
     <li className={card}>
       <p className="flex flex-wrap items-center gap-2 text-sm">
@@ -186,6 +226,7 @@ function AppealCard({ appeal }: { appeal: AppealItem }) {
       <blockquote className="mt-3 whitespace-pre-line rounded-xl bg-surface-soft px-4 py-3 text-body">
         {appeal.statement}
       </blockquote>
+      {appeal.can_decide && <ClaimControl claimKey={`appeal:${appeal.id}`} claim={appeal.claim} since={claimSince(appeal.claim, now)} />}
       {appeal.can_decide ? (
         <AppealDecision id={appeal.id} />
       ) : (
@@ -216,20 +257,25 @@ export default async function ModerationPage({ searchParams }: { searchParams: P
   if (!me) redirect("/connexion?suivant=/moderation");
   // Réservé à l'équipe : pour les autres, la page n'existe pas.
   if (!summary) notFound();
-  const counts: Record<File, number | null> = {
-    signalements: summary.reports,
-    messages: summary.messages,
-    appels: summary.appeals,
-    journal: null,
+  const now = new Date();
+  const queues: Record<"signalements" | "messages" | "appels", Elsewhere> = {
+    signalements: { href: "/moderation?file=signalements", label: "Signalements à trancher", count: summary.reports },
+    messages: { href: "/moderation?file=messages", label: "Messages signalés", count: summary.messages },
+    appels: { href: "/moderation?file=appels", label: "Appels à trancher", count: summary.appeals },
   };
+  const others = (current: keyof typeof queues) =>
+    (Object.keys(queues) as (keyof typeof queues)[]).filter((key) => key !== current).map((key) => queues[key]);
 
   return (
-    <div className="max-w-[760px]">
-      <h1>Modération</h1>
-      <p className="mt-2 text-body">
-        Chaque décision est prise par un humain, motivée, envoyée à la personne concernée, contestable en appel et
-        inscrite au journal. Tu ne tranches jamais ce qui te concerne : un autre membre de l&apos;équipe le fait.
-      </p>
+    // Large comme l'administration, pour que les onglets communs tiennent sur une ligne ; les
+    // dossiers gardent une largeur de lecture.
+    <div className="page-wide">
+      <TeamHeader
+        staff={me.is_staff}
+        counts={{ reports: summary.reports, messages: summary.messages, appeals: summary.appeals }}
+        active={file as TeamTab}
+      />
+      <div className="max-w-[760px]">
       {summary.appeals_overdue > 0 && (
         <p className="mt-4 rounded-xl bg-accent-soft px-4 py-3 text-accent-text">
           {summary.appeals_overdue > 1
@@ -238,17 +284,6 @@ export default async function ModerationPage({ searchParams }: { searchParams: P
           , le délai promis aux membres.
         </p>
       )}
-
-      <Tabs label="Files de modération" className="mt-8">
-        {FILES.map((item) => (
-          <FilterChip
-            key={item.value}
-            href={`/moderation?file=${item.value}`}
-            label={counts[item.value] ? `${item.label} · ${counts[item.value]}` : item.label}
-            active={file === item.value}
-          />
-        ))}
-      </Tabs>
 
       {file === "signalements" && (
         <>
@@ -270,11 +305,11 @@ export default async function ModerationPage({ searchParams }: { searchParams: P
             </p>
           )}
           {items.length === 0 ? (
-            <Empty>Aucun signalement à trancher.</Empty>
+            <Empty elsewhere={others("signalements")}>Aucun signalement à trancher.</Empty>
           ) : (
             <ul className="mt-6 space-y-4">
               {(items as ReportGroup[]).map((group) => (
-                <ReportCard key={group.id} group={group} />
+                <ReportCard key={group.id} group={group} now={now} />
               ))}
             </ul>
           )}
@@ -282,33 +317,34 @@ export default async function ModerationPage({ searchParams }: { searchParams: P
       )}
       {file === "messages" &&
         (items.length === 0 ? (
-          <Empty>Aucun message signalé.</Empty>
+          <Empty elsewhere={others("messages")}>Aucun message signalé.</Empty>
         ) : (
           <ul className="mt-6 space-y-4">
             {(items as FlaggedMessage[]).map((message) => (
-              <MessageCard key={message.id} message={message} />
+              <MessageCard key={message.id} message={message} now={now} />
             ))}
           </ul>
         ))}
       {file === "appels" &&
         (items.length === 0 ? (
-          <Empty>Aucun appel en attente.</Empty>
+          <Empty elsewhere={others("appels")}>Aucun appel en attente.</Empty>
         ) : (
           <ul className="mt-6 space-y-4">
             {(items as AppealItem[]).map((appeal) => (
-              <AppealCard key={appeal.id} appeal={appeal} />
+              <AppealCard key={appeal.id} appeal={appeal} now={now} />
             ))}
           </ul>
         ))}
       {file === "journal" &&
         (items.length === 0 ? (
-          <Empty>Aucune décision pour l&apos;instant.</Empty>
+          <Empty elsewhere={Object.values(queues)}>Aucune décision pour l&apos;instant.</Empty>
         ) : (
           <div className="mt-6">
             <p className="mb-3 text-sm text-mute">Les 100 dernières décisions de l&apos;équipe, visibles de toute l&apos;équipe.</p>
             <LogList entries={items as LogEntry[]} />
           </div>
         ))}
+      </div>
     </div>
   );
 }

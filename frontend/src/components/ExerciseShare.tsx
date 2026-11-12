@@ -47,7 +47,7 @@ export function ExerciseShare({ url, title, image }: { url: string; title: strin
   }
 
   return (
-    <div className="mt-4 flex flex-wrap items-center gap-2">
+    <div className="mt-8 flex flex-wrap items-center gap-2">
       <span className="mr-1 inline-flex items-center gap-1.5 text-sm text-mute">
         <Icon name="share" size={16} />
         Partager
@@ -63,7 +63,8 @@ export function ExerciseShare({ url, title, image }: { url: string; title: strin
           Mes applications…
         </button>
       )}
-      {targets(url, text, image).map((target) => (
+      {/* Sur téléphone, la feuille de partage du système contient déjà toutes les applications. */}
+      {!native && targets(url, text, image).map((target) => (
         <a
           key={target.name}
           href={target.href}

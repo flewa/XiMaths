@@ -50,6 +50,55 @@ class AccessTests(TeamTestCase):
         self.assertEqual(self.api(self.student, "get", "/auth/me").json()["moderation_pending"], 0)
 
 
+class ClaimTests(TeamTestCase):
+    def test_a_colleague_sees_who_handles_a_report_until_it_is_decided(self):
+        create_report(self.student, reason=Report.Reason.ERROR, exercise=self.exercise, details="Coquille")
+        [group] = self.api(self.mod, "get", "/moderation/reports").json()
+        self.assertIsNone(group["claim"])
+        key = f"report:{group['id']}"
+
+        taken = self.api(self.mod, "post", "/moderation/claims", {"key": key})
+        self.assertEqual(taken.status_code, 200)
+        self.assertTrue(taken.json()["mine"])
+        [seen] = self.api(self.mod2, "get", "/moderation/reports").json()
+        self.assertEqual(seen["claim"]["username"], "moderatrice")
+        self.assertFalse(seen["claim"]["mine"])
+
+        # Un collègue ne le prend pas par mégarde, mais peut prendre le relais.
+        self.assertEqual(self.api(self.mod2, "post", "/moderation/claims", {"key": key}).status_code, 409)
+        relay = self.api(self.mod2, "post", "/moderation/claims", {"key": key, "take_over": True})
+        self.assertEqual(relay.json()["username"], "moderateur2")
+
+        # La décision efface la prise en charge.
+        path = f"/moderation/reports/{group['id']}/decide"
+        self.assertEqual(self.api(self.mod2, "post", path, {"confirmed": False, "note": "Pas d'erreur."}).status_code, 204)
+        from .models import ModerationClaim
+
+        self.assertFalse(ModerationClaim.objects.exists())
+
+    def test_a_claim_expires_and_can_be_released(self):
+        from datetime import timedelta
+
+        from .models import ModerationClaim
+
+        flagged = self.message(author=self.author)
+        MessageFlag.objects.create(message=flagged, user=self.student)
+        key = f"message:{flagged.pk}"
+        self.api(self.mod, "post", "/moderation/claims", {"key": key})
+        ModerationClaim.objects.update(claimed_at=timezone.now() - timedelta(hours=3))
+        [seen] = self.api(self.mod2, "get", "/moderation/messages").json()
+        self.assertIsNone(seen["claim"])
+
+        self.api(self.mod2, "post", "/moderation/claims", {"key": key})
+        # Seul celui qui l'a pris le rend.
+        self.assertEqual(self.api(self.mod, "delete", f"/moderation/claims/{key}").status_code, 204)
+        self.assertTrue(ModerationClaim.objects.filter(key=key).exists())
+        self.api(self.mod2, "delete", f"/moderation/claims/{key}")
+        self.assertFalse(ModerationClaim.objects.exists())
+        self.assertEqual(self.api(self.mod, "post", "/moderation/claims", {"key": "n'importe:1"}).status_code, 409)
+        self.assertEqual(self.api(self.student, "post", "/moderation/claims", {"key": key}).status_code, 403)
+
+
 class ReportQueueTests(TeamTestCase):
     def test_reports_on_one_content_are_decided_together_with_an_optional_sanction(self):
         create_report(self.student, reason=Report.Reason.PLAGIARISM, exercise=self.exercise, details="Copié d'un livre")
