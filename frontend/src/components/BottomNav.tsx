@@ -50,6 +50,8 @@ const HIDDEN_ON = [/\/chrono$/, /^\/entrainement\//];
 export function BottomNav({ signedIn }: { signedIn: boolean }) {
   const pathname = usePathname();
   if (HIDDEN_ON.some((pattern) => pattern.test(pathname))) return null;
+  // L'accueil du visiteur tient en une action : pas d'onglets.
+  if (!signedIn && pathname === "/") return null;
   const items = signedIn ? SIGNED_IN : VISITOR;
   return (
     <nav

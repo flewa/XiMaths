@@ -78,16 +78,17 @@ export default async function RootLayout({
   return (
     <html lang="fr" data-theme={theme}>
       {/* Sous 1024 px, la barre d'onglets du bas recouvrirait la fin de la page : on lui fait de la place. */}
-      <body className={`${sans.variable} pb-[calc(3.5rem+env(safe-area-inset-bottom))] font-sans antialiased lg:pb-0`}>
+      <body className={`${sans.variable} group/page pb-[calc(3.5rem+env(safe-area-inset-bottom))] font-sans antialiased has-[.landing]:pb-0 lg:pb-0`}>
         <a
           href="#contenu"
           className="sr-only z-50 rounded-lg bg-accent px-4 py-2 font-medium text-accent-ink focus:not-sr-only focus:fixed focus:left-4 focus:top-3"
         >
           Aller au contenu
         </a>
-        {/* La colonne de la barre latérale garde sa teinte jusqu'en bas, même sur une page longue. */}
-        <div className="min-h-screen lg:grid lg:grid-cols-[252px_minmax(0,1fr)] lg:bg-[linear-gradient(90deg,var(--sidebar)_252px,var(--canvas)_252px)]">
-          <aside aria-label="Barre latérale" className="thin-scroll sticky top-0 hidden h-screen overflow-y-auto bg-sidebar lg:block">
+        {/* La colonne de la barre latérale garde sa teinte jusqu'en bas, même sur une page longue.
+            L'accueil du visiteur (.landing) n'a pas de barre latérale : une seule colonne. */}
+        <div className="min-h-screen lg:grid lg:grid-cols-[252px_minmax(0,1fr)] lg:bg-[linear-gradient(90deg,var(--sidebar)_252px,var(--canvas)_252px)] lg:group-has-[.landing]/page:block lg:group-has-[.landing]/page:bg-none">
+          <aside aria-label="Barre latérale" className="thin-scroll sticky top-0 hidden h-screen overflow-y-auto bg-sidebar lg:block lg:group-has-[.landing]/page:hidden">
             <SidebarContent account={account} levels={levels} topics={topics} />
           </aside>
           <MobileBar account={account} levels={levels} topics={topics} />

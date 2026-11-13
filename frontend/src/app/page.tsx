@@ -7,16 +7,14 @@ import { ExerciseList } from "@/components/ExerciseList";
 import {
   ChallengeCard,
   CourseNotesCard,
-  HowItWorks,
   LeadersCard,
   MemberHeader,
   TodoCard,
-  VisitorHero,
-  ExercisePreview,
   WeekCard,
 } from "@/components/HomeHero";
 import { secondaryButtonClass } from "@/components/Form";
 import { JsonLd } from "@/components/JsonLd";
+import { Landing } from "@/components/Landing";
 import { LevelPicker } from "@/components/LevelPicker";
 import {
   type ExerciseSummary,
@@ -144,19 +142,32 @@ export default async function Home({
   let data;
   try {
     const [levels, me] = await Promise.all([fetchLevels(), fetchMe()]);
-    // Par défaut, les exercices du niveau déclaré.
-    const level = niveau === ALL_LEVELS ? undefined : (niveau ?? me?.declared_level ?? undefined);
-    const [exercises, progress, challenges, notes, leaders] = await Promise.all([
-      (view.sort ? fetchExercises(level, view.sort) : fetchFeed(level)).then((list) => list && list.slice(0, VIEW_SIZE)),
-      me ? fetchProgress() : null,
-      me ? fetchDailyChallenges() : [],
-      me ? fetchCourseNotes().catch(() => []) : [],
-      me ? weekLeaders() : null,
-    ]);
-    data = { levels, me, level, exercises, progress, challenges, notes, leaders };
+    // Le visiteur a son propre accueil : ni fil d'exercices ni suivi à charger.
+    if (!me) {
+      data = null;
+    } else {
+      // Par défaut, les exercices du niveau déclaré.
+      const level = niveau === ALL_LEVELS ? undefined : (niveau ?? me.declared_level ?? undefined);
+      const [exercises, progress, challenges, notes, leaders] = await Promise.all([
+        (view.sort ? fetchExercises(level, view.sort) : fetchFeed(level)).then((list) => list && list.slice(0, VIEW_SIZE)),
+        fetchProgress(),
+        fetchDailyChallenges(),
+        fetchCourseNotes().catch(() => []),
+        weekLeaders(),
+      ]);
+      data = { levels, me, level, exercises, progress, challenges, notes, leaders };
+    }
   } catch (error) {
     logApiError(error);
     return <ApiUnavailable />;
+  }
+  if (!data) {
+    return (
+      <>
+        <JsonLd data={SITE_DATA} />
+        <Landing />
+      </>
+    );
   }
   const { levels, me, level, exercises, progress, challenges, notes, leaders } = data;
   // Un niveau inconnu dans l'adresse : le fil n'existe pas.
@@ -165,24 +176,6 @@ export default async function Home({
   const feed = (
     <ExerciseFeed levels={levels} level={level} niveau={niveau} view={view} exercises={exercises} />
   );
-
-  if (!me) {
-    return (
-      <div className="page-wide">
-        <JsonLd data={SITE_DATA} />
-        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start lg:gap-10">
-          <VisitorHero />
-          {/* Aussi sur téléphone, juste après l'accroche : sans lui, le premier exercice
-              n'arrivait qu'au bas du deuxième écran. */}
-          <div className="mt-8 lg:mt-0">
-            <ExercisePreview exercises={exercises.slice(0, 4)} />
-          </div>
-        </div>
-        <HowItWorks />
-        <div className="mt-14">{feed}</div>
-      </div>
-    );
-  }
 
   const declared = levels.find((item) => item.code === me.declared_level) ?? null;
   const challenge = todayChallenge(challenges, me.declared_level);

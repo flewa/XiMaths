@@ -417,6 +417,9 @@ export function MobileBar({
     };
   }, [open]);
 
+  // L'accueil du visiteur a son propre en-tête, réduit au nom du site et à la connexion.
+  if (!account && pathname === "/") return null;
+
   return (
     <>
       {/* Le tiroir est un frère de la barre, pas un enfant : le flou de la barre ferait de
