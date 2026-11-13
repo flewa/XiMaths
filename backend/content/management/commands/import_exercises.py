@@ -145,14 +145,22 @@ class Command(BaseCommand):
 
     @staticmethod
     def refresh(exercise, spec):
-        """Titre et chapitres (notions comprises) d'un exercice déjà publié, d'après la
-        rédaction, et les niveaux qu'elle lui a ajoutés. Le reste (énoncé, indications)
-        ne bouge pas. 1 s'il a changé."""
+        """Un exercice déjà publié prend ce que la rédaction a corrigé depuis : titre,
+        énoncé, indications, réponse, difficulté, niveau principal, chapitres (notions
+        comprises), et les niveaux ajoutés. 1 s'il a changé."""
         fields, levels, topics = draft_fields(payload(spec))
         changed = False
-        # Modifié par l'administration : son titre et ses chapitres sont les siens désormais.
+        # Modifié par l'administration : son contenu et ses chapitres sont les siens désormais.
         if exercise.edited_by_team_at is not None:
             fields["title"], topics = exercise.title, list(exercise.topics.all())
+        else:
+            content = ["statement", "hints", "final_answer", "difficulty_declared", "primary_level"]
+            corrected = [name for name in content if getattr(exercise, name) != fields[name]]
+            for name in corrected:
+                setattr(exercise, name, fields[name])
+            if corrected:
+                exercise.save(update_fields=corrected)
+                changed = True
         # Les niveaux ne font que s'ajouter (une filière ouverte depuis) : rien n'est retiré.
         missing = set(levels) - set(exercise.levels.all())
         if missing:

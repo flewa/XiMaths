@@ -112,9 +112,12 @@ EXERCISES = [
         "title": r"Somme de la série de terme général $n/2^n$",
         "former_titles": ["Une série dérivée", "Somme de la série de terme général n/2ⁿ"],
         "statement": r"Justifier la convergence de la série $\displaystyle\sum_{n \geq 1} \frac{n}{2^n}$ et calculer sa somme.",
+        # Proposé aussi en ECG, B/L et BCPST, sans séries entières : les indications passent
+        # par une somme finie, la série entière n'est qu'une variante de deuxième année.
         "hints": [
-            r"Pour $|x| < 1$, dériver terme à terme $\displaystyle\sum_{n \geq 0} x^n = \frac{1}{1-x}$.",
-            r"En déduire $\displaystyle\sum_{n \geq 1} n x^n = \frac{x}{(1-x)^2}$, puis prendre $x = \frac{1}{2}$.",
+            r"Pour la convergence, comparer $\dfrac{n}{2^n}$ à $\dfrac{1}{n^2}$, ou appliquer la règle de d'Alembert.",
+            r"Pour $x \neq 1$, dériver l'égalité $\displaystyle\sum_{k=0}^{N} x^k = \frac{1 - x^{N+1}}{1 - x}$, puis prendre $x = \frac{1}{2}$ et faire tendre $N$ vers $+\infty$.",
+            r"En deuxième année de MP, PSI, PC ou PT : dériver terme à terme la série entière $\displaystyle\sum_{n \geq 0} x^n = \frac{1}{1-x}$ sur $]-1, 1[$.",
         ],
         "final_answer": "2",
         "difficulty": 2,
@@ -178,11 +181,16 @@ EXERCISES = [
             "\n"
             r"2. En déduire, pour tout $n \in \N$, une expression de $A^n$ sous la forme $I_3 + c_n J$."
             "\n"
-            r"3. Déterminer les valeurs propres de $A$."
+            r"3. Montrer que $A$ est inversible et écrire $A^{-1}$ sous la forme $I_3 + c J$."
+            "\n"
+            r"4. En deuxième année : déterminer les valeurs propres de $A$."
         ),
+        # Proposé dès la première année (MPSI, BCPST, ECG, B/L) : les valeurs propres, vues en
+        # deuxième année, ne sont plus qu'une dernière question signalée comme telle.
         "hints": [
             r"$J^2 = 3J$, donc $I_3$ et $J$ commutent et la formule du binôme s'applique.",
             r"Chercher $c_n$ par récurrence : $c_{n+1} = 1 + 4c_n$, ou utiliser le binôme.",
+            r"Pour 3, chercher $c$ tel que $(I_3 + J)(I_3 + cJ) = I_3$ en développant avec $J^2 = 3J$.",
         ],
         "difficulty": 2,
         "primary_level": "L2",
@@ -434,13 +442,18 @@ EXERCISES = [
             r" $\frac{1}{2}$, indépendamment des parties précédentes. Il s'arrête dès qu'il est ruiné"
             r" ou qu'il possède $10$ euros."
             "\n\n"
-            r"Quelle est la probabilité qu'il atteigne $10$ euros ?"
+            r"1. Quelle est la probabilité qu'il atteigne $10$ euros ?"
+            "\n"
+            r"2. En déduire sa probabilité de ruine."
         ),
+        # Le titre annonce la probabilité de ruine : la question 2 la demande, et c'est elle,
+        # la réponse attendue (la question seule demandait celle d'atteindre 10 euros).
         "hints": [
             r"Sa fortune $(X_n)$ arrêtée au temps de sortie $T$ est une martingale bornée.",
             r"Le théorème d'arrêt donne $E[X_T] = 3$, avec $X_T \in \{0, 10\}$.",
+            r"Pour 2, le jeu s'arrête presque sûrement : les deux probabilités ont pour somme $1$.",
         ],
-        "final_answer": "3/10",
+        "final_answer": "7/10",
         "difficulty": 3,
         "primary_level": "M2",
         "levels": ["L3", "M1", "M2"],
