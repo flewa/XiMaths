@@ -53,8 +53,8 @@ const deadlineFormat = new Intl.DateTimeFormat("fr-FR", {
   timeZone: "Europe/Paris",
 });
 
-/** Échéance lisible, après « à rendre » : « dans 5 h » quand elle approche, sinon « avant
- * jeudi 14 novembre à 18:05 » ; null une fois passée. */
+/** Échéance lisible, après « à rendre » : « dans 5 h » quand elle approche, sinon « avant
+ * jeudi 14 novembre à 18:05 » ; null une fois passée. */
 export function dueLabel(iso: string, now = new Date()) {
   const hours = Math.floor((new Date(iso).getTime() - now.getTime()) / 3_600_000);
   if (hours < 0) return null;
@@ -63,17 +63,17 @@ export function dueLabel(iso: string, now = new Date()) {
   return `avant ${deadlineFormat.format(new Date(iso))}`;
 }
 
-/** Une décimale, à la française : « 2,4 ». */
+/** Une décimale, à la française : « 2,4 ». */
 export const oneDecimal = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 const monthFormat = new Intl.DateTimeFormat("fr-FR", { month: "long", timeZone: "UTC" });
 
-/** « 1 tendance », « 3 tendances » : en français, 0 et 1 restent au singulier. */
+/** « 1 tendance », « 3 tendances » : en français, 0 et 1 restent au singulier. */
 export function plural(count: number, singular: string, pluralForm = `${singular}s`) {
   return `${count} ${count > 1 ? pluralForm : singular}`;
 }
 
-/** « à l'instant », « il y a 5 min », « il y a 3 h », « hier », « il y a 4 jours », puis la date.
+/** « à l'instant », « il y a 5 min », « il y a 3 h », « hier », « il y a 4 jours », puis la date.
  * `now` vient du serveur, pour que le rendu du navigateur soit le même. */
 export function relativeTime(iso: string, now: string) {
   const minutes = Math.floor((new Date(now).getTime() - new Date(iso).getTime()) / 60_000);
@@ -92,7 +92,7 @@ export function ordinal(rank: number) {
   return rank === 1 ? "1er" : `${rank}e`;
 }
 
-/** « du 19 au 25 octobre », « du 26 octobre au 1er novembre », depuis deux dates ISO. */
+/** « du 19 au 25 octobre », « du 26 octobre au 1er novembre », depuis deux dates ISO. */
 export function weekRange(start: string, end: string) {
   const [from, to] = [start, end].map((iso) => new Date(`${iso}T00:00:00Z`));
   const day = (date: Date) => (date.getUTCDate() === 1 ? "1er" : String(date.getUTCDate()));

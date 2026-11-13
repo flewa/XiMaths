@@ -20,7 +20,7 @@ const SAVE_EVERY_MS = 10_000;
 const REMINDERS_S = [600, 300, 60];
 const WARNING_S = 300;
 
-/** 754 s → « 12:34 » ; 3725 s → « 1:02:05 ». */
+/** 754 s → « 12:34 » ; 3725 s → « 1:02:05 ». */
 export function clock(seconds: number) {
   const total = Math.max(0, Math.round(seconds));
   const h = Math.floor(total / 3600);
@@ -30,7 +30,7 @@ export function clock(seconds: number) {
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
 }
 
-/** Écran des règles : la durée, puis « Commencer ». */
+/** Écran des règles : la durée, puis « Commencer ». */
 export function TrainingStart({ exerciseId, options }: { exerciseId: number; options: TrainingOptions }) {
   const router = useRouter();
   const [minutes, setMinutes] = useState(options.recommended);
@@ -78,7 +78,7 @@ export function TrainingStart({ exerciseId, options }: { exerciseId: number; opt
   );
 }
 
-/** « Commencer » un défi : le chrono part au clic, et la tentative est unique. */
+/** « Commencer » un défi : le chrono part au clic, et la tentative est unique. */
 export function ChallengeStart({ challengeId, minutes }: { challengeId: number; minutes: number }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);

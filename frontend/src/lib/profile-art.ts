@@ -37,8 +37,8 @@ export type BadgeArt = {
 
 const METALS = { bronze: "#c58a5a", argent: "#c9ccd1", or: "#e8c15a" };
 
-/** Un symbole par badge, choisi pour ce qu'il dit : ∃ pour le premier à résoudre (« il
- * existe »), ∀ pour qui touche à tout (« pour tout »), ∎ pour la solution validée (CQFD)… */
+/** Un symbole par badge, choisi pour ce qu'il dit : ∃ pour le premier à résoudre (« il
+ * existe »), ∀ pour qui touche à tout (« pour tout »), ∎ pour la solution validée (CQFD)… */
 export const BADGE_ART: Record<string, BadgeArt> = {
   "premier-pas": { glyph: "ε", tint: AVATAR_TINTS.ciel, shape: "circle", meaning: "un tout petit pas" },
   valide: { glyph: "∎", tint: AVATAR_TINTS.jade, shape: "hexagon", meaning: "CQFD" },

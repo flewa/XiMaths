@@ -1,7 +1,7 @@
 """Limites de débit, chacune propre à sa route.
 
-Django Ninja range l'historique d'une limite sous « throttle_<scope>_<identifiant> », et
-le scope vaut « anon » ou « auth » quelle que soit la route : sans scope propre, toutes
+Django Ninja range l'historique d'une limite sous « throttle_<scope>_<identifiant> », et
+le scope vaut « anon » ou « auth » quelle que soit la route : sans scope propre, toutes
 les routes partageraient un compteur, et une limite à la minute effacerait l'historique
 d'une limite à l'heure.
 """

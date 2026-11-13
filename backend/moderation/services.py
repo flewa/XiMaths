@@ -64,10 +64,10 @@ def log_action(actor, action, summary, *, member=None, url=""):
 
 
 def target_label(report):
-    """« l'exercice « … » », « une copie de « … » » : ce que vise un signalement."""
+    """« l'exercice « … » », « une copie de « … » » : ce que vise un signalement."""
     if report.exercise_id:
-        return f"l'exercice « {report.exercise.title} »"
-    return f"une copie de « {report.solution.exercise.title} »"
+        return f"l'exercice « {report.exercise.title} »"
+    return f"une copie de « {report.solution.exercise.title} »"
 
 
 @transaction.atomic
@@ -137,7 +137,7 @@ def _apply(report, *, note, now):
         if report.reason in (Reason.PLAGIARISM, Reason.INAPPROPRIATE):
             solution.status = Solution.Status.HIDDEN
             solution.save(update_fields=["status", "updated_at"])
-            removed = (solution.author, f"ta solution de « {solution.exercise.title} »")
+            removed = (solution.author, f"ta solution de « {solution.exercise.title} »")
         elif report.reason == Reason.UNDECLARED_AI:
             removed = (solution.author, None)
     elif report.reason in (Reason.PLAGIARISM, Reason.INAPPROPRIATE):
@@ -145,7 +145,7 @@ def _apply(report, *, note, now):
         reverse_points_from(exercise, now=now)
         exercise.status = Exercise.Status.REMOVED
         exercise.save(update_fields=["status", "updated_at"])
-        removed = (exercise.author, f"ton exercice « {exercise.title} »")
+        removed = (exercise.author, f"ton exercice « {exercise.title} »")
     # Erreur : le modérateur corrige le contenu lui-même.
     if removed:
         author, what = removed
@@ -599,14 +599,14 @@ def remove_message(message, *, moderator, reason, now=None):
     log_action(
         moderator,
         Action.MESSAGE_REMOVED,
-        f"Message sous « {exercise.title} ». Motif : {reason}",
+        f"Message sous « {exercise.title} ». Motif : {reason}",
         member=message.author,
         url=f"/exercices/{exercise.pk}#discussion",
     )
     notify(
         message.author,
         Kind.CONTENT_REMOVED,
-        f"L'équipe a retiré ton message sous « {exercise.title} »",
+        f"L'équipe a retiré ton message sous « {exercise.title} »",
         f"Motif : {reason}\n\nTu peux faire appel sous 14 jours depuis la page Mes décisions.",
         "/decisions",
         now=now,
@@ -624,7 +624,7 @@ def keep_message(message, *, moderator, now=None):
     log_action(
         moderator,
         Action.FLAGS_DISMISSED,
-        f"Message signalé sous « {message.exercise.title} », gardé.",
+        f"Message signalé sous « {message.exercise.title} », gardé.",
         member=message.author,
         url=f"/exercices/{message.exercise_id}#discussion",
     )

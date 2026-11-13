@@ -2,8 +2,8 @@
 
 - E2 : Claude Haiku reformule chaque énoncé publié en deux ou trois phrases sans
   notation ; l'embedding de ce résumé rattrape les reformulations complètes.
-- Arbitrage : Claude Sonnet donne son avis sur les paires « quasi-copie » et « très
-  similaire », avec une justification d'une phrase. L'avis est mis en cache sur la
+- Arbitrage : Claude Sonnet donne son avis sur les paires « quasi-copie » et « très
+  similaire », avec une justification d'une phrase. L'avis est mis en cache sur la
   paire ; un humain tranche toujours.
 """
 
@@ -44,7 +44,7 @@ ARBITRATION_SYSTEM = (
     "- meme_theme_distinct : même sujet, mais un autre problème ;\n"
     "- different : sans rapport réel.\n"
     "Changer une valeur, une hypothèse ou la conclusion rend deux exercices différents : "
-    "ce n'est alors pas « identique ». Donne ta confiance entre 0 et 1, et une justification "
+    "ce n'est alors pas « identique ». Donne ta confiance entre 0 et 1, et une justification "
     "d'une phrase, en français, lisible par l'auteur de l'exercice."
 )
 ARBITRATION_SCHEMA = {
@@ -99,8 +99,8 @@ def arbitrate(pair):
         llm.ARBITRATION_MODEL,
         system=ARBITRATION_SYSTEM,
         prompt=(
-            f"Nouvel exercice « {pair.exercise.title} » :\n\n{pair.exercise.statement}\n\n"
-            f"---\n\nExercice existant « {pair.existing.title} » :\n\n{pair.existing.statement}"
+            f"Nouvel exercice « {pair.exercise.title} » :\n\n{pair.exercise.statement}\n\n"
+            f"---\n\nExercice existant « {pair.existing.title} » :\n\n{pair.existing.statement}"
         ),
         schema=ARBITRATION_SCHEMA,
         effort="high",

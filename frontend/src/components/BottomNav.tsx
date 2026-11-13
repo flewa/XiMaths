@@ -25,7 +25,7 @@ const RANKINGS: Item = {
   match: (path) => path.startsWith("/classements"),
 };
 
-// Au centre, ce qu'on vient faire : résoudre. Publier reste dans le menu et sur « Parcourir ».
+// Au centre, ce qu'on vient faire : résoudre. Publier reste dans le menu et sur « Parcourir ».
 const SIGNED_IN: Item[] = [
   FEED,
   BROWSE,
@@ -50,6 +50,8 @@ const HIDDEN_ON = [/\/chrono$/, /^\/entrainement\//];
 export function BottomNav({ signedIn }: { signedIn: boolean }) {
   const pathname = usePathname();
   if (HIDDEN_ON.some((pattern) => pattern.test(pathname))) return null;
+  // L'accueil du visiteur tient en une action : pas d'onglets.
+  if (!signedIn && pathname === "/") return null;
   const items = signedIn ? SIGNED_IN : VISITOR;
   return (
     <nav
@@ -65,7 +67,7 @@ export function BottomNav({ signedIn }: { signedIn: boolean }) {
                 href={item.href}
                 aria-label={item.label === item.short ? undefined : item.label}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium leading-none ${active ? "text-ink-deep" : "text-mute"}`}
+                className={`flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium leading-none ${active ? "text-ink-deep" : "text-mute"}`}
               >
                 {item.main ? (
                   // Plein seulement sur sa page : sinon on croirait l'onglet sélectionné.

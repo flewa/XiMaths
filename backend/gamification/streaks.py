@@ -32,7 +32,7 @@ Status = WeeklyStreak.Status
 TIMED_ACTIVE_S = 15 * 60
 JOKERS_PER_MONTH = 2
 MAX_VACATION = timedelta(weeks=4)
-# Une semaine « tenue » prolonge la série ; les vacances la suspendent sans la casser.
+# Une semaine « tenue » prolonge la série ; les vacances la suspendent sans la casser.
 KEPT = {Status.ACHIEVED, Status.JOKER}
 
 

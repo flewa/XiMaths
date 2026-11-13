@@ -77,7 +77,7 @@ function ReasonField({
   );
 }
 
-/** « Je m'en occupe » : montre aux collègues qu'un dossier est ouvert, pour ne pas le traiter
+/** « Je m'en occupe » : montre aux collègues qu'un dossier est ouvert, pour ne pas le traiter
  * à deux. Simple indication, deux heures au plus : tout le monde peut encore trancher. */
 export function ClaimControl({ claimKey, claim, since }: { claimKey: string; claim: Claim | null; since: string }) {
   const router = useRouter();

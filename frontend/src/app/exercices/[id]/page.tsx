@@ -67,7 +67,7 @@ function voteBlocker(me: Me | null, author: string | null) {
 const REVIEWER_TRUST_LEVEL = 2;
 const MODERATOR_TRUST_LEVEL = 4;
 
-/** Bouton « Signaler », pour un membre vérifié et sur le contenu des autres seulement. */
+/** Bouton « Signaler », pour un membre vérifié et sur le contenu des autres seulement. */
 function Report({ me, author, ...target }: { me: Me | null; author: string | null } & Omit<
   React.ComponentProps<typeof ReportButton>,
   "canReportDuplicates"
@@ -79,13 +79,13 @@ function Report({ me, author, ...target }: { me: Me | null; author: string | nul
 // Longueur qu'un moteur affiche pour une description.
 const DESCRIPTION_MAX = 158;
 
-/** « exercice de séries entières » : la notion d'abord, plus précise que le chapitre. */
+/** « exercice de séries entières » : la notion d'abord, plus précise que le chapitre. */
 function kindOf(exercise: ExerciseSummary) {
   const subject = exercise.notions[0] ?? exercise.topics[0];
   return subject ? `exercice ${ofChapter(subject)}` : "exercice de maths";
 }
 
-/** « Exercice de séries entières, niveau L2, MP, PSI. Déterminer le rayon… 2 indications. » */
+/** « Exercice de séries entières, niveau L2, MP, PSI. Déterminer le rayon… 2 indications. » */
 function describe(exercise: ExerciseDetail) {
   const kind = kindOf(exercise);
   const head = `${kind.charAt(0).toUpperCase()}${kind.slice(1)}, niveau ${exercise.levels.join(", ")}. `;
@@ -101,7 +101,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = describe(exercise);
   // Un doublon fusionné reste lisible, mais l'adresse de référence est celle du canonique.
   const canonical = `/exercices/${exercise.merged_into ?? exercise.id}`;
-  // « Intégrales de Wallis : exercice de calcul intégral (MPSI) » : ce que l'élève tape.
+  // « Intégrales de Wallis : exercice de calcul intégral (MPSI) » : ce que l'élève tape.
   const title = `${exercise.title_text} : ${kindOf(exercise)} (${exercise.primary_level})`;
   return {
     title,
@@ -321,7 +321,7 @@ export default async function ExercisePage({ params }: Props) {
       </section>
 
       {/* Après la copie, pas avant : sur téléphone, six boutons de partage repoussaient
-          « Ta solution » d'un écran entier. */}
+          « Ta solution » d'un écran entier. */}
       <ExerciseShare
         url={`${SITE_URL}/exercices/${exercise.id}`}
         title={exercise.title_text}

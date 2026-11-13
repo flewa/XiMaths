@@ -131,7 +131,7 @@ def _formula(source):
 
 def plain_math(text):
     """Le texte d'un titre (ou d'une notification) avec ses formules $…$ écrites en clair :
-    « Reste de $3^{100}$ modulo 7 » devient « Reste de 3¹⁰⁰ modulo 7 ». Pour l'onglet du
+    « Reste de $3^{100}$ modulo 7 » devient « Reste de 3¹⁰⁰ modulo 7 ». Pour l'onglet du
     navigateur, les moteurs de recherche, les notifications et les emails."""
     converted = _TITLE_MATH.sub(lambda match: _formula(match.group(1)), text)
     converted = re.sub(r"⌊\s+", "⌊", re.sub(r"\s+⌋", "⌋", converted))

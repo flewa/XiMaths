@@ -177,7 +177,7 @@ export function VoteButton({
   const [votes, setVotes] = useState(count);
   const [voted, setVoted] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  // « Utile » seul ne disait pas ce que fait le bouton : on vote pour l'exercice.
+  // « Utile » seul ne disait pas ce que fait le bouton : on vote pour l'exercice.
   const label = `Exercice utile · ${votes}`;
 
   if (disabledReason) {
@@ -322,7 +322,7 @@ export function ReviseSolution({
   );
 }
 
-/** Choisir de relire une copie en attente : elle rejoint « mes relectures ». */
+/** Choisir de relire une copie en attente : elle rejoint « mes relectures ». */
 export function VolunteerButton({ solutionId, label = "Je relis" }: { solutionId: number; label?: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);

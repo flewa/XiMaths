@@ -1,4 +1,4 @@
-"""Vérification d'une adresse email académique, qui donne le badge « Étudiant vérifié ».
+"""Vérification d'une adresse email académique, qui donne le badge « Étudiant vérifié ».
 
 On ne garde pas l'adresse académique : seulement son domaine, affiché dans les réglages,
 et une empreinte (HMAC) qui empêche qu'une même adresse vérifie plusieurs comptes.
@@ -76,7 +76,7 @@ def _domain(email):
 
 def is_academic(email):
     labels = _domain(email).split(".")
-    # Le domaine entier, puis ses parents : « etu.univ-lyon1.fr », puis « univ-lyon1.fr ».
+    # Le domaine entier, puis ses parents : « etu.univ-lyon1.fr », puis « univ-lyon1.fr ».
     candidates = [".".join(labels[start:]) for start in range(len(labels) - 1)]
     domains = ACADEMIC_DOMAINS | set(settings.ACADEMIC_EXTRA_DOMAINS)
     return any(
@@ -122,7 +122,7 @@ def send_academic_link(user, email):
     send_mail(
         "Confirme ton adresse académique XiMaths",
         f"Bonjour {user.username},\n\n"
-        f"Pour confirmer cette adresse académique et recevoir le badge « Étudiant vérifié », "
+        f"Pour confirmer cette adresse académique et recevoir le badge « Étudiant vérifié », "
         f"ouvre ce lien :\n{link}\n\n"
         "Il est valable 3 jours. XiMaths ne garde pas cette adresse : seulement son domaine.",
         None,

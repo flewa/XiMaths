@@ -65,7 +65,7 @@ export default function LegalNoticePage() {
 
       <ProseSection title="Signaler un contenu">
         <p>
-          Sous chaque exercice, le bouton « Signaler » prévient la modération : erreur, plagiat, contenu
+          Sous chaque exercice, le bouton « Signaler » prévient la modération : erreur, plagiat, contenu
           inapproprié. Tu peux aussi écrire à{" "}
           <a href={`mailto:${CONTACT_EMAIL}`} className={link}>
             {CONTACT_EMAIL}

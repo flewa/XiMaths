@@ -6,6 +6,7 @@ import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { Icon } from "@/components/Icon";
 import { MathText } from "@/components/MathText";
 import { AnswerQuestion, OpenQuestion } from "@/components/Questions";
+import { PageIntro } from "@/components/PageIntro";
 import { type ComprehensionQuestion, fetchMyQuestions } from "@/lib/api";
 
 export const metadata: Metadata = { title: "Questions de compréhension" };
@@ -106,11 +107,11 @@ export default async function QuestionsPage() {
   return (
     <div className="max-w-[720px]">
       <h1>Questions de compréhension</h1>
-      <p className="mt-2 text-body">
+      <PageIntro id="questions">
         Parfois, sur une solution classée ou qui rapporte beaucoup, on te pose une question courte sur ta propre
         solution. Ce n&apos;est jamais une accusation : on vérifie que tu l&apos;as comprise, et la réussite
         accorde ses points.
-      </p>
+      </PageIntro>
 
       {waiting.length > 0 && (
         <section aria-labelledby="en-attente" className="mt-8">

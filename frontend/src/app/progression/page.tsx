@@ -344,7 +344,7 @@ function WeeksChart({ history }: { history: Progress["history"] }) {
           );
         })}
       </ol>
-      <div aria-hidden="true" className="mt-1 flex justify-between text-[11px] text-mute">
+      <div aria-hidden="true" className="mt-1 flex justify-between text-xs text-mute">
         <span>{short(weeks[0].week_start)}</span>
         <span>{short(weeks[weeks.length - 1].week_start)}</span>
       </div>
@@ -433,7 +433,7 @@ function NextBadges({ badges }: { badges: BadgeProgress[] }) {
           ))}
         </ul>
       )}
-      <Link href="/badges" className="mt-3 inline-block text-[13px] text-mute underline underline-offset-4 hover:text-ink">
+      <Link href="/badges" className="mt-2 inline-flex min-h-8 items-center text-[13px] text-mute underline underline-offset-4 hover:text-ink">
         Tous les badges
       </Link>
     </section>

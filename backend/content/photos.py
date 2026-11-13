@@ -40,7 +40,7 @@ FORMATS = {"JPEG", "PNG", "WEBP"}
 UPLOAD_WINDOW = timedelta(minutes=30)
 KEEP_UNUSED = timedelta(days=1)
 # Avec des photos, un texte plus court qu'une demi-page est une note : pas une rédaction
-# à comparer aux autres (« voir les photos » ne doit pas passer pour du plagiat).
+# à comparer aux autres (« voir les photos » ne doit pas passer pour du plagiat).
 NOTE_LENGTH = 300
 
 

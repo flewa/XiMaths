@@ -1,7 +1,7 @@
 import { unstable_rethrow } from "next/navigation";
 
 /** Difficulté en cinq barres croissantes ; `withLabel` l'écrit aussi en toutes lettres,
- * `short` en chiffres (« 2/5 »). */
+ * `short` en chiffres (« 2/5 »). */
 export function Difficulty({
   value,
   withLabel = false,

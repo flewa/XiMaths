@@ -126,7 +126,7 @@ function itemsFor(account: NavAccount | null): Item[] {
 
 const row = "flex min-h-8 items-center gap-2.5 rounded-md px-2 font-medium";
 
-/** Nom court d'un niveau dans le menu : « Licence 1 », « MPSI », « BCPST », « ECG ». L'année
+/** Nom court d'un niveau dans le menu : « Licence 1 », « MPSI », « BCPST », « ECG ». L'année
  * est donnée par l'intertitre de la filière, l'étiquette de code ferait doublon. */
 function shortName(level: Level) {
   return level.name.replace(/^Prépa /, "").replace(/ (\d(?:re|e) année)$/, "");
@@ -197,7 +197,7 @@ function MenuLink({ href, label, active }: { href: string; label: string; active
   );
 }
 
-/** Les niveaux d'une filière. En prépa, rangés sous « 1re année » et « 2e année ». */
+/** Les niveaux d'une filière. En prépa, rangés sous « 1re année » et « 2e année ». */
 function LevelGroup({ track, label, levels, pathname }: { track: string; label: string; levels: Level[]; pathname: string }) {
   if (levels.length === 0) return null;
   const current = levels.some((level) => pathname === levelPath(level.code));
@@ -207,7 +207,7 @@ function LevelGroup({ track, label, levels, pathname }: { track: string; label: 
       {years.map((year) => (
         <div key={year ?? "tous"}>
           {year !== null && years.length > 1 && (
-            <p className="pb-0.5 pl-7 pt-1.5 text-xs font-medium text-stone">
+            <p className="pb-0.5 pl-7 pt-1.5 text-xs font-medium text-mute">
               {YEAR_LABELS[year] ?? `${year}e année`}
             </p>
           )}
@@ -258,14 +258,14 @@ function AccountFooter({ account }: { account: NavAccount }) {
           </Link>
         </div>
         <div className="mt-1 border-t border-hairline pt-1">
-          <p className="px-3 pb-0.5 pt-1 text-[11px] font-semibold uppercase tracking-[0.04em] text-stone">Modération</p>
+          <p className="px-3 pb-0.5 pt-1 text-xs font-semibold uppercase tracking-[0.04em] text-mute">Modération</p>
           <Link href="/signalements" className={link}>
             Mes signalements
           </Link>
           <Link href="/questions" className={link}>
             Mes questions
             {waiting > 0 && (
-              <span className="ml-auto rounded-full bg-accent px-1.5 text-[11px] font-semibold leading-[18px] text-accent-ink">
+              <span className="ml-auto rounded-full bg-accent px-1.5 text-xs font-semibold leading-[18px] text-accent-ink">
                 {waiting}
               </span>
             )}
@@ -342,7 +342,7 @@ export function SidebarContent({
                   {item.label}
                   {item.count ? (
                     <span
-                      className={`ml-auto text-xs font-semibold ${item.hot ? "text-accent-text" : "text-stone"}`}
+                      className={`ml-auto text-xs font-semibold ${item.hot ? "text-accent-text" : "text-mute"}`}
                     >
                       {item.count}
                     </span>
@@ -353,7 +353,7 @@ export function SidebarContent({
           })}
         </ul>
 
-        <p className="mb-1 mt-5 px-2 text-xs font-medium text-stone">Niveaux</p>
+        <p className="mb-1 mt-5 px-2 text-xs font-medium text-mute">Niveaux</p>
         {LEVEL_TRACKS.map(({ track, label }) => (
           <LevelGroup key={track} track={track} label={label} levels={levels.filter((level) => level.track === track)} pathname={pathname} />
         ))}
@@ -416,6 +416,9 @@ export function MobileBar({
       document.body.style.overflow = "";
     };
   }, [open]);
+
+  // L'accueil du visiteur a son propre en-tête, réduit au nom du site et à la connexion.
+  if (!account && pathname === "/") return null;
 
   return (
     <>

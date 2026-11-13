@@ -1,4 +1,4 @@
-"""Publie les exercices de la rédaction (content/editorial/, un fichier par lot) sous le compte « XiMaths ».
+"""Publie les exercices de la rédaction (content/editorial/, un fichier par lot) sous le compte « XiMaths ».
 
 Chaque exercice passe par la même validation qu'un exercice proposé sur le site (schéma
 de l'API, commandes LaTeX interdites, niveaux et chapitres connus), puis par la détection
@@ -54,26 +54,26 @@ def problems(specs):
     found = []
     titles = [spec["title"] for spec in specs]
     for title in {title for title in titles if titles.count(title) > 1}:
-        found.append(f"« {title} » apparaît deux fois.")
+        found.append(f"« {title} » apparaît deux fois.")
     for spec in specs:
         for former in spec.get("former_titles", []):
             if former in titles or sum(former in other.get("former_titles", []) for other in specs) > 1:
-                found.append(f"« {spec['title']} » : l'ancien titre « {former} » sert déjà ailleurs.")
+                found.append(f"« {spec['title']} » : l'ancien titre « {former} » sert déjà ailleurs.")
     for spec in specs:
         title = spec["title"]
         try:
             draft_fields(payload(spec))
         except ValidationError as error:
-            found.append(f"« {title} » : {error.errors()[0]['msg']}")
+            found.append(f"« {title} » : {error.errors()[0]['msg']}")
             continue
         except HttpError as error:
-            found.append(f"« {title} » : {error}")
+            found.append(f"« {title} » : {error}")
             continue
         answer = spec.get("final_answer", "")
         if answer and check_answer(answer, answer) is not True:
-            found.append(f"« {title} » : la réponse finale « {answer} » ne se lit pas.")
+            found.append(f"« {title} » : la réponse finale « {answer} » ne se lit pas.")
         if "challenge" in spec:
-            found.extend(f"« {title} », gabarit : {error}" for error in check_template(ChallengeTemplate(**spec["challenge"])))
+            found.extend(f"« {title} », gabarit : {error}" for error in check_template(ChallengeTemplate(**spec["challenge"])))
     return found
 
 
@@ -97,7 +97,7 @@ def editorial_account():
 
 
 class Command(BaseCommand):
-    help = "Publie les exercices de la rédaction sous le compte « XiMaths »."
+    help = "Publie les exercices de la rédaction sous le compte « XiMaths »."
 
     def add_arguments(self, parser):
         parser.add_argument("--dry-run", action="store_true", help="Vérifie tout sans rien écrire.")
@@ -129,8 +129,8 @@ class Command(BaseCommand):
                     if "challenge" in spec:
                         ChallengeTemplate.objects.create(exercise=exercise, **spec["challenge"])
             except DuplicateSuspected as suspected:
-                close = ", ".join(f"« {match.exercise.title} »" for match in suspected.matches)
-                set_aside.append(f"« {spec['title']} », proche de {close}")
+                close = ", ".join(f"« {match.exercise.title} »" for match in suspected.matches)
+                set_aside.append(f"« {spec['title']} », proche de {close}")
                 continue
             published += 1
 

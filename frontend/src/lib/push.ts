@@ -1,4 +1,4 @@
-/** Clé VAPID publique (base64 « url », sans remplissage) en octets, pour pushManager.subscribe. */
+/** Clé VAPID publique (base64 « url », sans remplissage) en octets, pour pushManager.subscribe. */
 export function base64UrlToBytes(value: string) {
   const base64 = (value + "=".repeat((4 - (value.length % 4)) % 4)).replace(/-/g, "+").replace(/_/g, "/");
   const raw = atob(base64);

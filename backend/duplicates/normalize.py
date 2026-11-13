@@ -76,7 +76,7 @@ GREEK_VARIABLES = {
         "sigma tau phi chi psi omega Gamma Delta Theta Lambda Xi Phi Psi Omega"
     ).split()
 }
-# Formules d'amorce équivalentes : « démontrer que », « prouver que »… → « montrer que ».
+# Formules d'amorce équivalentes : « démontrer que », « prouver que »… → « montrer que ».
 STARTERS = {"demontrer": "montrer", "prouver": "montrer", "etablir": "montrer"}
 
 
@@ -132,7 +132,7 @@ def _math_tokens(source):
         source,
     )
     tokens = list(_canonical_symbols(MATH_TOKEN_RE.findall(source)))
-    # Ponctuation de la phrase placée dans la formule : « $$\sum u_n.$$ ».
+    # Ponctuation de la phrase placée dans la formule : « $$\sum u_n.$$ ».
     while tokens and tokens[-1] in {".", ",", ";"}:
         tokens.pop()
     return tokens

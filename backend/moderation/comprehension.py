@@ -122,7 +122,7 @@ def send(question, *, now=None):
         question.user,
         Notification.Kind.COMPREHENSION_QUESTION,
         "Une question sur ta solution",
-        f"Exercice « {question.solution.exercise.title} ». Une question courte sur ta propre solution, "
+        f"Exercice « {question.solution.exercise.title} ». Une question courte sur ta propre solution, "
         "à ouvrir sous 72 heures ; tu auras ensuite 5 minutes pour répondre. Ce n'est pas une "
         "accusation : en cas de réussite, les points de ta solution sont accordés.",
         "/questions",
@@ -156,7 +156,7 @@ ASSESSMENT_SYSTEM = (
     "étudiant sur sa propre solution d'un exercice de mathématiques. Un humain décidera : "
     "ton avis l'aide seulement. Juge si la réponse montre que l'étudiant comprend le "
     "point soulevé, sans exiger de rédaction parfaite : il avait cinq minutes. Réponds "
-    "« convaincante », « partielle » ou « insuffisante », avec un motif de deux phrases au plus."
+    "« convaincante », « partielle » ou « insuffisante », avec un motif de deux phrases au plus."
 )
 ASSESSMENT_SCHEMA = {
     "type": "object",

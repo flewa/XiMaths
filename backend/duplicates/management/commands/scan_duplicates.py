@@ -3,7 +3,7 @@
 1. Indexe les exercices publiés sans empreintes, ou dont les empreintes sont
    périmées : normalisation modifiée, ou embedding absent alors que le service est configuré.
 2. Avec un LLM configuré : résumés canoniques manquants (E2), puis avis du LLM sur les
-   paires à arbitrer des bandes « quasi-copie » et « très similaire ».
+   paires à arbitrer des bandes « quasi-copie » et « très similaire ».
 3. Compare les exercices publiés récemment au stock et ouvre les paires à arbitrer.
    Une paire déjà ouverte ou tranchée n'est jamais reproposée.
 """

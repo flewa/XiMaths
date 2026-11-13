@@ -6,6 +6,7 @@ import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { MathText } from "@/components/MathText";
 import { EvaluateQuestion } from "@/components/Questions";
+import { PageIntro } from "@/components/PageIntro";
 import { fetchMe, fetchQuestionsToEvaluate } from "@/lib/api";
 
 export const metadata: Metadata = { title: "Réponses à évaluer", robots: { index: false } };
@@ -25,10 +26,10 @@ export default async function EvaluationsPage() {
   return (
     <>
       <h1>Réponses à évaluer</h1>
-      <p className="mt-2 text-body">
+      <PageIntro id="evaluations">
         L&apos;auteur a eu 5 minutes pour répondre à une question sur sa propre solution. Juge s&apos;il comprend
         le point soulevé, sans exiger une rédaction parfaite. Tout est anonyme.
-      </p>
+      </PageIntro>
       {questions === null ? (
         <p className="mt-8 text-mute">Ces évaluations sont ouvertes aux experts et à l&apos;équipe du site.</p>
       ) : questions.length === 0 ? (

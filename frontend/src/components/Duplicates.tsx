@@ -40,7 +40,7 @@ function SimilarHeader({ exercise }: { exercise: SimilarExercise }) {
   );
 }
 
-/** Panneau « Exercices proches », mis à jour pendant la rédaction. */
+/** Panneau « Exercices proches », mis à jour pendant la rédaction. */
 export function SimilarPanel({ exercises }: { exercises: SimilarExercise[] }) {
   if (exercises.length === 0) return null;
   return (
@@ -66,7 +66,7 @@ export function SimilarPanel({ exercises }: { exercises: SimilarExercise[] }) {
   );
 }
 
-/** Écran « Cet exercice existe peut-être déjà », après une publication refusée en 409. */
+/** Écran « Cet exercice existe peut-être déjà », après une publication refusée en 409. */
 export function DuplicateScreen({
   candidates,
   pending,
@@ -140,7 +140,7 @@ export function DuplicateScreen({
               {candidates.map((candidate) => (
                 <li key={candidate.id}>
                   <Link href={`/exercices/${candidate.id}`} className="underline underline-offset-4">
-                    Ouvrir « <MathText>{candidate.title}</MathText> »
+                    Ouvrir « <MathText>{candidate.title}</MathText> »
                   </Link>
                 </li>
               ))}
@@ -175,7 +175,7 @@ export function DuplicateScreen({
                     onChange={() => setTargetId(candidate.id)}
                     className="shrink-0"
                   />
-                  Variante de « <MathText>{candidate.title}</MathText> »
+                  Variante de « <MathText>{candidate.title}</MathText> »
                 </label>
               ))}
             </div>

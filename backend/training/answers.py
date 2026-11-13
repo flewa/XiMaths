@@ -1,4 +1,4 @@
-"""Vérification d'une réponse finale par SymPy : « 2 », « sqrt(2)/2 », « π/4 », « 1,5 ».
+"""Vérification d'une réponse finale par SymPy : « 2 », « sqrt(2)/2 », « π/4 », « 1,5 ».
 
 Les réponses viennent des utilisateurs : seule une petite grammaire passe (chiffres,
 opérateurs, parenthèses, une lettre par variable et quelques fonctions connues)
@@ -73,7 +73,7 @@ def _parse(text):
     # √2 → sqrt(2) ; √(…) → sqrt(…).
     text = re.sub(r"√\s*(\d+|[A-Za-z])", r"sqrt(\1)", text.strip()).replace("√", "sqrt")
     text = text.replace("π", "pi").replace("∞", "oo").replace("−", "-")
-    # « R = 2 » : on garde le membre de droite.
+    # « R = 2 » : on garde le membre de droite.
     text = text.rsplit("=", 1)[-1].strip()
     # Virgule décimale française, seulement entre deux chiffres.
     text = re.sub(r"(?<=\d),(?=\d)", ".", text)

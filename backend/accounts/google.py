@@ -1,4 +1,4 @@
-"""Connexion avec Google : OpenID Connect, flux « code d'autorisation ».
+"""Connexion avec Google : OpenID Connect, flux « code d'autorisation ».
 
 Configuration : GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET. L'adresse de retour à
 déclarer chez Google est {FRONTEND_URL}/api/auth/google/callback : elle passe par

@@ -7,7 +7,7 @@ import { ordinal, plural } from "@/lib/labels";
 import { PODIUM_TINTS } from "@/lib/profile-art";
 
 import { Avatar } from "./Avatar";
-import { primaryButtonClass, secondaryButtonClass } from "./Form";
+import { primaryButtonClass } from "./Form";
 import { Icon, type IconName } from "./Icon";
 import { SearchBox } from "./SearchBox";
 import { MathText } from "./MathText";
@@ -32,7 +32,7 @@ export function WeekSquares({ days }: { days: Progress["days"] }) {
       {days.map((day, index) => (
         <span
           key={day.date}
-          className={`grid size-8 place-items-center rounded-lg text-[11px] font-semibold ${
+          className={`grid size-8 place-items-center rounded-lg text-xs font-semibold ${
             day.active ? "bg-ink text-canvas" : "bg-surface-card text-mute"
           } ${index === today ? "ring-[1.5px] ring-accent ring-offset-2 ring-offset-surface-soft" : ""}`}
         >
@@ -76,7 +76,7 @@ function actionsFor(me: Me, progress: Progress | null): Action[] {
       href: `/exercices/${skill.next.id}`,
       label: (
         <>
-          Progresser en {skill.topic.toLowerCase()} avec « <MathText>{skill.next.title}</MathText> »
+          Progresser en {skill.topic.toLowerCase()} avec « <MathText>{skill.next.title}</MathText> »
         </>
       ),
       detail: `Difficulté ${skill.next.difficulty}/5`,
@@ -138,7 +138,7 @@ export function ChallengeCard({ challenge, state = "a-faire" }: { challenge: Dai
         <h2 id="defi" className={cardTitle}>
           Défi du jour
         </h2>
-        {/* Le groupe plutôt que le niveau de l'exercice tiré : « PTSI » ferait croire à un
+        {/* Le groupe plutôt que le niveau de l'exercice tiré : « PTSI » ferait croire à un
             élève de MPSI que ce défi n'est pas pour lui. */}
         <span className={pill}>{challenge.group_label.split(" · ")[0]}</span>
         <span className={pill}>{challenge.minutes} minutes</span>
@@ -168,7 +168,7 @@ export function WeekCard({ progress }: { progress: Progress }) {
         <h2 id="semaine" className={cardTitle}>
           Ta semaine
         </h2>
-        <Link href="/progression" className="text-[13px] text-mute hover:text-ink">
+        <Link href="/progression" className="-my-1 inline-flex min-h-8 items-center text-[13px] text-mute hover:text-ink">
           Progression →
         </Link>
       </div>
@@ -265,7 +265,7 @@ export function LeadersCard({ board, lastWeek = false }: { board: Leaderboard; l
               >
                 <span
                   aria-hidden="true"
-                  className="grid size-5 shrink-0 place-items-center rounded-full text-[11px] font-semibold text-[#1c1c1c]"
+                  className="grid size-5 shrink-0 place-items-center rounded-full text-xs font-semibold text-[#1c1c1c]"
                   style={{ background: PODIUM_TINTS[entry.rank - 1] ?? PODIUM_TINTS[2] }}
                 >
                   {entry.rank}
@@ -294,7 +294,7 @@ export function LeadersCard({ board, lastWeek = false }: { board: Leaderboard; l
       )}
       <Link
         href={lastWeek && board.week ? `/classements?semaine=${board.week}` : "/classements"}
-        className="mt-2 inline-block text-[13px] text-mute underline underline-offset-4 hover:text-ink"
+        className="mt-1 inline-flex min-h-8 items-center text-[13px] text-mute underline underline-offset-4 hover:text-ink"
       >
         Voir le classement
       </Link>
@@ -323,110 +323,10 @@ export function CourseNotesCard({ notes }: { notes: CourseNoteSummary[] }) {
           </li>
         ))}
       </ul>
-      <Link href="/rappels" className="mt-2 inline-block text-[13px] text-mute underline underline-offset-4 hover:text-ink">
+      <Link href="/rappels" className="mt-1 inline-flex min-h-8 items-center text-[13px] text-mute underline underline-offset-4 hover:text-ink">
         Tous les rappels
       </Link>
     </section>
   );
 }
 
-/** Accueil d'un visiteur : la promesse, et une action claire. */
-export function VisitorHero() {
-  return (
-    <section aria-labelledby="accroche">
-      {/* Le nom du site dans le titre : il aide les moteurs à associer « XiMaths » à ce site. */}
-      <h1 id="accroche" className="max-w-[22ch]">
-        XiMaths : des exercices de maths du supérieur, et ta copie corrigée par des étudiants.
-      </h1>
-      <p className="mt-5 max-w-[58ch] text-lg text-body">
-        De la L1 au M2 et en prépa. Choisis un exercice, écris ta solution à la main, envoie-la en photo : on te
-        dit ce qui est juste, ce qui manque et ce qui est faux.
-      </p>
-      <p className="mt-8 flex flex-wrap items-center gap-3">
-        <Link href="/inscription" className={primaryButtonClass}>
-          Créer un compte
-        </Link>
-        <Link href="/connexion" className={secondaryButtonClass}>
-          J&apos;ai déjà un compte
-        </Link>
-      </p>
-    </section>
-  );
-}
-
-/** À côté de l'accroche, sur grand écran : de vrais exercices, pour voir tout de suite à quoi
- * ressemble le site, sans descendre. */
-export function ExercisePreview({ exercises }: { exercises: { id: number; title: string; levels: string[]; difficulty: number }[] }) {
-  if (exercises.length === 0) return null;
-  return (
-    <section aria-labelledby="apercu" className={card}>
-      <h2 id="apercu" className={cardTitle}>
-        À résoudre en ce moment
-      </h2>
-      <ul className="mt-3 divide-y divide-hairline">
-        {exercises.map((exercise) => (
-          <li key={exercise.id}>
-            <Link href={`/exercices/${exercise.id}`} className="block py-2.5 hover:text-ink">
-              <span className="block font-serif text-[1.0625rem] leading-snug text-ink-deep">
-                <MathText>{exercise.title}</MathText>
-              </span>
-              <span className="mt-1 flex items-center gap-1.5 text-xs text-mute">
-                {exercise.levels.slice(0, 2).map((level) => (
-                  <span key={level} className={pill}>
-                    {level}
-                  </span>
-                ))}
-                {exercise.levels.length > 2 && <span>+{exercise.levels.length - 2}</span>}
-                <span aria-hidden="true">·</span>
-                <span>difficulté {exercise.difficulty}/5</span>
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-      <Link href="/exercices" className="mt-2 inline-flex min-h-8 items-center text-[13px] text-mute underline underline-offset-4 hover:text-ink">
-        Tous les exercices
-      </Link>
-    </section>
-  );
-}
-
-const STEPS = [
-  {
-    title: "Choisis un exercice.",
-    text: "Un fil par niveau, de la L1 au M2 et en prépa, avec les exercices qui attendent leur première solution.",
-  },
-  {
-    title: "Écris ta solution à la main.",
-    text: "Puis photographie ta copie avec ton téléphone, en scannant un QR code : trois pages au plus.",
-  },
-  {
-    title: "Des étudiants la corrigent.",
-    text: "Trois relecteurs tirés au sort, ou l'équipe du site s'ils manquent. Tu lis leurs commentaires ; jugée juste, ta copie rapporte des points et des badges.",
-  },
-];
-
-export function HowItWorks() {
-  return (
-    <section aria-labelledby="comment" className="mt-14">
-      <h2 id="comment">Comment ça marche</h2>
-      <ol className="mt-5 grid gap-6 sm:grid-cols-3">
-        {STEPS.map((step, index) => (
-          <li key={step.title}>
-            <p className="font-serif text-lg text-ink-deep">
-              <span className="text-accent-text">{index + 1}.</span> <b className="font-bold">{step.title}</b>
-            </p>
-            <p className="mt-1.5 text-[15px] text-mute">{step.text}</p>
-          </li>
-        ))}
-      </ol>
-      <p className="mt-6 text-[15px] text-body">
-        Besoin de revoir le cours avant ?{" "}
-        <Link href="/rappels" className="text-ink underline decoration-stone underline-offset-4 hover:decoration-ink">
-          Les rappels de cours de prépa
-        </Link>
-        , chapitre par chapitre.
-      </p>
-    </section>
-  );
-}

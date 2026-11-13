@@ -74,7 +74,7 @@ export default function PrivacyPage() {
           pays déduits de ton adresse IP. Celle-ci n&apos;est pas enregistrée : avec ton navigateur, elle sert à
           calculer un identifiant chiffré, renouvelé chaque mois, qui compte les visiteurs sans les reconnaître
           d&apos;un mois à l&apos;autre. Ces mesures ne sont pas reliées à ton compte. Si ton navigateur demande à
-          ne pas être suivi (« Do Not Track »), rien n&apos;est compté.
+          ne pas être suivi (« Do Not Track »), rien n&apos;est compté.
         </p>
         <AudienceOptOut />
       </ProseSection>
@@ -82,7 +82,8 @@ export default function PrivacyPage() {
       <ProseSection title="Cookies">
         <p>
           Seulement ceux nécessaires au service : la session, la protection contre la falsification de
-          requêtes (CSRF) et ton choix de thème. La mesure d&apos;audience n&apos;en pose pas. Aucun ne demande ton consentement, et il n&apos;y a pas
+          requêtes (CSRF), ton choix de thème, et la liste des pages dont tu as déjà lu l&apos;explication
+          (pour la replier ensuite). La mesure d&apos;audience n&apos;en pose pas. Aucun ne demande ton consentement, et il n&apos;y a pas
           de bandeau.
         </p>
       </ProseSection>

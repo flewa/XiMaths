@@ -112,7 +112,7 @@ def choose_model_copy(solution, chosen, *, now=None):
             solution.author,
             Kind.SOLUTION_RECOMMENDED,
             "Ta copie a été choisie comme copie modèle",
-            f"Elle est montrée, sans ton pseudo, aux membres qui ont envoyé leur copie sur « {solution.exercise.title} ». "
+            f"Elle est montrée, sans ton pseudo, aux membres qui ont envoyé leur copie sur « {solution.exercise.title} ». "
             "Tu peux retirer ton accord à tout moment, depuis la page de l'exercice.",
             f"/exercices/{solution.exercise_id}",
             now=now,
@@ -153,7 +153,7 @@ def publish_solution(solution, *, rng=None, now=None):
     solution.after_model = saw_model_copy(solution)
     solution.save(update_fields=["status", "published_at", "after_model", "updated_at"])
     if solution.author:
-        # « Premier pas » : la première copie envoyée, sans point.
+        # « Premier pas » : la première copie envoyée, sans point.
         check_badges(solution.author, now=now)
     drawn = assign_reviewers(solution, rng=rng, now=now)
     # Solution classée ou à fort enjeu : score d'intégrité, puis une relecture de plus
@@ -213,7 +213,7 @@ def assign_reviewers(solution, *, k=REVIEWERS_PER_SOLUTION, rng=None, now=None):
             reviewer,
             Kind.REVIEW_ASSIGNED,
             "Une solution t'attend en relecture",
-            f"Exercice « {solution.exercise.title} ». Relecture anonyme, à rendre sous 72 heures.",
+            f"Exercice « {solution.exercise.title} ». Relecture anonyme, à rendre sous 72 heures.",
             "/relectures",
             now=now,
         )
@@ -248,7 +248,7 @@ def submit_review(review, verdict, *, feedback="", now=None):
             solution.author,
             Kind.SOLUTION_REVIEWED,
             "Ta copie a été relue",
-            f"Un relecteur a corrigé ta copie de « {solution.exercise.title} » "
+            f"Un relecteur a corrigé ta copie de « {solution.exercise.title} » "
             f"({done} relecture{'s' if done > 1 else ''} sur {expected}). Son commentaire t'attend.",
             f"/exercices/{solution.exercise_id}",
             now=now,
@@ -279,8 +279,8 @@ def team_verdicts(solution):
 
 def evaluate_solution(solution, *, now=None):
     """Règle du consensus : une fois rendues toutes les relectures tirées au sort (trois au
-    moins), la copie est validée si tous les relecteurs la jugent juste (« correcte » ou
-    « correcte avec lacunes »), et rapporte alors ses points ; sinon elle est à reprendre.
+    moins), la copie est validée si tous les relecteurs la jugent juste (« correcte » ou
+    « correcte avec lacunes »), et rapporte alors ses points ; sinon elle est à reprendre.
 
     Le filet : une relecture de l'équipe du site vaut décision, sans attendre les autres.
     Tant que les relecteurs manquent, aucune copie ne reste ainsi sans réponse.
@@ -413,7 +413,7 @@ def _validate(solution, *, now=None):
         solution.author,
         Kind.SOLUTION_VALIDATED,
         "Ta copie est validée",
-        f"Ta copie de « {exercise.title} » a été jugée juste : tes points sont crédités.",
+        f"Ta copie de « {exercise.title} » a été jugée juste : tes points sont crédités.",
         url,
         now=now,
     )
@@ -424,7 +424,7 @@ def _validate(solution, *, now=None):
                 exercise_author,
                 Kind.EXERCISE_SOLVED,
                 "Ton exercice a une nouvelle solution validée",
-                f"« {exercise.title} » vient d'être résolu par un membre.",
+                f"« {exercise.title} » vient d'être résolu par un membre.",
                 url,
                 now=now,
             )
@@ -438,7 +438,7 @@ def _close_as_needs_work(solution, *, agreeing, now=None):
         solution.author,
         Kind.SOLUTION_NEEDS_WORK,
         "Ta copie est à reprendre",
-        f"Ta copie de « {solution.exercise.title} » n'a pas été jugée juste. "
+        f"Ta copie de « {solution.exercise.title} » n'a pas été jugée juste. "
         "Lis les commentaires de relecture, puis renvoie-la : les points viennent avec la validation.",
         f"/exercices/{solution.exercise_id}",
         now=now,
@@ -475,7 +475,7 @@ def vote_weight(voter, author, *, now=None):
 
 @transaction.atomic
 def cast_vote(voter, *, exercise, now=None):
-    """Vote « utile » pour un exercice (les copies sont privées : on ne vote pas pour elles).
+    """Vote « utile » pour un exercice (les copies sont privées : on ne vote pas pour elles).
     Le poids baisse quand on vote souvent pour le même auteur."""
     author = exercise.author
     if author is not None and author.pk == voter.pk:
@@ -532,7 +532,7 @@ def review_deadlines(*, now=None):
                 review.reviewer,
                 Kind.REVIEW_REMINDER,
                 "Une relecture t'attend encore",
-                f"Exercice « {review.solution.exercise.title} ». Sans réponse sous 24 heures, "
+                f"Exercice « {review.solution.exercise.title} ». Sans réponse sous 24 heures, "
                 "elle sera confiée à quelqu'un d'autre, sans pénalité.",
                 "/relectures",
                 now=now,

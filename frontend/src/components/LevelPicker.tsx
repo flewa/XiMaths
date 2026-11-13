@@ -29,7 +29,7 @@ export function LevelPicker({
         </Link>
         {LEVEL_TRACKS.map(({ track, label }) => (
           <div key={track} className="mt-1.5">
-            <p className="px-3 py-1 text-xs text-stone">{label}</p>
+            <p className="px-3 py-1 text-xs text-mute">{label}</p>
             {levels
               .filter((level) => level.track === track)
               .map((level) => (

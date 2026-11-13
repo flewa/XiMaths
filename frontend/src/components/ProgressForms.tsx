@@ -170,7 +170,7 @@ export function GoalForm({ topics }: { topics: Topic[] }) {
         </Field>
       )}
       <div className="sm:col-span-2">
-        <Field label="Intitulé (facultatif)" htmlFor="goal-title" hint="Par exemple : « Partiel d'algèbre linéaire ».">
+        <Field label="Intitulé (facultatif)" htmlFor="goal-title" hint="Par exemple : « Partiel d'algèbre linéaire ».">
           <input
             id="goal-title"
             maxLength={120}

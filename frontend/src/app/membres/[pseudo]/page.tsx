@@ -145,7 +145,7 @@ export default async function MemberPage({ params }: Props) {
           <h2 id="badges" className={sectionTitle}>
             Badges · {member.badges.length} sur {catalog.length}
           </h2>
-          <Link href="/badges" className="text-sm text-mute underline underline-offset-4 hover:text-ink">
+          <Link href="/badges" className="inline-flex min-h-8 items-center text-sm text-mute underline underline-offset-4 hover:text-ink">
             Tous les badges et leurs critères
           </Link>
         </div>

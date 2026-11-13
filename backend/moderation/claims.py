@@ -1,7 +1,7 @@
-"""Prise en charge des dossiers de modération : « Je m'en occupe ».
+"""Prise en charge des dossiers de modération : « Je m'en occupe ».
 
 Deux modérateurs qui ouvrent le même signalement en même temps le liraient deux fois, et
-le second tomberait sur « déjà tranché ». Une prise en charge le montre aux collègues. Ce
+le second tomberait sur « déjà tranché ». Une prise en charge le montre aux collègues. Ce
 n'est qu'une indication : elle n'empêche personne de trancher, expire au bout de deux heures
 et disparaît avec la décision.
 """

@@ -65,7 +65,7 @@ export function GoogleButton({ next }: { next: string }) {
       href={`/api/auth/google/start?next=${encodeURIComponent(next)}`}
       className="flex h-11 w-full items-center justify-center gap-2.5 rounded-lg border border-hairline-strong bg-surface-card font-medium text-ink hover:border-stone"
     >
-      {/* Le « G » de Google, dans ses couleurs : c'est ce que ses règles de marque demandent. */}
+      {/* Le « G » de Google, dans ses couleurs : c'est ce que ses règles de marque demandent. */}
       <svg aria-hidden="true" width="18" height="18" viewBox="0 0 48 48">
         <path
           fill="#EA4335"

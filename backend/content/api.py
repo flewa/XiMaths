@@ -49,7 +49,7 @@ from .services import (
     volunteer_review,
 )
 
-# Un exercice reste « Nouveau » une semaine après sa publication.
+# Un exercice reste « Nouveau » une semaine après sa publication.
 NEW_FOR = timedelta(days=7)
 
 router = Router(tags=["contenus"])
@@ -100,7 +100,7 @@ class ExerciseSummary(Schema):
     submitted_solutions: int
     votes: int
     published_at: datetime
-    # Publié depuis moins de NEW_FOR : le site l'affiche « Nouveau ».
+    # Publié depuis moins de NEW_FOR : le site l'affiche « Nouveau ».
     is_new: bool
     # Auteur, quand c'est un membre : vide pour les exercices de la rédaction.
     author_profile: MemberRefOut | None
@@ -381,7 +381,7 @@ class SimilarExerciseOut(Schema):
 
 
 class PublishIn(Schema):
-    """Réponse de l'auteur à l'écran « Cet exercice existe peut-être déjà »."""
+    """Réponse de l'auteur à l'écran « Cet exercice existe peut-être déjà »."""
 
     choice: Literal["", "variante", "different"] = ""
     target_id: int | None = None
@@ -873,7 +873,7 @@ def my_solutions(request, exercise_id: int):
 
 @router.post("/exercises/{exercise_id}/vote", response={201: VoteOut}, auth=django_auth)
 def vote_for_exercise(request, exercise_id: int):
-    """Vote « utile » pour un exercice. Les copies sont privées : on ne vote pas pour elles."""
+    """Vote « utile » pour un exercice. Les copies sont privées : on ne vote pas pour elles."""
     user = contributor(request)
     exercise = get_object_or_404(Exercise, pk=exercise_id, status=Exercise.Status.PUBLISHED)
     if Vote.objects.filter(voter=user, exercise=exercise).exists():

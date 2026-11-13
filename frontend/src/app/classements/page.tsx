@@ -145,7 +145,7 @@ export default async function RankingsPage({ searchParams }: { searchParams: Pro
       </div>
 
       <h2 className="mt-8">
-        {/* « Global » répétait le sélecteur « Tous niveaux » juste au-dessus. */}
+        {/* « Global » répétait le sélecteur « Tous niveaux » juste au-dessus. */}
         {pantheon ? "Panthéon" : board.board === "global" ? "La semaine, tous niveaux" : `La semaine en ${board.board_label}`}
         {board.peers_level && <span className="font-sans text-base text-mute"> · parmi les {board.peers_level}</span>}
         {board.total > 0 && <span className="font-sans text-base text-mute"> · {plural(board.total, "participant")}</span>}
@@ -219,7 +219,7 @@ function MyPosition({ board, me }: { board: Leaderboard; me: Me | null }) {
   }
   const { rank, points, message } = board.me;
   if (rank === null || points === null) {
-    // Classement vide : l'encadré « Le podium est libre » dit déjà la même chose.
+    // Classement vide : l'encadré « Le podium est libre » dit déjà la même chose.
     if (board.total === 0) return null;
     return <p className="mt-4 rounded-2xl bg-surface-soft px-5 py-4 text-body">{message}</p>;
   }

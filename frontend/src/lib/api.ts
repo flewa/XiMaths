@@ -190,7 +190,7 @@ export type DailyChallenge = {
   /** Niveau de l'exercice tiré : ses points comptent pour ce niveau. */
   level: string;
   level_name: string;
-  /** Groupe de niveaux auquel le défi s'adresse (« 1re année · L1 et sup »), et ses niveaux. */
+  /** Groupe de niveaux auquel le défi s'adresse (« 1re année · L1 et sup »), et ses niveaux. */
   group_label: string;
   group_levels: string[];
   exercise_title: string;
@@ -312,7 +312,7 @@ export type Leaderboard = {
   /** "global", un code de niveau, ou "pantheon". */
   board: string;
   board_label: string;
-  /** Semaine ISO, « 2026-W44 » ; null pour le Panthéon. */
+  /** Semaine ISO, « 2026-W44 » ; null pour le Panthéon. */
   week: string | null;
   week_start: string | null;
   week_end: string | null;
@@ -482,7 +482,7 @@ export type CourseNoteSummary = {
   slug: string;
   title: string;
   cycle: "sup" | "spe";
-  /** Filières dont le programme couvre la fiche, par exemple « MP, PSI ». */
+  /** Filières dont le programme couvre la fiche, par exemple « MP, PSI ». */
   programs: string;
   position: number;
   /** Chapitre ou notion du site où la fiche est proposée. */
@@ -785,7 +785,7 @@ export type ReportGroup = {
   /** Ce que change la confirmation. */
   effect: string;
   can_decide: boolean;
-  /** « Je m'en occupe » : qui a ouvert le dossier ; null si personne. */
+  /** « Je m'en occupe » : qui a ouvert le dossier ; null si personne. */
   claim: Claim | null;
 };
 
@@ -800,7 +800,7 @@ export type FlaggedMessage = {
   flags: { username: string; created_at: string }[];
   kept_before: boolean;
   can_decide: boolean;
-  /** « Je m'en occupe » : qui a ouvert le dossier ; null si personne. */
+  /** « Je m'en occupe » : qui a ouvert le dossier ; null si personne. */
   claim: Claim | null;
 };
 
@@ -818,7 +818,7 @@ export type AppealItem = {
   decided_by: string | null;
   url: string | null;
   can_decide: boolean;
-  /** « Je m'en occupe » : qui a ouvert le dossier ; null si personne. */
+  /** « Je m'en occupe » : qui a ouvert le dossier ; null si personne. */
   claim: Claim | null;
 };
 

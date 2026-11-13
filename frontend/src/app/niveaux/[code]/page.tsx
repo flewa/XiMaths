@@ -3,24 +3,24 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
-import { ExerciseList } from "@/components/ExerciseList";
+import { PagedExerciseList, shownCount } from "@/components/ExerciseList";
 import { JsonLd, breadcrumb } from "@/components/JsonLd";
 import { fetchExercises, fetchLevels, fetchTopics, type Level } from "@/lib/api";
 import { plural } from "@/lib/labels";
 import { LEVEL_INTROS, chapterPath, levelPath } from "@/lib/seo-pages";
 import { SHARE_IMAGE } from "@/lib/site";
 
-type Props = { params: Promise<{ code: string }> };
+type Props = { params: Promise<{ code: string }>; searchParams?: Promise<{ voir?: string }> };
 
 async function findLevel(slug: string) {
   const levels = await fetchLevels();
   return levels.find((level) => level.code.toLowerCase() === slug.toLowerCase()) ?? null;
 }
 
-/** « Exercices de maths en MPSI », « Exercices de maths en L1 (Licence 1) ». */
+/** « Exercices de maths en MPSI », « Exercices de maths en L1 (Licence 1) ». */
 function heading(level: Level) {
   if (level.track === "universite") return `Exercices de maths en ${level.code} (${level.name})`;
-  // « Prépa BCPST 1re année » → « Exercices de maths en BCPST 1re année ».
+  // « Prépa BCPST 1re année » → « Exercices de maths en BCPST 1re année ».
   return `Exercices de maths en ${level.name.replace(/^Prépa /, "")}`;
 }
 
@@ -38,8 +38,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function LevelPage({ params }: Props) {
+export default async function LevelPage({ params, searchParams }: Props) {
   const { code } = await params;
+  const shown = shownCount((await searchParams)?.voir);
   let data;
   try {
     const level = await findLevel(code);
@@ -108,11 +109,11 @@ export default async function LevelPage({ params }: Props) {
       <section aria-labelledby="liste" className="mt-10">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h2 id="liste">{plural(exercises.length, "exercice")}</h2>
-          <p className="flex gap-4 text-sm text-mute">
-            <Link href={`${browse}&tri=populaires`} className="hover:text-ink">
+          <p className="flex items-center gap-4 text-sm text-mute">
+            <Link href={`${browse}&tri=populaires`} className="inline-flex min-h-8 items-center hover:text-ink">
               Les plus populaires
             </Link>
-            <Link href={`${browse}&tri=sans-solution`} className="hover:text-ink">
+            <Link href={`${browse}&tri=sans-solution`} className="inline-flex min-h-8 items-center hover:text-ink">
               Sans solution
             </Link>
           </p>
@@ -125,7 +126,11 @@ export default async function LevelPage({ params }: Props) {
             </Link>
           </p>
         ) : (
-          <ExerciseList exercises={exercises} />
+          <PagedExerciseList
+            exercises={exercises}
+            shown={shown}
+            moreHref={(count) => `${levelPath(level.code)}?voir=${count}`}
+          />
         )}
       </section>
     </>

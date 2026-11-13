@@ -22,10 +22,10 @@ export function neighbours(notes: CourseNoteSummary[], slug: string) {
   return { previous: sameCycle[index - 1] ?? null, next: sameCycle[index + 1] ?? null };
 }
 
-// Une formule en bloc ou en ligne, à laisser telle quelle ; sinon une espace devant « : ; ! ? ».
+// Une formule en bloc ou en ligne, à laisser telle quelle ; sinon une espace devant « : ; ! ? ».
 const MATH_OR_PUNCTUATION = /(\$\$[\s\S]*?\$\$|\$[^$\n]+\$)| ([:;!?])/g;
 
-/** Typographie française : espace insécable devant « : ; ! ? », hors des formules, pour que
+/** Typographie française : espace insécable devant « : ; ! ? », hors des formules, pour que
  * la ponctuation ne passe jamais seule en début de ligne. */
 export function frenchSpacing(markdown: string) {
   return markdown.replace(MATH_OR_PUNCTUATION, (match, math: string | undefined, mark: string | undefined) =>
