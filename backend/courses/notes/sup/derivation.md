@@ -1,7 +1,7 @@
 ---
-titre: Dérivation
-programmes: MPSI, PCSI
-ordre: 4
+titre: Dérivation et convexité
+programmes: MPSI, MP2I, PCSI
+ordre: 8
 notion: derivation
 ---
 
@@ -64,6 +64,8 @@ L'hypothèse « $I$ est un intervalle » est indispensable : la fonction égale 
 
 Pour $n \in \N$, $f$ est de **classe $\mathcal{C}^n$** sur $I$ si elle est $n$ fois dérivable sur $I$ et si $f^{(n)}$ est continue sur $I$ ; elle est de classe $\mathcal{C}^\infty$ si elle est de classe $\mathcal{C}^n$ pour tout $n$.
 
+Sommes, produits, quotients (de dénominateur non nul), composées et réciproques (de dérivée non nulle) de fonctions de classe $\mathcal{C}^n$ sont de classe $\mathcal{C}^n$.
+
 > **Formule de Leibniz.** Si $f$ et $g$ sont $n$ fois dérivables sur $I$, alors $fg$ l'est aussi et
 >
 > $$
@@ -78,10 +80,22 @@ Pour $n \in \N$, $f$ est de **classe $\mathcal{C}^n$** sur $I$ si elle est $n$ f
 > f\big( \lambda x + (1 - \lambda) y \big) \leq \lambda f(x) + (1 - \lambda) f(y).
 > $$
 
+Géométriquement, le graphe de $f$ est sous chacune de ses **cordes** : entre $x$ et $y$, il est sous le segment qui joint $(x, f(x))$ à $(y, f(y))$, et au-dessus de la droite qui les joint en dehors de $[x, y]$. La fonction $f$ est **concave** si $-f$ est convexe.
+
+> **Inégalité de Jensen.** Si $f$ est convexe sur $I$, alors pour tous $x_1, \dots, x_n \in I$ et tous réels positifs $\lambda_1, \dots, \lambda_n$ de somme $1$ :
+>
+> $$
+> f\left( \sum_{i=1}^{n} \lambda_i x_i \right) \leq \sum_{i=1}^{n} \lambda_i f(x_i).
+> $$
+
+> **Proposition (croissance des pentes).** La fonction $f$ est convexe sur $I$ si et seulement si, pour tout $a \in I$, la fonction $x \mapsto \dfrac{f(x) - f(a)}{x - a}$ est croissante sur $I \setminus \{a\}$.
+
 > **Théorème.**
 >
 > 1. Si $f$ est dérivable sur $I$ : $f$ est convexe sur $I$ si et seulement si $f'$ est croissante sur $I$. Le graphe d'une fonction convexe dérivable est alors au-dessus de chacune de ses tangentes.
 > 2. Si $f$ est deux fois dérivable sur $I$ : $f$ est convexe sur $I$ si et seulement si $f'' \geq 0$ sur $I$.
+
+Exemple : $\ln$ est concave sur $]0, +\infty[$, et l'inégalité de Jensen donne l'inégalité arithmético-géométrique $\sqrt[n]{x_1 \cdots x_n} \leq \dfrac{x_1 + \dots + x_n}{n}$ pour des réels $x_i > 0$.
 
 ## Fonctions à valeurs complexes
 

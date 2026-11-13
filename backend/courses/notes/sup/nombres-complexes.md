@@ -1,7 +1,7 @@
 ---
 titre: Nombres complexes et trigonométrie
-programmes: MPSI, PCSI
-ordre: 1
+programmes: MPSI, MP2I, PCSI
+ordre: 3
 notion: nombres-complexes
 ---
 
@@ -48,7 +48,7 @@ Tout nombre complexe $z$ s'écrit de façon unique $z = a + ib$ avec $(a, b) \in
 > \cos \theta = \frac{e^{i\theta} + e^{-i\theta}}{2}, \qquad \sin \theta = \frac{e^{i\theta} - e^{-i\theta}}{2i}, \qquad (\cos \theta + i \sin \theta)^n = \cos(n\theta) + i \sin(n\theta).
 > $$
 
-**Forme trigonométrique.** Tout $z \in \C^*$ s'écrit $z = r e^{i\theta}$ avec $r = |z| > 0$ et $\theta \in \R$ ; le réel $\theta$ est unique modulo $2\pi$ et s'appelle **un argument** de $z$. Le nombre $0$ n'a pas d'argument. Si $z, w \in \C^*$ ont pour arguments $\theta$ et $\theta'$, alors $\theta + \theta'$ est un argument de $zw$.
+**Forme trigonométrique.** Tout $z \in \C^*$ s'écrit $z = r e^{i\theta}$ avec $r = |z| > 0$ et $\theta \in \R$ ; le réel $\theta$ est unique modulo $2\pi$ et s'appelle **un argument** de $z$. Le nombre $0$ n'a pas d'argument. Si $z, w \in \C^*$ ont pour arguments $\theta$ et $\theta'$, alors $\theta + \theta'$ est un argument de $zw$ et $\theta - \theta'$ un argument de $\dfrac{z}{w}$.
 
 **Équation $e^z = w$.** Pour $w \in \C^*$ d'argument $\alpha$, les solutions de $e^z = w$ sont les $z = \ln|w| + i(\alpha + 2k\pi)$, $k \in \Z$. L'équation $e^z = 0$ n'a pas de solution.
 
@@ -67,6 +67,32 @@ $$
 $$
 
 En prenant parties réelle et imaginaire, on obtient $\sum_{k=0}^{n} \cos(k\theta)$ et $\sum_{k=0}^{n} \sin(k\theta)$.
+
+La même factorisation donne, pour tous $p, q \in \R$ :
+
+$$
+\cos p + \cos q = 2 \cos\left( \frac{p + q}{2} \right) \cos\left( \frac{p - q}{2} \right), \qquad \cos p - \cos q = -2 \sin\left( \frac{p + q}{2} \right) \sin\left( \frac{p - q}{2} \right),
+$$
+
+$$
+\sin p + \sin q = 2 \sin\left( \frac{p + q}{2} \right) \cos\left( \frac{p - q}{2} \right), \qquad \sin p - \sin q = 2 \cos\left( \frac{p + q}{2} \right) \sin\left( \frac{p - q}{2} \right).
+$$
+
+## Linéarisation et formule de Moivre
+
+**Linéariser** $\cos^n \theta$ ou $\sin^n \theta$, c'est l'écrire comme combinaison de $\cos(k\theta)$ et $\sin(k\theta)$ : on développe $\left( \frac{e^{i\theta} + e^{-i\theta}}{2} \right)^n$ par la formule du binôme, puis on regroupe les termes conjugués. Exemple :
+
+$$
+\cos^3 \theta = \frac{\cos(3\theta) + 3 \cos \theta}{4}.
+$$
+
+À l'inverse, la formule de Moivre et le binôme expriment $\cos(n\theta)$ et $\sin(n\theta)$ en fonction de $\cos \theta$ et $\sin \theta$ : $\cos(3\theta) = 4 \cos^3 \theta - 3 \cos \theta$ et $\sin(3\theta) = 3 \sin \theta - 4 \sin^3 \theta$.
+
+> **Proposition.** Soient $(a, b) \in \R^2 \setminus \{ (0, 0) \}$ et $A = \sqrt{a^2 + b^2}$. Il existe $\varphi \in \R$ tel que $a + ib = A e^{i\varphi}$, et alors, pour tout $t \in \R$,
+>
+> $$
+> a \cos t + b \sin t = A \cos(t - \varphi).
+> $$
 
 ## Racines $n$-ièmes
 
@@ -98,9 +124,11 @@ Dans cette section, $n \in \N^*$.
 
 Si $a, b, c$ sont réels et $\Delta < 0$, on peut prendre $\delta = i\sqrt{-\Delta}$ : les deux solutions sont complexes conjuguées.
 
+Plus généralement, si $P$ est une fonction polynomiale à coefficients complexes et si $P(a) = 0$, il existe une fonction polynomiale $Q$ telle que $P(z) = (z - a) Q(z)$ pour tout $z \in \C$.
+
 ## Géométrie
 
-On identifie le plan à $\C$ : le point $M$ d'affixe $z$. Soient $A$, $B$, $C$ trois points d'affixes $a$, $b$, $c$, avec $A \neq B$ et $A \neq C$.
+On identifie le plan, muni d'un repère orthonormé direct, à $\C$ : le point $M$ d'affixe $z$. La distance de $M$ au point d'affixe $z_0$ est $|z - z_0|$ ; le cercle de centre $z_0$ et de rayon $r$ est $\{ z : |z - z_0| = r \}$, et le disque fermé correspondant $\{ z : |z - z_0| \leq r \}$. La conjugaison $z \mapsto \overline{z}$ est la symétrie orthogonale par rapport à l'axe réel. Soient $A$, $B$, $C$ trois points d'affixes $a$, $b$, $c$, avec $A \neq B$ et $A \neq C$.
 
 - Un argument de $\dfrac{c - a}{b - a}$ est une mesure de l'angle orienté $(\overrightarrow{AB}, \overrightarrow{AC})$.
 - $A$, $B$, $C$ sont alignés si et seulement si $\dfrac{c - a}{b - a} \in \R$.

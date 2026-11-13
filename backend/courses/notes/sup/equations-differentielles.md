@@ -1,7 +1,7 @@
 ---
 titre: Équations différentielles linéaires
-programmes: MPSI, PCSI
-ordre: 7
+programmes: MPSI, MP2I, PCSI
+ordre: 5
 notion: equations-differentielles
 ---
 
@@ -23,7 +23,7 @@ On considère l'équation $(E) : y' + a(x) y = b(x)$ et l'équation homogène as
 
 **Principe de superposition.** Si $y_1$ est solution de $y' + a y = b_1$ et $y_2$ de $y' + a y = b_2$, alors $\lambda y_1 + \mu y_2$ est solution de $y' + a y = \lambda b_1 + \mu b_2$.
 
-**Équation non normalisée.** Pour $\alpha(x) y' + \beta(x) y = \gamma(x)$, on résout sur chaque intervalle où $\alpha$ ne s'annule pas, en divisant par $\alpha$. Aux points où $\alpha$ s'annule, on étudie à part le **raccordement** des solutions : il peut n'y avoir aucune solution sur l'intervalle entier, ou une infinité.
+**Équation non normalisée** (hors programme de MPSI, mais fréquente en exercice). Pour $\alpha(x) y' + \beta(x) y = \gamma(x)$, on résout sur chaque intervalle où $\alpha$ ne s'annule pas, en divisant par $\alpha$. Aux points où $\alpha$ s'annule, on étudie à part le **raccordement** des solutions : il peut n'y avoir aucune solution sur l'intervalle entier, ou une infinité.
 
 ## Équations du second ordre à coefficients constants
 
@@ -43,6 +43,10 @@ Soient $p, q \in \K$ et $(E) : y'' + p y' + q y = f(x)$, d'équation homogène $
 > **Théorème.** Les solutions de $(E)$ sur $I$ sont les $y_p + y_h$, où $y_p$ est une solution particulière de $(E)$ sur $I$ et $y_h$ décrit les solutions de $(H)$. Pour tous $x_0 \in I$ et $(y_0, y_1) \in \K^2$, il existe une unique solution $y$ de $(E)$ sur $I$ telle que $y(x_0) = y_0$ et $y'(x_0) = y_1$.
 
 **Second membre $f(x) = A e^{m x}$** ($A, m \in \C$). Il existe une solution particulière de la forme $x \mapsto B x^k e^{m x}$ avec $B \in \C$, où $k = 0$ si $m$ n'est pas racine de l'équation caractéristique, $k = 1$ si $m$ en est racine simple, $k = 2$ si $m$ en est racine double. Pour $f(x) = A \cos(\omega x)$ ou $A \sin(\omega x)$ avec $p, q, A, \omega$ réels, on résout avec $A e^{i\omega x}$ puis on prend la partie réelle ou la partie imaginaire.
+
+**Second membre polynomial** de degré $d$. Il existe une solution particulière polynomiale : de degré $d$ si $q \neq 0$, de degré $d + 1$ si $q = 0$ et $p \neq 0$, de degré $d + 2$ si $p = q = 0$. On la trouve en identifiant les coefficients.
+
+**Dimension.** Les solutions de $y' + a(x) y = 0$ forment un espace vectoriel de dimension $1$, celles de $y'' + p y' + q y = 0$ un espace vectoriel de dimension $2$.
 
 ## Pièges fréquents
 
