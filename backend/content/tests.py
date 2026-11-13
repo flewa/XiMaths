@@ -80,9 +80,16 @@ class ContentTestCase(TestCase):
 
 
 class PublicationTests(ContentTestCase):
-    def test_publishing_an_exercise_pays_five_points(self):
+    def test_publishing_pays_once_another_member_solves_the_exercise(self):
+        # Rien à la publication : un exercice bâclé n'en rapporterait pas moins.
         self.assertEqual(self.exercise.status, Exercise.Status.PUBLISHED)
-        self.assertEqual(balance(self.author), 5)
+        self.assertEqual(balance(self.author), 0)
+        # Première copie validée d'un autre membre : +5 de publication, +3 de résolution.
+        self.validate(self.publish())
+        self.assertEqual(balance(self.author), 5 + 3)
+        # Les suivantes : +3 seulement.
+        self.validate(self.publish(author=make_user("yanis", level="L1")))
+        self.assertEqual(balance(self.author), 5 + 3 + 3)
 
     def test_publishing_a_solution_pays_nothing_and_draws_three_reviewers(self):
         solution = self.publish()
@@ -202,7 +209,8 @@ class ReviewQuorumTests(ContentTestCase):
         solution.refresh_from_db()
         self.assertEqual(solution.status, Solution.Status.VALIDATED)
         self.assertEqual(balance(self.student), 0)
-        self.assertEqual(balance(self.author), 5)
+        # Une copie générée ne prouve rien de l'exercice : pas de points pour son auteur.
+        self.assertEqual(balance(self.author), 0)
 
     def test_nobody_reviews_their_own_solution(self):
         solution = self.publish(author=self.reviewers[0])
@@ -400,14 +408,14 @@ class VoteTests(ContentTestCase):
         exercises = [self.exercise] + [self.make_exercise() for _ in range(3)]
         weights = [float(cast_vote(voter, exercise=e).weight) for e in exercises]
         self.assertEqual(weights, [1.0, 0.5, 0.25, 0.0])
-        # 3 publications payées (plafond quotidien) = 15, puis votes : 1 + 1 + 0 + 0
-        self.assertEqual(balance(self.author), 15 + 2)
+        # Publier ne rapporte rien tant que personne n'a résolu ; votes : 1 + 1 + 0 + 0
+        self.assertEqual(balance(self.author), 2)
 
     def test_votes_from_new_accounts_earn_nothing(self):
         newcomer = make_user("nouveau", joined_days_ago=2)
         vote = cast_vote(newcomer, exercise=self.exercise)
         self.assertEqual(vote.weight, 0)
-        self.assertEqual(balance(self.author), 5)
+        self.assertEqual(balance(self.author), 0)
 
     def test_solutions_are_private_so_nobody_votes_for_them(self):
         solution = self.publish()

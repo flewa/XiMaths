@@ -26,6 +26,8 @@ export type NavAccount = {
   declaredLevel: string | null;
   /** Équipe de modération, et ce qui attend dans ses files. */
   team: boolean;
+  /** Tiré au sort pour relire : sinon, l'entrée Relectures ne mènerait qu'à une page d'attente. */
+  reviewer: boolean;
   moderationPending: number;
   /** Administrateur du site : il a le panneau d'administration. */
   staff: boolean;
@@ -71,15 +73,18 @@ function itemsFor(account: NavAccount | null): Item[] {
   ];
   if (account) {
     items.push(
-      {
-        href: "/relectures",
-        icon: "review",
-        label: "Relectures",
-        match: (path) =>
-          path.startsWith("/relectures") || path.startsWith("/evaluations"),
-        count: account.pendingReviews,
-        hot: true,
-      },
+      ...(account.reviewer || account.pendingReviews > 0
+        ? [
+            {
+              href: "/relectures",
+              icon: "review" as IconName,
+              label: "Relectures",
+              match: (path: string) => path.startsWith("/relectures") || path.startsWith("/evaluations"),
+              count: account.pendingReviews,
+              hot: true,
+            },
+          ]
+        : []),
       // Un seul espace pour l'équipe : l'administrateur y trouve aussi la modération.
       ...(account.team
         ? [
@@ -121,52 +126,101 @@ function itemsFor(account: NavAccount | null): Item[] {
 
 const row = "flex min-h-8 items-center gap-2.5 rounded-md px-2 font-medium";
 
-/** Les niveaux d'une filière, rangés comme des pages : ouverts si le membre y a déclaré le sien. */
-/** À côté de l'étiquette du code : « Licence 1 », « MPSI », « 1re année » (BCPST, ECG, B/L). */
+/** Nom court d'un niveau dans le menu : « Licence 1 », « MPSI », « BCPST », « ECG ». L'année
+ * est donnée par l'intertitre de la filière, l'étiquette de code ferait doublon. */
 function shortName(level: Level) {
-  const name = level.name.replace(/^Prépa /, "");
-  const year = name.match(/ (\d(?:re|e) année)$/);
-  return year ? year[1] : name;
+  return level.name.replace(/^Prépa /, "").replace(/ (\d(?:re|e) année)$/, "");
 }
 
-function LevelGroup({
-  label,
-  levels,
-  open,
-}: {
-  label: string;
-  levels: Level[];
-  open: boolean;
-}) {
-  if (levels.length === 0) return null;
+const YEAR_LABELS: Record<number, string> = { 1: "1re année", 2: "2e année" };
+const MENU_KEY = "ximaths.menu";
+
+/** Groupes du menu ouverts à la main : gardés dans ce navigateur. */
+function storedGroups(): Record<string, boolean> {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(MENU_KEY) ?? "{}");
+    return value && typeof value === "object" ? value : {};
+  } catch {
+    return {};
+  }
+}
+
+function storeGroup(key: string, open: boolean) {
+  try {
+    window.localStorage.setItem(MENU_KEY, JSON.stringify({ ...storedGroups(), [key]: open }));
+  } catch {
+    // Stockage refusé (navigation privée) : le menu oublie, sans gêne.
+  }
+}
+
+/** Groupe repliable du menu. Fermé par défaut, sauf s'il contient la page affichée ; ensuite,
+ * ce que le membre a ouvert ou fermé, retenu d'une visite à l'autre. */
+function MenuGroup({ id, label, current, children }: { id: string; label: string; current: boolean; children: React.ReactNode }) {
+  const [open, setOpen] = useState(current);
+  useEffect(() => {
+    const stored = storedGroups()[id];
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!current && stored !== undefined) setOpen(stored);
+  }, [id, current]);
   return (
-    <details open={open} className="plain group">
+    <details
+      open={open || current}
+      onToggle={(event) => {
+        const next = event.currentTarget.open;
+        if (next !== (open || current)) {
+          setOpen(next);
+          storeGroup(id, next);
+        }
+      }}
+      className="plain group"
+    >
       <summary className={`${row} text-mute hover:bg-hover hover:text-ink`}>
-        <Icon
-          name="chevron"
-          size={16}
-          className="-rotate-90 text-stone transition-transform group-open:rotate-0"
-        />
+        <Icon name="chevron" size={16} className="-rotate-90 text-stone transition-transform group-open:rotate-0" />
         {label}
       </summary>
-      <ul>
-        {levels.map((level) => (
-          <li key={level.code}>
-            <Link
-              href={levelPath(level.code)}
-              className={`${row} pl-7 text-mute hover:bg-hover hover:text-ink`}
-            >
-              <span className="grid h-5 min-w-7 place-items-center rounded px-1 text-[11px] font-semibold text-ink bg-selected">
-                {level.code}
-              </span>
-              <span className="truncate">
-                {shortName(level)}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {children}
     </details>
+  );
+}
+
+function MenuLink({ href, label, active }: { href: string; label: string; active: boolean }) {
+  return (
+    <li>
+      <Link
+        href={href}
+        aria-current={active ? "page" : undefined}
+        className={`${row} pl-7 ${active ? "bg-selected text-ink-deep" : "text-mute hover:bg-hover hover:text-ink"}`}
+      >
+        <span className="truncate">{label}</span>
+      </Link>
+    </li>
+  );
+}
+
+/** Les niveaux d'une filière. En prépa, rangés sous « 1re année » et « 2e année ». */
+function LevelGroup({ track, label, levels, pathname }: { track: string; label: string; levels: Level[]; pathname: string }) {
+  if (levels.length === 0) return null;
+  const current = levels.some((level) => pathname === levelPath(level.code));
+  const years = track === "universite" ? [null] : [...new Set(levels.map((level) => level.year))];
+  return (
+    <MenuGroup id={track} label={label} current={current}>
+      {years.map((year) => (
+        <div key={year ?? "tous"}>
+          {year !== null && years.length > 1 && (
+            <p className="pb-0.5 pl-7 pt-1.5 text-xs font-medium text-stone">
+              {YEAR_LABELS[year] ?? `${year}e année`}
+            </p>
+          )}
+          <ul>
+            {levels
+              .filter((level) => year === null || level.year === year)
+              .map((level) => (
+                <MenuLink key={level.code} href={levelPath(level.code)} label={shortName(level)} active={pathname === levelPath(level.code)} />
+              ))}
+          </ul>
+        </div>
+      ))}
+    </MenuGroup>
   );
 }
 
@@ -256,9 +310,6 @@ export function SidebarContent({
   topics: Topic[];
 }) {
   const pathname = usePathname();
-  const declared = levels.find(
-    (level) => level.code === account?.declaredLevel,
-  );
   return (
     <div className="flex min-h-full flex-col px-2.5 py-3 text-sm">
       <Brand className="px-2 pb-3.5 pt-1" />
@@ -303,46 +354,23 @@ export function SidebarContent({
         </ul>
 
         <p className="mb-1 mt-5 px-2 text-xs font-medium text-stone">Niveaux</p>
-        {LEVEL_TRACKS.map(({ track, label }, index) => (
-          <LevelGroup
-            key={track}
-            label={label}
-            levels={levels.filter((level) => level.track === track)}
-            open={declared ? declared.track === track : index === 0}
-          />
+        {LEVEL_TRACKS.map(({ track, label }) => (
+          <LevelGroup key={track} track={track} label={label} levels={levels.filter((level) => level.track === track)} pathname={pathname} />
         ))}
         {topics.length > 0 && (
-          <details className="plain group">
-            <summary className={`${row} text-mute hover:bg-hover hover:text-ink`}>
-              <Icon
-                name="chevron"
-                size={16}
-                className="-rotate-90 text-stone transition-transform group-open:rotate-0"
-              />
-              Chapitres
-            </summary>
+          <MenuGroup id="chapitres" label="Chapitres" current={pathname.startsWith("/chapitres")}>
             <ul>
-              <li>
-                <Link href="/chapitres" className={`${row} pl-7 text-mute hover:bg-hover hover:text-ink`}>
-                  Tous les chapitres
-                </Link>
-              </li>
+              <MenuLink href="/chapitres" label="Tous les chapitres" active={pathname === "/chapitres"} />
               {topics.map((topic) => (
-                <li key={topic.slug}>
-                  <Link
-                    href={chapterPath(topic.slug)}
-                    className={`${row} pl-7 text-mute hover:bg-hover hover:text-ink`}
-                  >
-                    {topic.name}
-                  </Link>
-                </li>
+                <MenuLink key={topic.slug} href={chapterPath(topic.slug)} label={topic.name} active={pathname === chapterPath(topic.slug)} />
               ))}
             </ul>
-          </details>
+          </MenuGroup>
         )}
       </nav>
 
-      <div className="mt-auto border-t border-hairline pt-3">
+      {/* Le compte reste visible en bas, même quand le menu défile. */}
+      <div className="sticky bottom-0 -mb-3 mt-auto border-t border-hairline bg-sidebar pb-3 pt-3">
         {account ? (
           <AccountFooter account={account} />
         ) : (
@@ -441,7 +469,7 @@ export function MobileBar({
             role="dialog"
             aria-modal="true"
             aria-label="Menu"
-            className="fixed inset-y-0 left-0 z-40 w-[84%] max-w-80 overflow-y-auto bg-sidebar shadow-2xl"
+            className="thin-scroll fixed inset-y-0 left-0 z-40 w-[84%] max-w-80 overflow-y-auto bg-sidebar shadow-2xl"
           >
             <button
               ref={closeButton}

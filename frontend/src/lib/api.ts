@@ -653,6 +653,8 @@ export type OpenSolution = {
   waiting_hours: number;
   reviews_done: number;
   reviews_expected: number;
+  /** Pas assez de relecteurs pour le consensus : seule l'équipe peut la débloquer. */
+  short_staffed: boolean;
 };
 
 export type QuestionStatus =
@@ -738,6 +740,8 @@ export function fetchMember(username: string) {
 
 /** Niveau de confiance des modérateurs ; les administrateurs (is_staff) en font partie aussi. */
 export const MODERATOR_TRUST_LEVEL = 4;
+/** À partir de ce niveau, on est tiré au sort pour relire. */
+export const REVIEWER_TRUST_LEVEL = 2;
 
 export function isTeam(me: Me | null) {
   return Boolean(me && (me.is_staff || me.trust_level >= MODERATOR_TRUST_LEVEL));
@@ -973,7 +977,9 @@ export type PanelSolution = {
   published_at: string | null;
   validated_at: string | null;
   waiting_hours: number | null;
+  /** Attend l'équipe : plus de 72 heures en relecture, ou pas assez de relecteurs. */
   late: boolean;
+  short_staffed: boolean;
   review_round: number;
   reviews_done: number;
   reviews_expected: number;

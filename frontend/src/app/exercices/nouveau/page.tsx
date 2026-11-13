@@ -23,7 +23,8 @@ export default async function NewExercisePage() {
     <>
       <h1>Publier un exercice</h1>
       <p className="mt-2 text-body">
-        +5 points à la publication, puis +3 chaque fois qu&apos;un autre membre le résout.
+        +5 points quand un autre membre le résout pour la première fois, puis +3 pour chaque nouveau membre qui le
+        résout.
       </p>
       <div className="mt-6">
         {me.email_verified ? (

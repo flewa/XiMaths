@@ -38,6 +38,8 @@ from .latex import forbidden_commands, plain_math, title_problems
 from .models import TEXT_MAX_LENGTH, Exercise, ExerciseRead, Review, Solution, SolutionPhoto, Vote
 from .services import (
     REASSIGN_AFTER,
+    REVIEWERS_PER_SOLUTION,
+    with_active_reviews,
     can_review,
     cast_vote,
     publish_solution,
@@ -933,6 +935,8 @@ class OpenSolutionOut(Schema):
     waiting_hours: int
     reviews_done: int
     reviews_expected: int
+    # Pas assez de relecteurs pour le consensus : seule l'équipe peut la débloquer.
+    short_staffed: bool
 
 
 class RevisionIn(Schema):
@@ -953,7 +957,7 @@ def open_for_review(request):
     if not can_review(user):
         return []
     solutions = (
-        Solution.objects.filter(status=Solution.Status.UNDER_REVIEW)
+        with_active_reviews(Solution.objects.filter(status=Solution.Status.UNDER_REVIEW))
         .exclude(author=user)
         .exclude(author_id__in=linked_ids(user))
         .exclude(reviews__reviewer=user)
@@ -974,6 +978,7 @@ def open_for_review(request):
                 "waiting_hours": int((now - solution.updated_at).total_seconds() // 3600),
                 "reviews_done": done,
                 "reviews_expected": expected,
+                "short_staffed": solution.active_reviews < REVIEWERS_PER_SOLUTION,
             }
         )
     return items

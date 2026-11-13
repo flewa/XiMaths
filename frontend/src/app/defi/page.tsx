@@ -63,7 +63,10 @@ function ChallengeCard({ challenge, me }: { challenge: DailyChallenge; me: Me | 
         {challenge.attempt && <Tag strong>{ATTEMPT_LABELS[challenge.attempt.status]}</Tag>}
       </div>
       <p className="mt-1 text-sm text-mute">
-        Exercice de {challenge.level} · <Difficulty value={challenge.difficulty} /> · jusqu&apos;à{" "}
+        {/* Le défi vaut pour tout le groupe : un exercice de PTSI s'adresse aussi à la MPSI et à la L1. */}
+        Exercice de {challenge.level}
+        {challenge.group_levels.length > 1 ? ", pour tout le groupe" : ""} · <Difficulty value={challenge.difficulty} /> ·
+        jusqu&apos;à{" "}
         {challenge.points_max} points ·{" "}
         {challenge.hint_count} indication{challenge.hint_count > 1 ? "s" : ""}
       </p>
@@ -107,24 +110,32 @@ export default async function ChallengePage() {
         niveau de l&apos;exercice.
       </p>
 
-      <ul className="mt-6 space-y-2 text-body">
-        {RULES.map((rule) => (
-          <li key={rule} className="flex gap-2">
-            <span aria-hidden="true" className="mt-[0.6em] size-1.5 shrink-0 rounded-full bg-stone" />
-            <span>{rule}</span>
-          </li>
-        ))}
-      </ul>
+      <p className="mt-3 text-sm text-mute">
+        30 minutes, une seule tentative, copie écrite à la main et photographiée. Les règles complètes sont sous la liste.
+      </p>
 
+      {/* Les défis d'abord : sur téléphone, les règles repoussaient le premier d'un écran. */}
       {ordered.length === 0 ? (
-        <p className="mt-10 text-mute">Pas de défi ouvert pour l&apos;instant. Les défis ouvrent chaque jour à minuit.</p>
+        <p className="mt-8 text-mute">Pas de défi ouvert pour l&apos;instant. Les défis ouvrent chaque jour à minuit.</p>
       ) : (
-        <ul className="mt-10 divide-y divide-hairline border-y border-hairline">
+        <ul className="mt-6 divide-y divide-hairline border-y border-hairline">
           {ordered.map((challenge) => (
             <ChallengeCard key={challenge.id} challenge={challenge} me={me} />
           ))}
         </ul>
       )}
+
+      <details className="mt-6 rounded-2xl border border-hairline px-4 py-3">
+        <summary className="font-medium text-ink">Les règles du défi</summary>
+        <ul className="mt-3 space-y-2 text-body">
+          {RULES.map((rule) => (
+            <li key={rule} className="flex gap-2">
+              <span aria-hidden="true" className="mt-[0.6em] size-1.5 shrink-0 rounded-full bg-stone" />
+              <span>{rule}</span>
+            </li>
+          ))}
+        </ul>
+      </details>
       {me && (
         <p className="mt-6 text-sm text-mute">
           Recevoir une notification à l&apos;ouverture :{" "}

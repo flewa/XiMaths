@@ -100,10 +100,13 @@ def ranked_users():
     en cours, et qui n'a pas masqué sa présence. Pas de seuil d'ancienneté ni de niveau :
     les points ne viennent que de contributions relues, et sur un site jeune un podium
     réservé aux anciens resterait vide."""
+    # Les administrateurs gèrent le site et peuvent ajuster des points : ils ne concourent
+    # pas. Les modérateurs, eux, sont des étudiants comme les autres et restent classés.
     return User.objects.filter(
         is_active=True,
         status=User.Status.ACTIVE,
         leaderboard_visible=True,
+        is_staff=False,
     ).exclude(pk__in=excluded_ids())
 
 

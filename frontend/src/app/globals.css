@@ -201,6 +201,13 @@
     transform: rotate(45deg);
   }
 
+  /* Barre de défilement fine, aux couleurs du thème : sous Windows, celle par défaut est
+     épaisse et grise, et jure avec la barre latérale. */
+  .thin-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--hairline-strong) transparent;
+  }
+
   /* Cases et boutons radio natifs, à la couleur du site. */
   input[type="radio"],
   input[type="checkbox"] {

@@ -64,6 +64,10 @@ export default async function CourseNotesPage() {
         Le programme de prépa scientifique, chapitre par chapitre : définitions, théorèmes avec leurs hypothèses
         exactes, méthodes et pièges fréquents. De quoi revoir le cours avant d&apos;attaquer les exercices.
       </p>
+      <p className="mt-3 max-w-[65ch] text-sm text-mute">
+        Pour l&apos;instant, les fiches couvrent la prépa scientifique (MPSI, PCSI, MP, PSI). La licence, le master,
+        la BCPST et les prépas ECG et B/L viendront ensuite ; leurs exercices sont déjà sur le site.
+      </p>
       {review && drafts > 0 && (
         <p className="mt-6 rounded-lg bg-accent-soft px-3 py-2 text-sm text-accent-text">
           {drafts} {drafts > 1 ? "fiches en brouillon, visibles" : "fiche en brouillon, visible"} de l&apos;équipe

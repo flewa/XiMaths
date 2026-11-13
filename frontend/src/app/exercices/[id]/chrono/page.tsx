@@ -18,7 +18,7 @@ const RULES = [
   "Copie écrite à la main sur papier : au départ, scanne le QR code avec ton téléphone, puis photographie tes pages (3 au plus) avant la fin du temps, avec une minute de grâce. Rien ne se tape.",
   "Enregistrés : le temps, compté par le serveur, et le nombre de sorties d'onglet. Rien de tout cela n'est pénalisé.",
   "À la fin du temps et de la minute de grâce, les photos arrivées sont rendues automatiquement.",
-  "Au rendu : copie relue par trois membres, solutions débloquées.",
+  "Au rendu : ta copie part en relecture, auprès de trois membres tirés au sort.",
 ];
 
 export default async function TrainingRulesPage({ params }: Props) {

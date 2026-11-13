@@ -35,10 +35,14 @@ export function TeamHeader({ staff, counts, active }: { staff: boolean; counts: 
   return (
     <>
       <h1>{staff ? "Gestion du site" : "Modération"}</h1>
-      <p className="mt-2 max-w-[70ch] text-body">
-        Chaque décision est prise par un humain, motivée, envoyée à la personne concernée, contestable en appel et
-        inscrite au journal. Tu ne tranches jamais ce qui te concerne : un autre membre de l&apos;équipe le fait.
-      </p>
+      {/* Le principe, une fois, sur le premier onglet : répété partout, il prenait un demi-écran
+          sur téléphone avant chaque liste. */}
+      {active === (staff ? "apercu" : "signalements") && (
+        <p className="mt-2 max-w-[70ch] text-body">
+          Chaque décision est prise par un humain, motivée, envoyée à la personne concernée, contestable en appel et
+          inscrite au journal. Tu ne tranches jamais ce qui te concerne : un autre membre de l&apos;équipe le fait.
+        </p>
+      )}
       <nav aria-label="Espace de l'équipe" className="mt-7 flex flex-wrap gap-1.5 border-b border-hairline pb-3">
         {tabsFor(staff, counts).map((tab) => (
           <Link
