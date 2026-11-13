@@ -1,13 +1,13 @@
 ---
 titre: Arithmétique dans ℤ
-programmes: MPSI
-ordre: 13
+programmes: MPSI, MP2I
+ordre: 9
 notion: divisibilite-pgcd
 ---
 
 ## Cadre et notations
 
-Dans toute la fiche, les lettres $a, b, c, n, m$ désignent des entiers relatifs. On dit que $a$ **divise** $b$, noté $a \mid b$, s'il existe $k \in \Z$ tel que $b = ka$.
+Dans toute la fiche, les lettres $a, b, c, n, m$ désignent des entiers relatifs. On dit que $a$ **divise** $b$, noté $a \mid b$, s'il existe $k \in \Z$ tel que $b = ka$. On a $a \mid b$ et $b \mid a$ si et seulement si $a = \pm b$ ($a$ et $b$ sont **associés**).
 
 ## Division euclidienne
 
@@ -30,13 +30,21 @@ Dans toute la fiche, les lettres $a, b, c, n, m$ désignent des entiers relatifs
 
 > **Lemme de Gauss.** Si $a \mid bc$ et si $a \wedge b = 1$, alors $a \mid c$.
 
-> **Proposition.** Si $a \mid n$, $b \mid n$ et $a \wedge b = 1$, alors $ab \mid n$.
+> **Proposition.**
+>
+> 1. Si $a \mid n$, $b \mid n$ et $a \wedge b = 1$, alors $ab \mid n$.
+> 2. Si $a \wedge n = 1$ et $b \wedge n = 1$, alors $ab \wedge n = 1$.
+> 3. Pour $k \in \N^*$, $(ka) \wedge (kb) = k (a \wedge b)$.
+
+Un couple de Bézout s'obtient par l'**algorithme d'Euclide étendu**, en remontant les divisions successives. Tout rationnel s'écrit de façon unique $\frac{p}{q}$ avec $p \in \Z$, $q \in \N^*$ et $p \wedge q = 1$ : c'est sa **forme irréductible**.
+
+**Plusieurs entiers.** Le PGCD de $a_1, \dots, a_r$ est le plus grand diviseur commun positif (s'ils ne sont pas tous nuls), et il existe $u_1, \dots, u_r \in \Z$ tels que $a_1 u_1 + \dots + a_r u_r = a_1 \wedge \dots \wedge a_r$. Les $a_i$ sont **premiers entre eux dans leur ensemble** si ce PGCD vaut $1$, et **deux à deux premiers entre eux** si $a_i \wedge a_j = 1$ pour tous $i \neq j$. La seconde condition est plus forte : $6$, $10$ et $15$ sont premiers entre eux dans leur ensemble, mais pas deux à deux.
 
 Le **PPCM** de $a$ et $b$, noté $a \vee b$, est le plus petit entier naturel multiple commun de $a$ et $b$ ($0$ si $a$ ou $b$ est nul). Pour tous $a, b \in \N$ : $(a \wedge b)(a \vee b) = ab$.
 
 ## Nombres premiers
 
-Un entier $p \geq 2$ est **premier** si ses seuls diviseurs positifs sont $1$ et $p$. Il y a une infinité de nombres premiers.
+Un entier $p \geq 2$ est **premier** si ses seuls diviseurs positifs sont $1$ et $p$. Il y a une infinité de nombres premiers. Le **crible d'Ératosthène** donne les nombres premiers jusqu'à $N$ : on barre les multiples stricts de chaque entier non barré, jusqu'à $\sqrt{N}$.
 
 > **Proposition.** Si $p$ est premier et $p \mid ab$, alors $p \mid a$ ou $p \mid b$.
 

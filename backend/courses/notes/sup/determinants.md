@@ -1,13 +1,25 @@
 ---
-titre: Déterminants
-programmes: MPSI, PCSI
-ordre: 11
+titre: Groupe symétrique et déterminants
+programmes: MPSI, MP2I, PCSI
+ordre: 15
 notion: determinants
 ---
 
 ## Cadre et notations
 
 Dans toute la fiche, $\K = \R$ ou $\C$, $n \in \N^*$, et $A = (a_{ij}) \in \mathcal{M}_n(\K)$, de colonnes $C_1, \dots, C_n$.
+
+## Groupe symétrique
+
+On note $\mathfrak{S}_n$ le groupe des permutations (bijections) de $[\![1, n]\!]$, muni de la composition ; il a $n!$ éléments. Pour $p \geq 2$ éléments distincts $a_1, \dots, a_p$, le **cycle** $(a_1 \ a_2 \ \dots \ a_p)$ envoie $a_1$ sur $a_2$, …, $a_{p-1}$ sur $a_p$, $a_p$ sur $a_1$, et fixe les autres éléments ; son **support** est $\{ a_1, \dots, a_p \}$ et sa longueur $p$. Une **transposition** est un cycle de longueur $2$.
+
+> **Théorème.**
+>
+> 1. Toute permutation se décompose en produit de cycles à supports disjoints ; cette décomposition est unique à l'ordre près, et ces cycles commutent.
+> 2. Toute permutation est un produit de transpositions.
+> 3. **Signature :** il existe un unique morphisme de groupes $\varepsilon : \mathfrak{S}_n \to \{ -1, 1 \}$ qui envoie toute transposition sur $-1$. Si $\sigma$ est produit de $k$ transpositions, $\varepsilon(\sigma) = (-1)^k$, et un cycle de longueur $p$ a pour signature $(-1)^{p-1}$.
+
+Exemple : $\sigma = \begin{pmatrix} 1 & 2 & 3 & 4 & 5 \\ 3 & 5 & 1 & 2 & 4 \end{pmatrix} = (1 \ 3)(2 \ 5 \ 4)$, donc $\varepsilon(\sigma) = (-1) \times 1 = -1$.
 
 ## Définition et propriétés
 
@@ -24,9 +36,11 @@ Dans toute la fiche, $\K = \R$ ou $\C$, $n \in \N^*$, et $A = (a_{ij}) \in \math
 
 **Attention :** en général, $\det(A + B) \neq \det A + \det B$.
 
+**Formule explicite.** $\det A = \sum_{\sigma \in \mathfrak{S}_n} \varepsilon(\sigma) \prod_{j=1}^{n} a_{\sigma(j) j}$. Pour $n = 2$ : $\det \begin{pmatrix} a & b \\ c & d \end{pmatrix} = ad - bc$. Le déterminant induit un morphisme de groupes de $GL_n(\K)$ dans $\K^*$.
+
 ## Calcul
 
-> **Proposition.** Le déterminant d'une matrice triangulaire est le produit de ses coefficients diagonaux. Plus généralement, si $A$ et $D$ sont des matrices carrées :
+> **Proposition.** Le déterminant d'une matrice triangulaire est le produit de ses coefficients diagonaux. Plus généralement (formule par blocs, hors programme de MPSI, vue en deuxième année), si $A$ et $D$ sont des matrices carrées :
 >
 > $$
 > \det \begin{pmatrix} A & B \\ 0 & D \end{pmatrix} = \det A \, \det D.
@@ -58,7 +72,11 @@ Dans toute la fiche, $\K = \R$ ou $\C$, $n \in \N^*$, et $A = (a_{ij}) \in \math
 
 ## Déterminant d'une famille, d'un endomorphisme
 
-Soit $E$ de dimension $n$, de base $\mathcal{B}$. Le **déterminant dans la base $\mathcal{B}$** d'une famille $(x_1, \dots, x_n)$ de vecteurs de $E$ est le déterminant de la matrice de leurs coordonnées dans $\mathcal{B}$ : la famille est une base de $E$ si et seulement si ce déterminant est non nul.
+Soit $E$ de dimension $n$. Une **forme $n$-linéaire alternée** sur $E$ est une application $f : E^n \to \K$, linéaire par rapport à chaque variable, et nulle dès que deux des vecteurs sont égaux. Elle est alors **antisymétrique** : échanger deux vecteurs change $f$ en son opposé, et plus généralement $f(x_{\sigma(1)}, \dots, x_{\sigma(n)}) = \varepsilon(\sigma) f(x_1, \dots, x_n)$ ; elle est nulle sur toute famille liée.
+
+> **Théorème.** Soit $\mathcal{B}$ une base de $E$. Il existe une unique forme $n$-linéaire alternée $\det_{\mathcal{B}}$ telle que $\det_{\mathcal{B}}(\mathcal{B}) = 1$, et toute forme $n$-linéaire alternée est un multiple de $\det_{\mathcal{B}}$. Le nombre $\det_{\mathcal{B}}(x_1, \dots, x_n)$ est le déterminant de la matrice des coordonnées des $x_j$ dans $\mathcal{B}$. Si $\mathcal{B}'$ est une autre base, $\det_{\mathcal{B}'} = \det_{\mathcal{B}'}(\mathcal{B}) \det_{\mathcal{B}}$.
+
+La famille $(x_1, \dots, x_n)$ est une base de $E$ si et seulement si $\det_{\mathcal{B}}(x_1, \dots, x_n) \neq 0$. Dans la base canonique de $\R^2$ (resp. $\R^3$), le déterminant de deux (resp. trois) vecteurs est l'aire orientée du parallélogramme (resp. le volume orienté du parallélépipède) qu'ils engendrent.
 
 Deux matrices semblables ont le même déterminant ; le **déterminant d'un endomorphisme** $u$ de $E$ est celui de sa matrice dans n'importe quelle base. On a $\det(v \circ u) = \det v \, \det u$, et $u$ est bijectif si et seulement si $\det u \neq 0$.
 

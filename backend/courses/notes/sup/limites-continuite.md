@@ -1,7 +1,7 @@
 ---
 titre: Limites et continuité
-programmes: MPSI, PCSI
-ordre: 3
+programmes: MPSI, MP2I, PCSI
+ordre: 7
 notion: limites-continuite
 ---
 
@@ -18,6 +18,8 @@ Dans toute la fiche, $I$ est un intervalle, $f : I \to \R$, et $a$ est un point 
 > $$
 >
 > Ce réel $\ell$ est alors unique. Si $a \in I$ et que $f$ admet une limite $\ell$ en $a$, alors $\ell = f(a)$.
+
+Si $f$ admet une limite finie en $a$, elle est bornée au voisinage de $a$. Les limites passent aux combinaisons linéaires, produits, quotients (de limite non nulle) et composées, et aux inégalités larges ; on a aussi les théorèmes d'encadrement (limite finie), de minoration (limite $+\infty$) et de majoration (limite $-\infty$).
 
 Les autres cas s'écrivent de la même façon : par exemple, $f$ tend vers $\ell$ en $+\infty$ si $\forall \varepsilon > 0, \ \exists A \in \R, \ \forall x \in I, \ x \geq A \implies |f(x) - \ell| \leq \varepsilon$. La **limite à droite** en $a$ est la limite en $a$ de la restriction de $f$ à $I \cap \, ]a, +\infty[$.
 
@@ -41,9 +43,17 @@ Sommes, produits, quotients (dont le dénominateur ne s'annule pas) et composée
 
 > **Théorème des bornes atteintes.** Soient $a < b$ deux réels. Toute fonction continue sur le segment $[a, b]$ est bornée et atteint ses bornes : $f([a, b])$ est un segment.
 
+> **Proposition.** Une fonction continue et injective sur un intervalle est strictement monotone.
+
 > **Théorème de la bijection.** Si $f$ est continue et strictement monotone sur l'intervalle $I$, alors $J = f(I)$ est un intervalle, $f$ réalise une bijection de $I$ sur $J$, et sa réciproque $f^{-1} : J \to I$ est continue et strictement monotone, de même sens que $f$.
 
+## Fonctions à valeurs complexes
+
+Pour $f : I \to \C$, les définitions de limite et de continuité s'écrivent avec le module : $f(x) \to \ell$ si $|f(x) - \ell| \to 0$. C'est le cas si et seulement si $\operatorname{Re} f$ et $\operatorname{Im} f$ tendent vers $\operatorname{Re} \ell$ et $\operatorname{Im} \ell$ ; de même pour la continuité.
+
 ## Continuité uniforme
+
+Cette notion sert à construire l'intégrale (voir la fiche sur l'intégration).
 
 > **Définition.** La fonction $f$ est **uniformément continue** sur $I$ si
 >

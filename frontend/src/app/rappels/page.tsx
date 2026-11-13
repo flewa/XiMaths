@@ -65,7 +65,7 @@ export default async function CourseNotesPage() {
         exactes, méthodes et pièges fréquents. De quoi revoir le cours avant d&apos;attaquer les exercices.
       </p>
       <p className="mt-3 max-w-[65ch] text-sm text-mute">
-        Pour l&apos;instant, les fiches couvrent la prépa scientifique (MPSI, PCSI, MP, PSI). La licence, le master,
+        Pour l&apos;instant, les fiches couvrent la prépa scientifique (MPSI, MP2I, PCSI, MP, PSI). La licence, le master,
         la BCPST et les prépas ECG et B/L viendront ensuite ; leurs exercices sont déjà sur le site.
       </p>
       {review && drafts > 0 && (

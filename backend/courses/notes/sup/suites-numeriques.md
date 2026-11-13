@@ -1,7 +1,7 @@
 ---
 titre: Nombres réels et suites numériques
-programmes: MPSI, PCSI
-ordre: 2
+programmes: MPSI, MP2I, PCSI
+ordre: 6
 notion: suites-numeriques
 ---
 
@@ -21,11 +21,15 @@ Sauf mention contraire, les suites sont réelles : $u = (u_n)_{n \in \N} \in \R^
 > 2. $M$ majore $A$ et, pour tout $\varepsilon > 0$, il existe $a \in A$ tel que $a > M - \varepsilon$ ;
 > 3. $M$ majore $A$ et il existe une suite d'éléments de $A$ qui converge vers $M$.
 
-On définit de même la borne inférieure $\inf A$, plus grand des minorants. Une borne supérieure n'est pas forcément un plus grand élément : $\sup \, ]0, 1[ \, = 1 \notin \, ]0, 1[$.
+On définit de même la borne inférieure $\inf A$, plus grand des minorants. Une borne supérieure n'est pas forcément un plus grand élément : $\sup \, ]0, 1[ \, = 1 \notin \, ]0, 1[$. Si $A$ est non vide et non majorée, il existe une suite d'éléments de $A$ qui tend vers $+\infty$.
+
+**Intervalles.** Une partie $X$ de $\R$ est un intervalle si et seulement si, pour tous $a, b \in X$ tels que $a \leq b$, on a $[a, b] \subset X$. On note $\overline{\R} = \R \cup \{ -\infty, +\infty \}$ la **droite achevée**.
 
 **Partie entière.** Pour tout $x \in \R$, il existe un unique $n \in \Z$ tel que $n \leq x < n + 1$ ; on le note $\lfloor x \rfloor$.
 
-**Densité.** Tout intervalle $]a, b[$ avec $a < b$ contient au moins un rationnel et au moins un irrationnel.
+**Approximations décimales.** Pour $x \in \R$ et $n \in \N$, les décimaux $\dfrac{\lfloor 10^n x \rfloor}{10^n}$ et $\dfrac{\lfloor 10^n x \rfloor + 1}{10^n}$ sont les valeurs approchées de $x$ à $10^{-n}$ près par défaut et par excès : ils encadrent $x$ et tendent vers $x$.
+
+**Densité.** Une partie $A$ de $\R$ est **dense** dans $\R$ si elle rencontre tout intervalle ouvert non vide, ce qui équivaut à : tout réel est limite d'une suite d'éléments de $A$. L'ensemble $\mathbb{D}$ des décimaux, $\Q$ et $\R \setminus \Q$ sont denses dans $\R$ : tout intervalle $]a, b[$ avec $a < b$ contient au moins un rationnel et au moins un irrationnel.
 
 ## Convergence
 
@@ -38,6 +42,10 @@ On définit de même la borne inférieure $\inf A$, plus grand des minorants. Un
 > Le réel $\ell$ est alors unique : c'est la limite de $u$. La suite $u$ **tend vers $+\infty$** si $\forall A \in \R, \ \exists N \in \N, \ \forall n \geq N, \ u_n \geq A$.
 
 > **Proposition.** Toute suite convergente est bornée. La réciproque est fausse : $\big( (-1)^n \big)$ est bornée et diverge.
+
+> **Proposition (opérations).** Si $u \to \ell$ et $v \to \ell'$ (limites finies), alors $\lambda u + \mu v \to \lambda \ell + \mu \ell'$, $uv \to \ell \ell'$ et, si $\ell' \neq 0$, $\frac{u}{v} \to \frac{\ell}{\ell'}$. Le produit d'une suite bornée et d'une suite de limite nulle tend vers $0$. Si $u$ converge vers $\ell > 0$, alors $u_n > 0$ à partir d'un certain rang.
+
+Pour montrer que $u \to \ell$, on cherche souvent une majoration $|u_n - \ell| \leq v_n$ avec $v_n \to 0$.
 
 > **Proposition (passage à la limite dans les inégalités).** Si $u_n \leq v_n$ à partir d'un certain rang et si $u$ et $v$ convergent vers $\ell$ et $\ell'$, alors $\ell \leq \ell'$.
 

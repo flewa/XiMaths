@@ -1,13 +1,13 @@
 ---
 titre: Analyse asymptotique
-programmes: MPSI, PCSI
-ordre: 5
+programmes: MPSI, MP2I, PCSI
+ordre: 12
 notion: developpements-limites
 ---
 
 ## Cadre et notations
 
-Dans toute la fiche, $I$ est un intervalle, $a$ est un point de $I$ ou une extrémité de $I$ (éventuellement $\pm\infty$), et $f, g, h : I \to \R$. Un **voisinage** de $a$ est un intervalle de la forme $]a - \delta, a + \delta[$ avec $\delta > 0$ si $a \in \R$, de la forme $]A, +\infty[$ si $a = +\infty$.
+Dans toute la fiche, $I$ est un intervalle, $a$ est un point de $I$ ou une extrémité de $I$ (éventuellement $\pm\infty$), et $f, g, h : I \to \R$. Un **voisinage** de $a$ est un intervalle de la forme $]a - \delta, a + \delta[$ avec $\delta > 0$ si $a \in \R$, de la forme $]A, +\infty[$ si $a = +\infty$, et $]{-}\infty, A[$ si $a = -\infty$.
 
 ## Relations de comparaison
 
@@ -25,6 +25,8 @@ Les définitions générales, sans hypothèse sur les zéros de $g$, s'écrivent
 > 2. Si $f_1 \sim g_1$ et $f_2 \sim g_2$, alors $f_1 f_2 \sim g_1 g_2$ et, si les quotients sont définis, $\dfrac{f_1}{f_2} \sim \dfrac{g_1}{g_2}$.
 > 3. Si $f \sim g$ et si $f, g > 0$ au voisinage de $a$, alors $f^\alpha \sim g^\alpha$ pour tout $\alpha \in \R$ fixé.
 > 4. Si $f \sim g$, avec $f, g > 0$ au voisinage de $a$, et si $g$ tend vers $\ell \in [0, +\infty] \setminus \{1\}$, alors $\ln f \sim \ln g$.
+
+**Équivalent par encadrement.** Si $f \leq g \leq h$ au voisinage de $a$ et si $f \sim h$, alors $g \sim f$.
 
 **On n'additionne pas des équivalents, et on ne compose pas un équivalent par une fonction :** $x + 1 \sim x$ et $-x \sim -x$ en $+\infty$, mais $(x + 1) + (-x) = 1$ n'est pas équivalent à $0$ ; $x^2 + x \sim x^2$ en $+\infty$, mais $\dfrac{e^{x^2 + x}}{e^{x^2}} = e^x \to +\infty$. Écrire $f \sim 0$ n'a de sens que si $f$ est nulle au voisinage de $a$ : on ne l'écrit pas.
 
@@ -97,6 +99,22 @@ $$
 - **Équivalent :** si $f(x) = c_p (x - a)^p + o\big( (x - a)^p \big)$ avec $c_p \neq 0$, alors $f(x) \sim c_p (x - a)^p$.
 - **Position relative d'une courbe et de sa tangente :** si $f(x) = c_0 + c_1 (x - a) + c_p (x - a)^p + o\big( (x - a)^p \big)$ avec $p \geq 2$ et $c_p \neq 0$, le signe de $c_p (x - a)^p$ donne la position locale du graphe par rapport à la tangente en $a$.
 - **Asymptote en $+\infty$ :** on pose $x = \frac{1}{h}$ et on cherche $f(x) = \alpha x + \beta + \frac{\gamma}{x^p} + o\left( \frac{1}{x^p} \right)$ avec $\gamma \neq 0$.
+
+- **Extremum local :** soient $f$ de classe $\mathcal{C}^2$ sur $I$ et $a$ un point intérieur à $I$. Si $f$ admet un minimum local en $a$, alors $f'(a) = 0$ et $f''(a) \geq 0$ (condition nécessaire). Si $f'(a) = 0$ et $f''(a) > 0$, alors $f$ admet un minimum local strict en $a$ (condition suffisante). De même pour un maximum, avec les inégalités inversées.
+
+## Développements asymptotiques
+
+On développe aussi des suites et des fonctions sur une échelle de termes de plus en plus petits. Exemple : pour $n \geq 1$, l'équation $\tan x = x$ a une unique solution $x_n$ dans $\left] n\pi - \frac{\pi}{2}, n\pi + \frac{\pi}{2} \right[$, et
+
+$$
+x_n = n\pi + \frac{\pi}{2} - \frac{1}{n\pi} + o\left( \frac{1}{n} \right).
+$$
+
+> **Formule de Stirling.** Quand $n \to +\infty$,
+>
+> $$
+> n! \sim \sqrt{2\pi n} \left( \frac{n}{e} \right)^n, \qquad \text{c'est-à-dire} \quad \ln(n!) = n \ln n - n + \frac{1}{2} \ln n + \ln \sqrt{2\pi} + o(1).
+> $$
 
 ## Pièges fréquents
 
