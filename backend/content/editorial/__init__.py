@@ -12,6 +12,8 @@ from .lot1 import EXERCISES as LOT1
 from .lot2 import EXERCISES as LOT2
 from .lot3 import EXERCISES as LOT3
 from .lot4 import EXERCISES as LOT4
+from .lot5 import EXERCISES as LOT5
 
 # Le lot 4 est écrit pour les prépas BCPST, ECG et B/L ; les autres y sont rattachés à la main.
-EXERCISES = with_filieres(LOT1 + LOT2 + LOT3) + LOT4
+# Le lot 5 reprend des démonstrations classiques de MP, en énoncés seuls.
+EXERCISES = with_filieres(LOT1 + LOT2 + LOT3 + LOT5) + LOT4

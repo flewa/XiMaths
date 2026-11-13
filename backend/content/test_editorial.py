@@ -87,3 +87,33 @@ class FilieresTests(TestCase):
         # Le niveau manquant revient ; celui qu'on avait ajouté à la main n'est pas retiré.
         self.assertIn("BCPST1", codes)
         self.assertIn("M2", codes)
+
+    def test_a_correction_of_the_editorial_reaches_the_published_exercise(self):
+        run()
+        spec = next(spec for spec in EXERCISES if spec["title"].startswith("Ruine du joueur"))
+        exercise = Exercise.objects.get(title=spec["title"])
+        # L'exercice tel qu'il était publié avant la correction.
+        Exercise.objects.filter(pk=exercise.pk).update(statement="Ancien énoncé.", hints=["Ancienne indication."], final_answer="3/10")
+
+        self.assertIn("Mis à jour : 1.", run())
+        exercise.refresh_from_db()
+        self.assertEqual(exercise.statement, spec["statement"].strip())
+        self.assertEqual(exercise.final_answer, "7/10")
+        self.assertEqual(len(exercise.hints), len(spec["hints"]))
+
+    def test_an_exercise_corrected_by_the_team_keeps_its_content(self):
+        from django.utils import timezone
+
+        run()
+        spec = next(spec for spec in EXERCISES if spec["title"].startswith("Ruine du joueur"))
+        Exercise.objects.filter(title=spec["title"]).update(statement="Version de l'équipe.", edited_by_team_at=timezone.now())
+        run()
+        self.assertEqual(Exercise.objects.get(title=spec["title"]).statement, "Version de l'équipe.")
+
+    def test_the_classics_of_lot_5_are_statements_for_mp_without_answers(self):
+        from .editorial.lot5 import EXERCISES as LOT5
+
+        self.assertEqual(len(LOT5), 31)
+        for spec in LOT5:
+            self.assertIn("MP", spec["levels"], spec["title"])
+            self.assertFalse(spec.get("final_answer"), spec["title"])

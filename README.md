@@ -156,6 +156,8 @@ Sur l'accueil, des onglets (`?vue=`) passent du fil aux vues triées : sans solu
 
 Vingt niveaux, rangés en trois familles dans les menus : université (L1 à M2), prépas scientifiques (MPSI, MP2I, PCSI, PTSI, BCPST 1, MP, MPI, PC, PSI, PT, BCPST 2) et prépas ECG et B/L (deux années chacune). Les exercices de la rédaction rattachés aux filières BCPST, ECG et B/L sont listés à la main dans `backend/content/editorial/filieres.py`, d'après leurs programmes ; ceux de MP vont aussi en MPI. `import_exercises` ajoute ces niveaux aux exercices déjà publiés, sans jamais en retirer.
 
+Les exercices de la rédaction (`backend/content/editorial/`, un fichier par lot) sont la référence : à chaque import, un exercice déjà publié reprend son énoncé, ses indications, sa réponse, sa difficulté et son niveau principal tels qu'ils sont dans le dépôt, de sorte qu'une correction arrive en ligne à la mise à jour suivante. Seul un exercice modifié par l'équipe sur le site garde sa propre version. Le lot 5 reprend des démonstrations classiques de MP, en énoncés seuls (sans corrigé), avec les hypothèses manquantes rétablies.
+
 ## Page d'un exercice
 
 - **Statistiques** : combien de personnes l'ont lu, ont envoyé une copie, l'ont réussi, avec la part des lecteurs. Un membre compte une fois (`ExerciseRead`), un visiteur une fois par navigateur (liste gardée dans son navigateur, sans cookie ni identifiant).
@@ -222,7 +224,7 @@ Depuis la fiche d'un exercice : 15, 30, 45 ou 60 minutes, ou le temps conseillé
 
 Et il agit, avec un motif à chaque fois, envoyé à la personne concernée et gardé au journal de modération :
 - **Copies** : valider, renvoyer à reprendre (les points d'une copie validée sont repris), remettre en relecture (nouveau tour), retirer pour plagiat ou contenu inapproprié. Un retrait passe par un signalement que l'administrateur dépose et tranche aussitôt : l'auteur peut faire appel, et un autre membre de l'équipe examine l'appel ; ce signalement ne rapporte pas de points.
-- **Exercices** (`/administration/exercices/<id>`) : corriger titre, énoncé, indications, réponse, difficulté, niveaux et chapitres ; retirer (avec appel possible) ou rétablir avec ses points. Un exercice de la rédaction modifié ici garde son titre et ses chapitres aux imports suivants (`edited_by_team_at`).
+- **Exercices** (`/administration/exercices/<id>`) : corriger titre, énoncé, indications, réponse, difficulté, niveaux et chapitres ; retirer (avec appel possible) ou rétablir avec ses points. Un exercice de la rédaction modifié ici garde son titre, son contenu et ses chapitres aux imports suivants (`edited_by_team_at`).
 - **Actions groupées**, sur les copies et les exercices : cocher des lignes, choisir une décision, écrire un motif. Chaque ligne est traitée, notifiée et journalisée à part ; celles qui ne s'y prêtent pas (statut, contenu de la personne qui décide) sont listées avec la raison. 30 lignes au plus par envoi.
 - **Comptes**, depuis la fiche de modération : ajouter ou retirer des points (écriture « Ajustement par l'administration » dans le ledger), changer le rôle (un seul formulaire, de Nouveau à Administrateur ; Administrateur réservé au propriétaire du site, le superutilisateur), vérifier l'adresse à la main, changer le pseudo, supprimer le compte (le pseudo est à retaper).
 - Personne n'agit sur son propre compte, sa copie ou son exercice ; seul le propriétaire du site agit sur le compte d'un autre administrateur.
