@@ -153,7 +153,7 @@ class TeamTests(ReviewFlowTestCase):
         self.assertEqual(alert_team(now=sent + timedelta(hours=71)), 0)
         self.assertEqual(alert_team(now=sent + timedelta(hours=73)), 1)
         alert = Notification.objects.get(user=self.team, kind=kind)
-        self.assertIn("Une copie attend", alert.title)
+        self.assertEqual(alert.title, "Une copie attend l'équipe")
         # Par email aussi : envoyé aussitôt, ou retenu jusqu'à 8 h pendant les heures calmes.
         self.assertTrue(alert.email_pending or alert.emailed_at)
         # L'alerte porte l'heure réelle : on la date de l'heure simulée, pour la suite.
@@ -165,3 +165,18 @@ class TeamTests(ReviewFlowTestCase):
         submit_review(volunteer_review(solution, self.team), Verdict.CORRECT, feedback="Juste.")
         self.assertEqual(alert_team(now=sent + timedelta(hours=130)), 0)
         self.assertFalse(Notification.objects.filter(kind=kind).exclude(user=self.team).exists())
+
+    def test_a_copy_without_enough_reviewers_goes_to_the_team_at_once(self):
+        # Un seul relecteur possible : la copie ne peut pas atteindre le consensus.
+        for reviewer in self.reviewers[1:]:
+            reviewer.trust_level = TL.MEMBER
+            reviewer.save(update_fields=["trust_level"])
+        solution = self.publish()
+        self.assertEqual(len(self.assigned(solution)), 1)
+        # L'équipe est prévenue dès l'envoi, sans attendre 72 heures.
+        alert = Notification.objects.get(user=self.team, kind=Notification.Kind.TEAM_ALERT)
+        self.assertEqual(alert.title, "Une copie attend l'équipe")
+        self.client.force_login(self.team)
+        self.assertEqual(self.client.get("/api/panel/overview").json()["late"], 1)
+        [item] = self.client.get("/api/panel/solutions?status=late").json()["items"]
+        self.assertTrue(item["short_staffed"])

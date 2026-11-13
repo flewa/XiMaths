@@ -177,7 +177,8 @@ export function VoteButton({
   const [votes, setVotes] = useState(count);
   const [voted, setVoted] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const label = `Utile · ${votes}`;
+  // « Utile » seul ne disait pas ce que fait le bouton : on vote pour l'exercice.
+  const label = `Exercice utile · ${votes}`;
 
   if (disabledReason) {
     return (
@@ -192,6 +193,7 @@ export function VoteButton({
         type="button"
         aria-pressed={voted}
         disabled={voted}
+        title="Cet exercice t'a été utile ? Ton vote rapporte un point à son auteur."
         onClick={async () => {
           const result = await apiPost(path);
           if (result.ok) {
@@ -207,6 +209,7 @@ export function VoteButton({
       >
         ▲ {label}
       </button>
+      {voted && !message && <span className="text-sm text-mute">Merci, un point pour l&apos;auteur.</span>}
       {message && <span role="alert" className="text-sm text-mute">{message}</span>}
     </span>
   );

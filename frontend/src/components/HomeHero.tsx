@@ -138,7 +138,9 @@ export function ChallengeCard({ challenge, state = "a-faire" }: { challenge: Dai
         <h2 id="defi" className={cardTitle}>
           Défi du jour
         </h2>
-        <span className={pill}>{challenge.level}</span>
+        {/* Le groupe plutôt que le niveau de l'exercice tiré : « PTSI » ferait croire à un
+            élève de MPSI que ce défi n'est pas pour lui. */}
+        <span className={pill}>{challenge.group_label.split(" · ")[0]}</span>
         <span className={pill}>{challenge.minutes} minutes</span>
         <span className="sm:ml-auto">Ferme à minuit</span>
       </div>
@@ -348,6 +350,43 @@ export function VisitorHero() {
           J&apos;ai déjà un compte
         </Link>
       </p>
+    </section>
+  );
+}
+
+/** À côté de l'accroche, sur grand écran : de vrais exercices, pour voir tout de suite à quoi
+ * ressemble le site, sans descendre. */
+export function ExercisePreview({ exercises }: { exercises: { id: number; title: string; levels: string[]; difficulty: number }[] }) {
+  if (exercises.length === 0) return null;
+  return (
+    <section aria-labelledby="apercu" className={card}>
+      <h2 id="apercu" className={cardTitle}>
+        À résoudre en ce moment
+      </h2>
+      <ul className="mt-3 divide-y divide-hairline">
+        {exercises.map((exercise) => (
+          <li key={exercise.id}>
+            <Link href={`/exercices/${exercise.id}`} className="block py-2.5 hover:text-ink">
+              <span className="block font-serif text-[1.0625rem] leading-snug text-ink-deep">
+                <MathText>{exercise.title}</MathText>
+              </span>
+              <span className="mt-1 flex items-center gap-1.5 text-xs text-mute">
+                {exercise.levels.slice(0, 2).map((level) => (
+                  <span key={level} className={pill}>
+                    {level}
+                  </span>
+                ))}
+                {exercise.levels.length > 2 && <span>+{exercise.levels.length - 2}</span>}
+                <span aria-hidden="true">·</span>
+                <span>difficulté {exercise.difficulty}/5</span>
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <Link href="/exercices" className="mt-2 inline-flex min-h-8 items-center text-[13px] text-mute underline underline-offset-4 hover:text-ink">
+        Tous les exercices
+      </Link>
     </section>
   );
 }

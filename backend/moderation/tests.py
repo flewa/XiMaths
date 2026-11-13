@@ -64,13 +64,16 @@ class ReportTests(ModerationTestCase):
         self.assertEqual(balance(second.reporter), 3)
 
     def test_an_inappropriate_exercise_is_removed_and_its_points_reversed(self):
+        self.validated_solution()  # résolu par un autre membre : +5 de publication, +3
         report = create_report(self.witness, reason=Reason.INAPPROPRIATE, exercise=self.exercise)
-        self.assertEqual(balance(self.author), 5)
+        before = balance(self.author)
+        self.assertEqual(before, 5 + 3)
 
         resolve_report(report, confirmed=True, moderator=self.moderator, note="Propos injurieux.")
 
         self.exercise.refresh_from_db()
         self.assertEqual(self.exercise.status, Exercise.Status.REMOVED)
+        # Les points gagnés grâce à l'exercice (publication et résolutions) sont repris.
         self.assertEqual(balance(self.author), 0)
         self.assertEqual(balance(self.witness), 0)  # pas de points pour ce motif
         self.assertEqual(self.client.get(f"/api/exercises/{self.exercise.pk}").status_code, 404)
@@ -302,8 +305,8 @@ class AccountLinkTests(ModerationTestCase):
         link = AccountLink.objects.get()
         self.assertEqual((link.link_type, link.strength), (AccountLink.LinkType.VOTE_RECIPROCITY, 1.0))
         self.assertFalse(Vote.objects.exclude(weight=0).exists())
-        # Il ne leur reste que les points de publication.
-        self.assertEqual((balance(alice), balance(bob)), (5 * 3, 5 * 3))
+        # Leurs votes ne rapportent plus rien ; publier seul ne rapporte rien non plus.
+        self.assertEqual((balance(alice), balance(bob)), (0, 0))
 
     def test_linked_accounts_do_not_review_or_promote_each_other(self):
         link_accounts(self.student, self.reviewers[0], AccountLink.LinkType.SAME_DEVICE, confirmed_by=self.moderator)

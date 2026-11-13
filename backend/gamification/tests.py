@@ -199,7 +199,10 @@ class RankingTests(TestCase):
         self.credit(self.member("discret", leaderboard_visible=False), 10)
         self.credit(self.member("suspendu", status=User.Status.SUSPENDED), 10)
         self.credit(self.member("negatif"), -50)
-        self.assertEqual(self.board(), [("lea", 10, 1), ("nouveau", 10, 1)])
+        # Un administrateur gère le site, il ne concourt pas ; une modératrice, si.
+        self.credit(make_user("admin", is_staff=True), 10)
+        self.credit(make_user("moderatrice", trust=TL.MODERATOR), 10)
+        self.assertEqual(self.board(), [("lea", 10, 1), ("moderatrice", 10, 1), ("nouveau", 10, 1)])
 
     def test_reversals_correct_a_week_only_during_consolidation(self):
         lea, yanis = self.member("lea"), self.member("yanis")

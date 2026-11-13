@@ -13,7 +13,7 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count, F, Q
 from django.utils import timezone
 
 from accounts.links import are_linked, check_vote_reciprocity, linked_ids
@@ -63,14 +63,8 @@ def publish_exercise(exercise, *, now=None):
     exercise.status = Exercise.Status.PUBLISHED
     exercise.published_at = now
     exercise.save(update_fields=["status", "published_at", "updated_at"])
-    if exercise.author:
-        award(
-            exercise.author,
-            Reason.EXERCISE_PUBLISHED,
-            exercise,
-            level=exercise.primary_level,
-            now=now,
-        )
+    # Pas de points à la publication : un exercice bâclé n'en rapporterait pas moins. Les +5
+    # viennent à sa première copie validée d'un autre membre (_validate).
     return exercise
 
 
@@ -161,11 +155,15 @@ def publish_solution(solution, *, rng=None, now=None):
     if solution.author:
         # « Premier pas » : la première copie envoyée, sans point.
         check_badges(solution.author, now=now)
-    assign_reviewers(solution, rng=rng, now=now)
+    drawn = assign_reviewers(solution, rng=rng, now=now)
     # Solution classée ou à fort enjeu : score d'intégrité, puis une relecture de plus
     # ou une question de compréhension au-delà des seuils.
     if assess(solution, now=now) == EXTRA_REVIEW:
         assign_reviewers(solution, k=1, rng=rng, now=now)
+    # Pas assez de relecteurs pour cette copie : l'équipe est prévenue tout de suite, sans
+    # attendre trois jours (au lancement, les relecteurs sont rares).
+    if len(drawn) < REVIEWERS_PER_SOLUTION:
+        alert_team(now=now)
     return solution
 
 
@@ -372,8 +370,20 @@ def _validate(solution, *, now=None):
     if not points_on_hold(solution):
         award_author_points(solution, now=now)
 
-    # L'auteur de l'exercice gagne +3 par auteur de solution distinct, 30 au plus.
+    # La première copie validée d'un autre membre montre que l'exercice tient : son auteur
+    # reçoit alors les points de publication, une seule fois.
     exercise_author = exercise.author
+    if (
+        exercise_author
+        and exercise_author.pk != solution.author_id
+        and not generated
+        and not PointTransaction.objects.filter(
+            user=exercise_author, reason=Reason.EXERCISE_PUBLISHED, source_type="content.exercise", source_id=exercise.pk
+        ).exists()
+    ):
+        award(exercise_author, Reason.EXERCISE_PUBLISHED, exercise, level=level, now=now)
+
+    # L'auteur de l'exercice gagne +3 par auteur de solution distinct, 30 au plus.
     if (
         exercise_author
         and exercise_author.pk != solution.author_id
@@ -542,10 +552,21 @@ TEAM_ALERT_AFTER = timedelta(hours=72)
 TEAM_ALERT_EVERY = timedelta(hours=20)
 
 
+def with_active_reviews(queryset):
+    """Annote chaque copie du nombre de relectures en cours ou rendues pour son tour
+    (`active_reviews`), réattribuées exclues."""
+    return queryset.annotate(
+        active_reviews=Count("reviews", filter=Q(reviews__round=F("review_round"), reviews__expired_at=None))
+    )
+
+
 def waiting_solutions(*, now=None):
-    """Copies en relecture depuis plus de 72 heures (depuis l'envoi, ou la dernière révision)."""
+    """Copies qui attendent l'équipe : en relecture depuis plus de 72 heures (depuis l'envoi,
+    ou la dernière révision), ou sans assez de relecteurs pour atteindre le consensus."""
     now = now or timezone.now()
-    return Solution.objects.filter(status=Solution.Status.UNDER_REVIEW, updated_at__lte=now - TEAM_ALERT_AFTER)
+    return with_active_reviews(Solution.objects.filter(status=Solution.Status.UNDER_REVIEW)).filter(
+        Q(updated_at__lte=now - TEAM_ALERT_AFTER) | Q(active_reviews__lt=REVIEWERS_PER_SOLUTION)
+    )
 
 
 def alert_team(*, now=None):
@@ -569,11 +590,9 @@ def alert_team(*, now=None):
         notify(
             member,
             Kind.TEAM_ALERT,
-            "Une copie attend une correction depuis plus de 3 jours"
-            if waiting == 1
-            else f"{waiting} copies attendent une correction depuis plus de 3 jours",
-            "Les relecteurs manquent. Tu peux la corriger toi-même depuis la page Relectures : "
-            "une relecture de l'équipe vaut décision.",
+            "Une copie attend l'équipe" if waiting == 1 else f"{waiting} copies attendent l'équipe",
+            "Relecteurs trop peu nombreux, ou plus de 3 jours d'attente. Tu peux la corriger toi-même "
+            "depuis la page Relectures : une relecture de l'équipe vaut décision.",
             "/relectures",
             email=True,
             now=now,

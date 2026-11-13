@@ -8,7 +8,7 @@ import { VerifyBanner } from "@/components/AccountControls";
 import { AudienceTracker } from "@/components/Audience";
 import { BottomNav } from "@/components/BottomNav";
 import { MobileBar, SidebarContent, type NavAccount } from "@/components/SidebarNav";
-import { fetchLevels, fetchMe, fetchTopics, isTeam, nullOnError } from "@/lib/api";
+import { REVIEWER_TRUST_LEVEL, fetchLevels, fetchMe, fetchTopics, isTeam, nullOnError } from "@/lib/api";
 import { CONTACT_EMAIL } from "@/lib/legal";
 import { chaptersOf } from "@/lib/seo-pages";
 import { DEFAULT_THEME, SITE_DESCRIPTION, SITE_URL, SOCIAL_PROFILES, THEME_COOKIE, type Theme } from "@/lib/site";
@@ -68,6 +68,7 @@ export default async function RootLayout({
     unreadNotifications: me.unread_notifications,
     declaredLevel: me.declared_level,
     team: isTeam(me),
+    reviewer: isTeam(me) || me.trust_level >= REVIEWER_TRUST_LEVEL,
     moderationPending: me.moderation_pending,
     staff: me.is_staff,
   };
@@ -86,7 +87,7 @@ export default async function RootLayout({
         </a>
         {/* La colonne de la barre latérale garde sa teinte jusqu'en bas, même sur une page longue. */}
         <div className="min-h-screen lg:grid lg:grid-cols-[252px_minmax(0,1fr)] lg:bg-[linear-gradient(90deg,var(--sidebar)_252px,var(--canvas)_252px)]">
-          <aside aria-label="Barre latérale" className="sticky top-0 hidden h-screen overflow-y-auto bg-sidebar lg:block">
+          <aside aria-label="Barre latérale" className="thin-scroll sticky top-0 hidden h-screen overflow-y-auto bg-sidebar lg:block">
             <SidebarContent account={account} levels={levels} topics={topics} />
           </aside>
           <MobileBar account={account} levels={levels} topics={topics} />

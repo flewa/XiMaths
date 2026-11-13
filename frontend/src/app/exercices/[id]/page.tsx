@@ -418,6 +418,15 @@ function AuthorCard({ author }: { author: MemberRef }) {
 /** Les solutions restent privées : seuls ces trois nombres sont publics. */
 function ExerciseStatsLine({ stats }: { stats: ExerciseStats }) {
   if (stats.readers === 0) return null;
+  // Personne n'a encore tenté : une phrase, plutôt que deux tuiles à zéro qui découragent.
+  if (stats.senders === 0) {
+    return (
+      <p className="mt-5 text-sm text-mute">
+        Lu par {stats.readers} {stats.readers > 1 ? "personnes" : "personne"} · aucune copie envoyée pour
+        l&apos;instant : la première validée rapporte le badge Pionnier.
+      </p>
+    );
+  }
   const share = (count: number) => `${Math.round((100 * count) / stats.readers)} %`;
   const items = [
     { value: stats.readers, label: stats.readers > 1 ? "personnes l'ont lu" : "personne l'a lu", share: null },

@@ -112,7 +112,7 @@ Clés VAPID : `uv run python manage.py generate_vapid_keys`, à copier dans `.en
 - Chaque relecteur laisse un verdict et un **commentaire obligatoire** : c'est la seule correction que reçoit l'auteur. Il la lit dès qu'elle arrive, et en est prévenu par une notification (« Ta copie a été relue », 1 sur 3, 2 sur 3).
 - **Consensus** : une fois toutes les relectures tirées au sort rendues, la copie est validée si tous les relecteurs la jugent juste (« correcte » ou « correcte avec lacunes »). Elle rapporte alors ses points ; sinon elle est à reprendre, et ne rapporte rien. Une copie envoyée ne rapporte rien en soi. Les relecteurs de la majorité gagnent leurs points de relecture.
 - Relecture volontaire possible depuis `/relectures` ; son verdict compte dans le consensus.
-- **Le filet : l'équipe du site.** Une relecture d'un membre de l'équipe (staff ou modérateur) vaut décision, sans attendre les autres : la copie est validée ou à reprendre aussitôt. Sur `/relectures`, l'équipe voit toutes les copies en attente, les plus anciennes d'abord. Chaque jour, elle est prévenue (notification et email) des copies en relecture depuis plus de 72 heures. Tant que les relecteurs manquent, aucune copie ne reste ainsi sans réponse.
+- **Le filet : l'équipe du site.** Une relecture d'un membre de l'équipe (staff ou modérateur) vaut décision, sans attendre les autres : la copie est validée ou à reprendre aussitôt. Sur `/relectures`, l'équipe voit toutes les copies en attente, les plus anciennes d'abord. Elle est prévenue (notification et email, une fois par jour au plus) des copies en relecture depuis plus de 72 heures, et, dès l'envoi, d'une copie pour laquelle il n'y a pas assez de relecteurs possibles (au lancement, ils sont rares) : celle-ci apparaît aussitôt dans « Attendent l'équipe » de la gestion du site. Tant que les relecteurs manquent, aucune copie ne reste ainsi sans réponse.
 - Une solution validée puis modifiée de plus de 20 % repart en relecture, pour un nouveau tour.
 
 ## Photo de copie
@@ -139,7 +139,7 @@ uv run python manage.py scan_duplicates --reindex --all   # après un changement
 ## Interface
 
 - **Accueil d'un membre** : sa semaine en sept cases, le défi du jour de son groupe de niveaux présenté comme un énoncé de manuel, puis ce qui l'attend (relectures à rendre, prochain exercice tiré de la carte de compétences, notifications non lues). Un visiteur voit la promesse, un bouton d'inscription et les trois étapes du site.
-- **Mobile et tablette** (sous 1 024 px) : barre d'onglets en bas d'écran, à portée du pouce (Fil, Parcourir, Publier, Défi, Moi), masquée pendant une session chronométrée ; en-tête réduit au logo, aux notifications et au menu.
+- **Mobile et tablette** (sous 1 024 px) : barre d'onglets en bas d'écran, à portée du pouce, avec un nom sous chaque icône (Accueil, Parcourir, Défi au centre, Classements, Progression), masquée pendant une session chronométrée ; en-tête réduit au logo, aux notifications et au menu.
 - **Accessibilité** : contrastes d'au moins 4,5:1 (marqueurs d'état, textes sur la surface sombre, indications des champs), anneau de focus de 2 px sur toutes les surfaces, lien « Aller au contenu », cibles tactiles d'au moins 24 px, onglets qui ramènent l'onglet actif dans la vue.
 
 ## Titres d'exercices
@@ -168,8 +168,9 @@ Vingt niveaux, rangés en trois familles dans les menus : université (L1 à M2)
 
 ## Classements, badges et niveaux de confiance
 
-- **Classements** (`/classements`) : hebdomadaires par niveau et global, du lundi 0 h au dimanche 23 h 59 (heure de Paris), plus un Panthéon au second plan. Les points comptent pour le niveau de l'exercice. Top 50, puis ta position avec 5 voisins de chaque côté ; filtre « mes pairs ». 24 h de consolidation pour annuler des points frauduleux.
+- **Classements** (`/classements`) : hebdomadaires par niveau et global, du lundi 0 h au dimanche 23 h 59 (heure de Paris), plus un Panthéon au second plan. Les points comptent pour le niveau de l'exercice. Les administrateurs ne sont pas classés (les modérateurs, étudiants comme les autres, le sont). Top 50, puis ta position avec 5 voisins de chaque côté ; filtre « mes pairs ». 24 h de consolidation pour annuler des points frauduleux.
 - **Qui est classé** : tout compte actif qui a des points, dès le premier, sans sanction d'exclusion en cours. Chacun peut masquer sa présence.
+- **Points vérifiés** : rien n'est versé sans vérification. Une copie ne rapporte qu'une fois validée par les relecteurs ; un exercice publié rapporte ses +5 à sa première copie validée d'un autre membre (pas d'une copie générée), puis +3 par nouveau membre qui le résout. Un exercice bâclé ou vide ne rapporte donc rien.
 - **Badges** (`/badges`), critères publics : Premier pas, Validé !, Pionnier, Auteur, Relecteur fiable, Touche-à-tout, Élégance, Chasseur de doublons, Sous pression (5 défis validés), Régulier bronze, argent et or (4, 12 et 30 semaines d'objectif atteint), Étudiant vérifié (email académique confirmé).
 - **Niveaux de confiance**, attribués automatiquement, jamais retirés automatiquement :
     - Membre : 7 jours et 30 points ;
@@ -214,7 +215,7 @@ Depuis la fiche d'un exercice : 15, 30, 45 ou 60 minutes, ou le temps conseillé
 
 `/administration`, réservé aux administrateurs (`is_staff`). Avec la modération, c'est un seul espace, « Gestion du site » dans le menu : les mêmes onglets en haut des deux pages (vue d'ensemble, signalements, messages, appels, copies, membres, exercices, journal), avec le nombre de dossiers en attente. Un modérateur ne voit que les onglets de modération.
 
-- **Vue d'ensemble** : ce qui attend (copies en relecture depuis plus de 72 h, signalements, messages signalés, appels, chacun avec son lien), les copies par statut, les membres (inscrits, actifs sur 7 jours, relecteurs), les exercices publiés, et l'activité des 14 derniers jours (inscriptions, copies envoyées, relectures rendues), jour par jour.
+- **Vue d'ensemble** : ce qui attend (copies en relecture depuis plus de 72 h ou sans assez de relecteurs, signalements, messages signalés, appels, chacun avec son lien), les copies par statut, les membres (inscrits, actifs sur 7 jours, relecteurs), les exercices publiés, et l'activité des 14 derniers jours (inscriptions, copies envoyées, relectures rendues), jour par jour.
 - **Copies** : toutes les copies envoyées, filtrées par statut (en relecture, en retard, validées, à reprendre, masquées) ou cherchées par exercice ou par pseudo. Pour chacune : auteur, dates, relectures du tour en cours (qui, tiré au sort ou volontaire, verdict, commentaire), points rapportés, photos. Un administrateur peut prendre lui-même une copie en relecture : sa relecture vaut décision.
 - **Membres** : inscription, statut, niveau de confiance, points, exercices, copies, relectures, dernière connexion ; chaque pseudo mène à sa fiche de modération. Aucune adresse email n'y figure. Un clic sur un titre de colonne trie (`?tri=points`, `&sens=asc`).
 - **Exercices** : tous les statuts (publiés, brouillons, retirés, fusionnés), avec lecteurs, copies, messages ; un filtre « sans copie validée » ; tri par colonne.

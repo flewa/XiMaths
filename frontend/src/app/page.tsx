@@ -12,6 +12,7 @@ import {
   MemberHeader,
   TodoCard,
   VisitorHero,
+  ExercisePreview,
   WeekCard,
 } from "@/components/HomeHero";
 import { secondaryButtonClass } from "@/components/Form";
@@ -83,7 +84,7 @@ function ExerciseFeed({
       </div>
       <nav
         aria-label="Vue des exercices"
-        className="mt-3.5 flex gap-1 overflow-x-auto border-b border-hairline pb-3 [scrollbar-width:none] max-md:[mask-image:linear-gradient(to_right,#000_85%,transparent)]"
+        className="mt-3.5 flex flex-wrap gap-1 border-b border-hairline pb-3"
       >
         {HOME_VIEWS.map((item) => (
           <Link
@@ -169,7 +170,12 @@ export default async function Home({
     return (
       <div className="page-wide">
         <JsonLd data={SITE_DATA} />
-        <VisitorHero />
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start lg:gap-10">
+          <VisitorHero />
+          <div className="hidden lg:block">
+            <ExercisePreview exercises={exercises.slice(0, 4)} />
+          </div>
+        </div>
         <HowItWorks />
         <div className="mt-14">{feed}</div>
       </div>

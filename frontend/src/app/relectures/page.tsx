@@ -150,7 +150,7 @@ export default async function ReviewsPage() {
           ) : (
             <ul className="divide-y divide-hairline border-y border-hairline">
               {open.map((item) => {
-                const late = item.waiting_hours >= LATE_HOURS;
+                const late = item.waiting_hours >= LATE_HOURS || item.short_staffed;
                 return (
                   <li key={item.solution_id} className="flex flex-wrap items-center justify-between gap-3 py-3">
                     <span className="min-w-0">
@@ -159,6 +159,7 @@ export default async function ReviewsPage() {
                       <span className="block text-sm text-mute">
                         <span className={late ? "font-medium text-accent-text" : ""}>
                           en attente {waiting(item.waiting_hours)}
+                          {item.short_staffed && " · relecteurs manquants"}
                         </span>{" "}
                         · {item.reviews_done} relecture{item.reviews_done > 1 ? "s" : ""} sur {item.reviews_expected}
                       </span>

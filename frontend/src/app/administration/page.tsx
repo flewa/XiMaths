@@ -40,7 +40,7 @@ const FILTERS: Record<Exclude<View, "apercu">, { value: string; label: string }[
   copies: [
     { value: "", label: "Toutes" },
     { value: "under_review", label: "En relecture" },
-    { value: "late", label: "En retard" },
+    { value: "late", label: "Attendent l'équipe" },
     { value: "validated", label: "Validées" },
     { value: "needs_work", label: "À reprendre" },
     { value: "hidden", label: "Masquées" },
@@ -154,7 +154,7 @@ function Overview({ data, counts }: { data: PanelOverview; counts: { reports: nu
   const todo = [
     data.late > 0 && {
       href: href("copies", { statut: "late" }),
-      text: `${plural(data.late, "copie attend", "copies attendent")} une correction depuis plus de 3 jours`,
+      text: `${plural(data.late, "copie attend", "copies attendent")} l'équipe : relecteurs trop peu nombreux, ou plus de 3 jours d'attente`,
       action: "Les corriger",
     },
     counts.reports > 0 && {
@@ -184,7 +184,7 @@ function Overview({ data, counts }: { data: PanelOverview; counts: { reports: nu
         <h2 id="a-traiter">À traiter</h2>
         {todo.length === 0 ? (
           <p className="mt-3 rounded-2xl bg-surface-soft px-5 py-4 text-body">
-            Rien n&apos;attend : aucune copie en retard, aucune décision de modération en attente.
+            Rien n&apos;attend : aucune copie en attente de l&apos;équipe, aucune décision de modération en attente.
           </p>
         ) : (
           <ul className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -206,7 +206,7 @@ function Overview({ data, counts }: { data: PanelOverview; counts: { reports: nu
       <section aria-labelledby="copies-chiffres" className="mt-10">
         <h2 id="copies-chiffres">Copies</h2>
         <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Figure value={data.under_review} label="en relecture" note={data.late > 0 ? `dont ${data.late} en retard` : undefined} />
+          <Figure value={data.under_review} label="en relecture" note={data.late > 0 ? `dont ${data.late} pour l'équipe` : undefined} />
           <Figure value={data.validated} label="validées" />
           <Figure value={data.needs_work} label="à reprendre" />
           <Figure value={data.hidden} label="masquées" />
@@ -403,7 +403,7 @@ function SolutionRow({ solution, me }: { solution: PanelSolution; me: string }) 
           </p>
           <span className="flex flex-wrap items-center gap-2 text-sm">
             {pointsLabel(solution) && <span className="tabular-nums text-ink">{pointsLabel(solution)}</span>}
-            {solution.late && <Tag strong>En retard</Tag>}
+            {solution.short_staffed ? <Tag strong>Relecteurs manquants</Tag> : solution.late && <Tag strong>En retard</Tag>}
             <Tag strong={inReview && !solution.late}>{solution.status_label}</Tag>
           </span>
         </div>

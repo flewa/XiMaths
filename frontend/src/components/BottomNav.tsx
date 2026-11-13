@@ -34,14 +34,14 @@ const SIGNED_IN: Item[] = [
   {
     href: "/progression",
     icon: "user",
-    label: "Moi, ma progression",
-    short: "Moi",
+    label: "Ma progression",
+    short: "Progression",
     match: (path) => ["/progression", "/reglages", "/membres", "/notifications"].some((prefix) => path.startsWith(prefix)),
   },
 ];
 
 // La connexion et l'inscription restent dans la barre du haut et l'accueil.
-const VISITOR: Item[] = [FEED, BROWSE, CHALLENGE, RANKINGS];
+const VISITOR: Item[] = [FEED, BROWSE, { ...CHALLENGE, main: true }, RANKINGS];
 
 // Pendant une session chronométrée, la barre ne doit pas inviter à quitter la page.
 const HIDDEN_ON = [/\/chrono$/, /^\/entrainement\//];
@@ -68,7 +68,12 @@ export function BottomNav({ signedIn }: { signedIn: boolean }) {
                 className={`flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium leading-none ${active ? "text-ink-deep" : "text-mute"}`}
               >
                 {item.main ? (
-                  <span className="grid h-7 w-10 place-items-center rounded-lg bg-accent text-accent-ink">
+                  // Plein seulement sur sa page : sinon on croirait l'onglet sélectionné.
+                  <span
+                    className={`grid h-7 w-10 place-items-center rounded-lg ${
+                      active ? "bg-accent text-accent-ink" : "bg-accent-soft text-accent-text"
+                    }`}
+                  >
                     <Icon name={item.icon} size={18} />
                   </span>
                 ) : (

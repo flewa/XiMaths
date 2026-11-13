@@ -145,7 +145,8 @@ export default async function RankingsPage({ searchParams }: { searchParams: Pro
       </div>
 
       <h2 className="mt-8">
-        {pantheon ? "Panthéon" : board.board_label}
+        {/* « Global » répétait le sélecteur « Tous niveaux » juste au-dessus. */}
+        {pantheon ? "Panthéon" : board.board === "global" ? "La semaine, tous niveaux" : `La semaine en ${board.board_label}`}
         {board.peers_level && <span className="font-sans text-base text-mute"> · parmi les {board.peers_level}</span>}
         {board.total > 0 && <span className="font-sans text-base text-mute"> · {plural(board.total, "participant")}</span>}
       </h2>
@@ -163,15 +164,6 @@ export default async function RankingsPage({ searchParams }: { searchParams: Pro
           <Link href="/" className="mt-4 inline-block underline underline-offset-4">
             Trouver un exercice à résoudre
           </Link>
-          {!pantheon && (
-            <p className="mt-4 text-sm text-mute">
-              Ce classement repart de zéro chaque lundi.{" "}
-              <Link href={rankingsHref({ board: "pantheon", peers })} className="underline underline-offset-4 hover:text-ink">
-                Le Panthéon
-              </Link>{" "}
-              garde tous les points depuis l&apos;inscription.
-            </p>
-          )}
         </div>
       ) : (
         <>
@@ -203,7 +195,7 @@ export default async function RankingsPage({ searchParams }: { searchParams: Pro
         <p className="text-sm text-mute">
           {pantheon
             ? "Le Panthéon cumule tous les points depuis l'inscription. Il reste au second plan : ce sont les classements de la semaine qui comptent."
-            : "Seuls comptent ici les points gagnés cette semaine-là : le classement repart de zéro chaque lundi, et le Panthéon garde le total. Un classement devient définitif le mardi à 0 h : les 24 heures qui suivent la fin de la semaine servent à annuler d'éventuels points frauduleux."}{" "}
+            : "Le classement repart de zéro chaque lundi ; le Panthéon garde le total depuis l'inscription. Il devient définitif le mardi à 0 h : ces 24 heures servent à annuler d'éventuels points frauduleux."}{" "}
           <Link href="/badges" className="underline underline-offset-4">
             Les badges et leurs critères
           </Link>

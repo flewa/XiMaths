@@ -72,6 +72,7 @@ class PanelActionTests(ContentTestCase):
         self.assertEqual(self.post(f"solutions/{own.pk}/decide", {"decision": "validate", "reason": "x"}).status_code, 403)
 
     def test_editing_an_exercise_and_removing_then_restoring_it(self):
+        self.validate(self.publish())  # résolu : son auteur a ses points de publication
         self.client.force_login(self.admin)
         detail = self.client.get(f"/api/panel/exercises/{self.exercise.pk}").json()
         detail.update(title="Série de Riemann (énoncé corrigé)", statement="Montrer que la série des 1/n^2 converge, puis majorer sa somme.", reason="Coquille dans l'énoncé.")

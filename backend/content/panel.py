@@ -190,7 +190,10 @@ class PanelSolutionOut(Schema):
     validated_at: datetime | None
     # En relecture : depuis combien d'heures (depuis l'envoi, ou la dernière révision).
     waiting_hours: int | None
+    # Attend l'équipe : plus de 72 heures en relecture, ou pas assez de relecteurs.
     late: bool
+    # Moins de relecteurs que le consensus n'en demande : l'équipe doit la corriger.
+    short_staffed: bool
     review_round: int
     reviews_done: int
     reviews_expected: int
@@ -276,7 +279,8 @@ def solutions(request, status: SolutionFilter = "", q: str = "", page: int = 1):
                 "published_at": solution.published_at,
                 "validated_at": solution.validated_at,
                 "waiting_hours": hours,
-                "late": bool(in_review and now - solution.updated_at >= TEAM_ALERT_AFTER),
+                "late": bool(in_review and (now - solution.updated_at >= TEAM_ALERT_AFTER or drawn + chosen < REVIEWERS_PER_SOLUTION)),
+                "short_staffed": bool(in_review and drawn + chosen < REVIEWERS_PER_SOLUTION),
                 "review_round": solution.review_round,
                 "reviews_done": done,
                 "reviews_expected": max(drawn + chosen, REVIEWERS_PER_SOLUTION),
