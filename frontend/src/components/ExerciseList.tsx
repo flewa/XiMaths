@@ -7,7 +7,7 @@ import { Difficulty } from "./ExerciseMeta";
 import { MathText } from "./MathText";
 
 /** Solutions envoyées : un compteur, les solutions elles-mêmes restent privées. Rien quand il
- * n'y en a pas : « aucune solution » sur chaque ligne ferait croire le site vide. */
+ * n'y en a pas : « aucune solution » sur chaque ligne ferait croire le site vide. */
 function solutionsLabel(count: number) {
   return count === 0 ? null : `${count} solution${count > 1 ? "s" : ""} envoyée${count > 1 ? "s" : ""}`;
 }
@@ -15,7 +15,7 @@ function solutionsLabel(count: number) {
 type Tag = { label: string; className: string };
 
 /** Ce qui distingue l'exercice : en vogue, ou tout juste publié. Les autres raisons du fil
- * (« à résoudre », « à découvrir ») restent internes : l'élève voit l'état de l'exercice,
+ * (« à résoudre », « à découvrir ») restent internes : l'élève voit l'état de l'exercice,
  * pas la mécanique qui l'a choisi. */
 function tagOf(exercise: ExerciseSummary | FeedItem): Tag | null {
   if ("reason" in exercise && exercise.reason === "tendance") return { label: "Tendance", className: "text-body" };
@@ -23,7 +23,7 @@ function tagOf(exercise: ExerciseSummary | FeedItem): Tag | null {
   return null;
 }
 
-// Les premiers niveaux, puis « +n » : deux sur téléphone, quatre sur ordinateur. Un exercice
+// Les premiers niveaux, puis « +n » : deux sur téléphone, quatre sur ordinateur. Un exercice
 // de 1re année en compte jusqu'à huit, qui noyaient le titre.
 const PHONE_LEVELS = 2;
 const DESKTOP_LEVELS = 4;
@@ -121,3 +121,48 @@ export function ExerciseList({
     </ul>
   );
 }
+
+/** Nombre d'exercices montrés d'abord, puis ajoutés à chaque « Voir plus ». */
+export const PAGE_STEP = 30;
+
+/** Valeur de ?voir= lue dans l'adresse : un multiple de PAGE_STEP, au moins PAGE_STEP. */
+export function shownCount(value: string | undefined) {
+  const n = Number.parseInt(value ?? "", 10);
+  if (!Number.isFinite(n) || n <= PAGE_STEP) return PAGE_STEP;
+  return Math.min(Math.ceil(n / PAGE_STEP) * PAGE_STEP, 2000);
+}
+
+/** Une liste longue montrée par tranches : les premiers exercices, puis un lien « Voir plus »
+ * qui recharge la page avec la tranche suivante. Un lien, pas un bouton : les moteurs de
+ * recherche le suivent et atteignent tous les exercices. Le défilement ne bouge pas. */
+export function PagedExerciseList({
+  exercises,
+  shown,
+  moreHref,
+  showAuthor,
+}: {
+  exercises: (ExerciseSummary | FeedItem)[];
+  shown: number;
+  moreHref: (count: number) => string;
+  showAuthor?: boolean;
+}) {
+  const rest = exercises.length - shown;
+  return (
+    <>
+      <ExerciseList exercises={exercises.slice(0, shown)} showAuthor={showAuthor} />
+      {rest > 0 && (
+        <p className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <Link href={moreHref(shown + PAGE_STEP)} scroll={false} className={moreClass}>
+            Voir {Math.min(rest, PAGE_STEP)} exercice{Math.min(rest, PAGE_STEP) > 1 ? "s" : ""} de plus
+          </Link>
+          <span className="text-sm text-mute">
+            {shown} sur {exercises.length}
+          </span>
+        </p>
+      )}
+    </>
+  );
+}
+
+const moreClass =
+  "inline-flex min-h-10 items-center justify-center rounded-lg bg-surface-card px-4 text-[15px] font-medium text-ink hover:bg-surface-dark-elevated";

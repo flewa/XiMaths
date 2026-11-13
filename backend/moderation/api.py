@@ -71,7 +71,7 @@ class ReportOut(Schema):
     @staticmethod
     def resolve_title(obj):
         exercise = obj.exercise or obj.solution.exercise
-        return exercise.title if obj.exercise_id else f"Une copie relue de « {exercise.title} »"
+        return exercise.title if obj.exercise_id else f"Une copie relue de « {exercise.title} »"
 
     @staticmethod
     def resolve_reason_label(obj):
@@ -85,7 +85,7 @@ class ReportOut(Schema):
 def _readable_solution(user, solution_id):
     """Copie que `user` peut lire, donc signaler : les solutions sont privées, seuls leurs
     relecteurs tirés au sort (ou volontaires) et la modération les lisent. Une copie
-    invisible pour lui est « introuvable », sans en dire plus."""
+    invisible pour lui est « introuvable », sans en dire plus."""
     solution = (
         Solution.objects.select_related("exercise")
         .exclude(status__in=[Solution.Status.DRAFT, Solution.Status.HIDDEN])
@@ -239,21 +239,21 @@ def my_decisions(request):
         if key in seen:
             continue
         seen.add(key)
-        what = report.exercise.title if report.exercise_id else f"Ta solution de « {report.solution.exercise.title} »"
+        what = report.exercise.title if report.exercise_id else f"Ta solution de « {report.solution.exercise.title} »"
         items.append(
             _decision_out("report", report, f"{report.get_reason_display()} : {what}", report.decision_note, report.decided_at)
         )
     for signal in IntegritySignal.objects.filter(user=user, status=IntegritySignal.Status.CONFIRMED).select_related(
         "solution__exercise"
     ):
-        title = f"Plagiat confirmé : ta solution de « {signal.solution.exercise.title} »" if signal.solution else "Plagiat confirmé"
+        title = f"Plagiat confirmé : ta solution de « {signal.solution.exercise.title} »" if signal.solution else "Plagiat confirmé"
         items.append(_decision_out("signal", signal, title, signal.decision_note, signal.decided_at))
     for message in Message.objects.filter(author=user, removed_by_team=True).select_related("exercise", "appeal"):
         items.append(
             _decision_out(
                 "message",
                 message,
-                f"Message retiré sous « {message.exercise.title} »",
+                f"Message retiré sous « {message.exercise.title} »",
                 message.removal_reason,
                 message.removed_at,
             )

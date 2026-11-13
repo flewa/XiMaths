@@ -67,16 +67,16 @@ def check_template(template):
         return ["Les paramètres sont un objet JSON : une lettre, et la liste de ses valeurs."]
     for name, values in parameters.items():
         if not PARAMETER_RE.match(name) or name in RESERVED:
-            errors.append(f"« {name} » : un paramètre est une lettre minuscule, autre que e et i.")
+            errors.append(f"« {name} » : un paramètre est une lettre minuscule, autre que e et i.")
         if not isinstance(values, list) or not values or not all(isinstance(v, int) for v in values):
-            errors.append(f"« {name} » : donne une liste d'entiers.")
+            errors.append(f"« {name} » : donne une liste d'entiers.")
     for name in PLACEHOLDER_RE.findall(template.statement):
         if name not in parameters:
             errors.append(f"L'énoncé utilise {{{{{name}}}}}, qui n'est pas un paramètre.")
     if not errors:
         values = {name: options[0] for name, options in parameters.items()}
         if check_answer(expected_answer(template, values), expected_answer(template, values)) is not True:
-            errors.append("La réponse ne se lit pas : elle doit s'écrire avec les paramètres, comme « sqrt(a)/b ».")
+            errors.append("La réponse ne se lit pas : elle doit s'écrire avec les paramètres, comme « sqrt(a)/b ».")
     return errors
 
 
@@ -90,7 +90,7 @@ def fill(template, values):
 
 
 def expected_answer(template, values):
-    """Réponse attendue, les paramètres remplacés par leurs valeurs : « sqrt(3)/(5) »."""
+    """Réponse attendue, les paramètres remplacés par leurs valeurs : « sqrt(3)/(5) »."""
     return re.sub(
         r"\b([a-z])\b",
         lambda match: f"({values[match[1]]})" if match[1] in values else match[0],

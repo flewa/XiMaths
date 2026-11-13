@@ -34,8 +34,8 @@ export const LEVEL_INTROS: Record<string, string> = {
   BL2: "Séries, intégrales généralisées, diagonalisation, lois discrètes et à densité, fonctions de deux variables : la deuxième année de B/L.",
 };
 
-/** Le nom d'un chapitre ou d'une notion précédé de « de » ou « d' ». Seule l'initiale
- * passe en minuscule : « séries de Fourier », « divisibilité, PGCD et Bézout ». */
+/** Le nom d'un chapitre ou d'une notion précédé de « de » ou « d' ». Seule l'initiale
+ * passe en minuscule : « séries de Fourier », « divisibilité, PGCD et Bézout ». */
 export function ofChapter(name: string) {
   const lower = name.charAt(0).toLowerCase() + name.slice(1);
   return /^[aeéèêiouyh]/i.test(name) ? `d'${lower}` : `de ${lower}`;

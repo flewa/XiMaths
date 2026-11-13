@@ -28,7 +28,7 @@ import { dateFormat } from "@/lib/labels";
 
 export const metadata: Metadata = { title: "Modération", robots: { index: false } };
 
-/** « depuis 25 min » : calculé au rendu de la page, qui se recharge à chaque décision. */
+/** « depuis 25 min » : calculé au rendu de la page, qui se recharge à chaque décision. */
 function claimSince(claim: Claim | null, now: Date) {
   if (!claim) return "";
   const minutes = Math.max(0, Math.round((now.getTime() - new Date(claim.since).getTime()) / 60_000));
@@ -136,7 +136,7 @@ function ReportCard({ group, now }: { group: ReportGroup; now: Date }) {
               <Link href={`/moderation/membres/${encodeURIComponent(report.username)}`} className="text-ink hover:underline">
                 {report.username}
               </Link>
-              {report.details && <span className="whitespace-pre-line"> : « {report.details} »</span>}
+              {report.details && <span className="whitespace-pre-line"> : « {report.details} »</span>}
             </li>
           ))}
         </ul>

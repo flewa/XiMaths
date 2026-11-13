@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
-import { ExerciseList } from "@/components/ExerciseList";
+import { PagedExerciseList, shownCount } from "@/components/ExerciseList";
 import { JsonLd, breadcrumb } from "@/components/JsonLd";
 import {
   type ExerciseSummary,
@@ -19,7 +19,7 @@ import { plural } from "@/lib/labels";
 import { chapterPath, levelPath, notionsOf, ofChapter, topicIntro } from "@/lib/seo-pages";
 import { SHARE_IMAGE } from "@/lib/site";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = { params: Promise<{ slug: string }>; searchParams?: Promise<{ voir?: string }> };
 
 // Au-delà, le titre passerait la longueur qu'un moteur affiche.
 const TITLE_LEVELS = 4;
@@ -38,8 +38,8 @@ function levelsOf(exercises: ExerciseSummary[], levels: Level[]) {
   return levels.filter((level) => present.has(level.code));
 }
 
-/** Chapitre : « Exercices d'analyse, de la L1 au M2 et en prépa ». Notion : « Exercices de
- * séries entières (L2, MP, PC, PSI…) », les niveaux qu'on y trouve vraiment. */
+/** Chapitre : « Exercices d'analyse, de la L1 au M2 et en prépa ». Notion : « Exercices de
+ * séries entières (L2, MP, PC, PSI…) », les niveaux qu'on y trouve vraiment. */
 function title(topic: Topic, reached: Level[]) {
   const heading = `Exercices ${ofChapter(topic.name)}`;
   if (topic.parent === null) return `${heading}, de la L1 au M2 et en prépa`;
@@ -87,8 +87,9 @@ function TopicChips({ label, topics }: { label: string; topics: Topic[] }) {
   );
 }
 
-export default async function ChapterPage({ params }: Props) {
+export default async function ChapterPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const shown = shownCount((await searchParams)?.voir);
   let data;
   try {
     const found = await load(slug);
@@ -177,7 +178,11 @@ export default async function ChapterPage({ params }: Props) {
             Aucun exercice {parent ? "sur cette notion" : "dans ce chapitre"} pour l&apos;instant.
           </p>
         ) : (
-          <ExerciseList exercises={exercises} />
+          <PagedExerciseList
+            exercises={exercises}
+            shown={shown}
+            moreHref={(count) => `${chapterPath(topic.slug)}?voir=${count}`}
+          />
         )}
       </section>
 

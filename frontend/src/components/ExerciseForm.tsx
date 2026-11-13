@@ -162,7 +162,7 @@ export function ExerciseForm({
         <Field
           label="Titre"
           htmlFor="title"
-          hint="Les formules entre $…$, comme dans l'énoncé : « Reste de $3^{100}$ modulo 7 »."
+          hint="Les formules entre $…$, comme dans l'énoncé : « Reste de $3^{100}$ modulo 7 »."
         >
           <input
             id="title"
@@ -277,7 +277,7 @@ export function ExerciseForm({
             <button
               type="button"
               onClick={() => setHints([...hints, ""])}
-              className="text-sm underline underline-offset-4"
+              className="inline-flex min-h-8 items-center text-sm underline underline-offset-4"
             >
               Ajouter une indication
             </button>

@@ -44,7 +44,7 @@ def cancel_merge(modeladmin, request, queryset):
 
 @admin.register(DuplicatePair)
 class DuplicatePairAdmin(admin.ModelAdmin):
-    """File « Doublons à arbitrer », triée par score décroissant."""
+    """File « Doublons à arbitrer », triée par score décroissant."""
 
     list_display = ("exercise", "existing", "band", "score_display", "llm_relation", "author_choice", "status", "created_at")
     list_filter = ("status", "band", "author_choice", "llm_relation")

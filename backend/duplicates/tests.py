@@ -291,7 +291,7 @@ class DetectionTests(ContentTestCase):
 
 @mock.patch("duplicates.services.embed", return_value=None)
 class DuplicateApiTests(ContentTestCase):
-    """API : panneau « Exercices proches » et publication avec choix de l'auteur."""
+    """API : panneau « Exercices proches » et publication avec choix de l'auteur."""
 
     def setUp(self):
         super().setUp()
@@ -345,7 +345,7 @@ class DuplicateApiTests(ContentTestCase):
         self.assertEqual(response.status_code, 409)
         self.assertEqual([c["id"] for c in response.json()["candidates"]], [existing.pk])
 
-        # « C'est différent » demande une phrase d'explication.
+        # « C'est différent » demande une phrase d'explication.
         response = self.post(f"/api/exercises/{draft_id}/publish", {"choice": "different"})
         self.assertEqual(response.status_code, 422)
 

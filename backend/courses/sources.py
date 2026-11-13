@@ -53,13 +53,13 @@ def parse(text, *, slug, cycle):
     for line in header.splitlines():
         key, colon, value = line.partition(":")
         if not colon or key.strip() not in KNOWN:
-            raise ValueError(f"{slug} : ligne d'en-tête inconnue « {line} ».")
+            raise ValueError(f"{slug} : ligne d'en-tête inconnue « {line} ».")
         fields[key.strip()] = value.strip()
     missing = REQUIRED - fields.keys()
     if missing:
         raise ValueError(f"{slug} : il manque {', '.join(sorted(missing))} dans l'en-tête.")
     if not fields["ordre"].isdigit():
-        raise ValueError(f"{slug} : « ordre » doit être un entier.")
+        raise ValueError(f"{slug} : « ordre » doit être un entier.")
     if not body.strip():
         raise ValueError(f"{slug} : la fiche est vide.")
     return Source(

@@ -8,6 +8,8 @@ export const SITE_DESCRIPTION =
 
 export type Theme = "system" | "light" | "dark";
 export const THEME_COOKIE = "theme";
+/** Pages dont l'explication a été lue (PageIntro) : identifiants séparés par des points. */
+export const SEEN_COOKIE = "vu";
 /** Image de partage (app/opengraph-image.png), à redonner aux pages qui définissent leur
  * propre openGraph : celui-ci remplace celui de la mise en page, image comprise. */
 export const SHARE_IMAGE = {
@@ -18,7 +20,7 @@ export const SHARE_IMAGE = {
 };
 
 /** Comptes officiels de XiMaths : déclarés aux moteurs (sameAs) et liés en pied de page.
- * Ils aident Google à rattacher le nom « XiMaths » au site. */
+ * Ils aident Google à rattacher le nom « XiMaths » au site. */
 export const SOCIAL_PROFILES = [{ label: "YouTube", url: "https://www.youtube.com/@Ximathsfr" }];
 
 /** Sans choix dans les réglages, le site est sombre. */

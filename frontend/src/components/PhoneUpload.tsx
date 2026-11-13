@@ -92,7 +92,7 @@ export function PhoneUpload({ token }: { token: string }) {
         <p className="text-body">
           {upload.timed
             ? "Le temps est écoulé : les photos ne sont plus acceptées. Les pages déjà envoyées sont rendues avec ta copie."
-            : "Ce QR code a expiré. Sur ton ordinateur, clique sur « Prolonger de 30 minutes », puis recharge cette page."}
+            : "Ce QR code a expiré. Sur ton ordinateur, clique sur « Prolonger de 30 minutes », puis recharge cette page."}
         </p>
       ) : full ? (
         <p className="flex gap-2 text-body">

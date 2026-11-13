@@ -62,7 +62,7 @@ export function homeView(value: string | undefined) {
   return HOME_VIEWS.find((view) => view.value === value) ?? HOME_VIEWS[0];
 }
 
-/** Adresse de l'accueil pour une vue et un niveau (?niveau= tel quel : un code, « tous », ou rien). */
+/** Adresse de l'accueil pour une vue et un niveau (?niveau= tel quel : un code, « tous », ou rien). */
 export function homeHref(view: string, niveau: string | undefined) {
   const query = new URLSearchParams();
   if (niveau) query.set("niveau", niveau);
@@ -96,7 +96,7 @@ const DAY_FORMAT = new Intl.DateTimeFormat("fr-FR", {
   timeZone: "Europe/Paris",
 });
 
-/** « Dimanche 8 novembre », à l'heure de Paris. */
+/** « Dimanche 8 novembre », à l'heure de Paris. */
 export function dayLabel(date: Date) {
   const label = DAY_FORMAT.format(date);
   return label.charAt(0).toUpperCase() + label.slice(1);

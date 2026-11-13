@@ -95,7 +95,7 @@ class ReportAdmin(admin.ModelAdmin):
     @admin.display(description="Contenu")
     def target_title(self, report):
         exercise = report.exercise or report.solution.exercise
-        return exercise.title if report.exercise else f"Solution sur « {exercise.title} »"
+        return exercise.title if report.exercise else f"Solution sur « {exercise.title} »"
 
     @admin.display(description="Contenu signalé")
     def content(self, report):

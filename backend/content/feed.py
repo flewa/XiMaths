@@ -10,11 +10,11 @@ cent fois plus de solutions ne donnent qu'un score sept fois plus élevé.
   l'exercice et comptes liés à lui.
 - w(s) : 1 validée, 0,4 en relecture, 0 sinon ou si elle est générée par IA.
 - t_s : âge de la solution en jours.
-- V, V30 : votes « utile » sur l'exercice, pondérés, au total et sur 30 jours.
+- V, V30 : votes « utile » sur l'exercice, pondérés, au total et sur 30 jours.
 - Q(e) : 0,5 si un signalement de l'exercice est en cours, 1,1 pour l'exercice
   canonique d'un cluster de doublons fusionnés, 1 sinon.
 
-Le fil mélange 60 % de Tendances, 25 % d'« À résoudre » et 15 % d'exploration.
+Le fil mélange 60 % de Tendances, 25 % d'« À résoudre » et 15 % d'exploration.
 Il tient sur une page : pas de défilement infini.
 """
 
@@ -46,7 +46,7 @@ FEED_SIZE = 20
 TRENDING, TO_SOLVE, EXPLORATION = "tendance", "a_resoudre", "exploration"
 FEED_MIX = {TRENDING: 0.60, TO_SOLVE: 0.25, EXPLORATION: 0.15}
 FEED_LABELS = {TRENDING: "Tendance", TO_SOLVE: "À résoudre", EXPLORATION: "À découvrir"}
-# « À résoudre » : moins de 14 jours et moins de 2 solutions validées.
+# « À résoudre » : moins de 14 jours et moins de 2 solutions validées.
 TO_SOLVE_MAX_AGE = timedelta(days=14)
 TO_SOLVE_MAX_SOLUTIONS = 2
 # Exploration : exercices de moins de 30 jours, tirés au hasard, en priorité ceux

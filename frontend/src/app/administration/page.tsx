@@ -615,7 +615,7 @@ export default async function AdministrationPage({
   const view: View = VIEWS.some((item) => item.value === params.vue) ? (params.vue as View) : "apercu";
   const q = params.q?.trim() ?? "";
   const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
-  // Un filtre inconnu (adresse tapée à la main) vaut « tout ».
+  // Un filtre inconnu (adresse tapée à la main) vaut « tout ».
   const statut = view !== "apercu" && FILTERS[view].some((filter) => filter.value === params.statut) ? (params.statut ?? "") : "";
   // Le serveur ignore une colonne qu'il ne connaît pas.
   const tri = params.tri?.slice(0, 20) ?? "";

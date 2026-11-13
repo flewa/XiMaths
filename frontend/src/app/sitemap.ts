@@ -17,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const { exercises, levels, topics, courseNotes } = await fetchSitemap();
     return [
       ...pages,
-      // Les pages d'entrée : ce que cherchent les élèves (« exercices MPSI », « exercices de probabilités »).
+      // Les pages d'entrée : ce que cherchent les élèves (« exercices MPSI », « exercices de probabilités »).
       ...levels.map((level) => ({ url: `${SITE_URL}${levelPath(level.code)}` })),
       // Chapitres et notions ; une notion encore vide n'a rien à montrer.
       ...topics

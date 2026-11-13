@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { AppealForm } from "@/components/ContributionForms";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { MathText } from "@/components/MathText";
+import { PageIntro } from "@/components/PageIntro";
 import { type Decision, fetchMyDecisions } from "@/lib/api";
 import { dateFormat } from "@/lib/labels";
 
@@ -64,10 +65,10 @@ export default async function MyDecisionsPage() {
   return (
     <div className="max-w-[720px]">
       <h1>Mes décisions</h1>
-      <p className="mt-2 text-body">
+      <PageIntro id="decisions">
         Les décisions de modération qui te concernent, toujours prises par un humain et motivées. Tu peux faire
         appel sous 14 jours : un autre modérateur examine ta demande et répond sous 7 jours.
-      </p>
+      </PageIntro>
 
       {decisions.length === 0 ? (
         <p className="mt-8 rounded-2xl bg-surface-soft px-5 py-4 text-body">

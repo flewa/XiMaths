@@ -16,7 +16,7 @@ const REASONS: Record<ReportTarget, { value: string; label: string; help: string
     { value: "plagiat", label: "Plagiat", help: "Recopié d'un livre ou d'un site sans autorisation." },
     { value: "inapproprie", label: "Contenu inapproprié", help: "Hors sujet, injurieux ou illicite." },
   ],
-  // Une copie fausse se juge dans la relecture (« incorrecte ») : on ne signale ici que ce
+  // Une copie fausse se juge dans la relecture (« incorrecte ») : on ne signale ici que ce
   // que le verdict ne dit pas.
   solution: [
     { value: "plagiat", label: "Plagiat", help: "Recopiée d'un livre, d'un site ou d'un corrigé." },
@@ -25,7 +25,7 @@ const REASONS: Record<ReportTarget, { value: string; label: string; help: string
   ],
 };
 
-/** « https://…/exercices/12 », « /exercices/12 » ou « 12 » → 12. */
+/** « https://…/exercices/12 », « /exercices/12 » ou « 12 » → 12. */
 function exerciseIdFrom(input: string) {
   const match = input.trim().match(/(\d+)\/?$/);
   return match ? Number(match[1]) : null;

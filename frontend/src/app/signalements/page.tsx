@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { Icon } from "@/components/Icon";
 import { MathText } from "@/components/MathText";
+import { PageIntro } from "@/components/PageIntro";
 import { type MyReport, fetchMyReports } from "@/lib/api";
 import { dateFormat } from "@/lib/labels";
 
@@ -70,10 +71,10 @@ export default async function MyReportsPage() {
   return (
     <div className="max-w-[720px]">
       <h1>Mes signalements</h1>
-      <p className="mt-2 text-body">
+      <PageIntro id="signalements">
         Un modérateur examine chaque signalement, à la main. Un doublon, un plagiat ou une erreur confirmés
         rapportent 3 points. Personne d&apos;autre ne sait que c&apos;est toi qui as signalé.
-      </p>
+      </PageIntro>
 
       {reports.length > 0 && (
         <dl className="mt-8 grid grid-cols-3 gap-3">
@@ -95,10 +96,10 @@ export default async function MyReportsPage() {
           <p className="font-medium text-ink">Aucun signalement pour l&apos;instant.</p>
           <ul className="mt-3 space-y-1.5 text-sm text-body">
             <li>
-              Sous chaque exercice, « Signaler » : une erreur dans l&apos;énoncé, un doublon, un plagiat.
+              Sous chaque exercice, « Signaler » : une erreur dans l&apos;énoncé, un doublon, un plagiat.
             </li>
             <li>
-              Quand tu relis une copie, « Signaler cette copie » : un plagiat, ou une IA non déclarée. Une copie
+              Quand tu relis une copie, « Signaler cette copie » : un plagiat, ou une IA non déclarée. Une copie
               fausse, elle, se juge dans ta relecture.
             </li>
           </ul>

@@ -23,7 +23,7 @@ Reason = PointTransaction.Reason
 
 
 def source_key(obj):
-    """Identifie l'objet à l'origine des points : (« app.modèle », pk)."""
+    """Identifie l'objet à l'origine des points : (« app.modèle », pk)."""
     return obj._meta.label_lower, obj.pk
 
 

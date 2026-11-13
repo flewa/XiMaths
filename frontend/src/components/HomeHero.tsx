@@ -32,7 +32,7 @@ export function WeekSquares({ days }: { days: Progress["days"] }) {
       {days.map((day, index) => (
         <span
           key={day.date}
-          className={`grid size-8 place-items-center rounded-lg text-[11px] font-semibold ${
+          className={`grid size-8 place-items-center rounded-lg text-xs font-semibold ${
             day.active ? "bg-ink text-canvas" : "bg-surface-card text-mute"
           } ${index === today ? "ring-[1.5px] ring-accent ring-offset-2 ring-offset-surface-soft" : ""}`}
         >
@@ -76,7 +76,7 @@ function actionsFor(me: Me, progress: Progress | null): Action[] {
       href: `/exercices/${skill.next.id}`,
       label: (
         <>
-          Progresser en {skill.topic.toLowerCase()} avec « <MathText>{skill.next.title}</MathText> »
+          Progresser en {skill.topic.toLowerCase()} avec « <MathText>{skill.next.title}</MathText> »
         </>
       ),
       detail: `Difficulté ${skill.next.difficulty}/5`,
@@ -138,7 +138,7 @@ export function ChallengeCard({ challenge, state = "a-faire" }: { challenge: Dai
         <h2 id="defi" className={cardTitle}>
           Défi du jour
         </h2>
-        {/* Le groupe plutôt que le niveau de l'exercice tiré : « PTSI » ferait croire à un
+        {/* Le groupe plutôt que le niveau de l'exercice tiré : « PTSI » ferait croire à un
             élève de MPSI que ce défi n'est pas pour lui. */}
         <span className={pill}>{challenge.group_label.split(" · ")[0]}</span>
         <span className={pill}>{challenge.minutes} minutes</span>
@@ -168,7 +168,7 @@ export function WeekCard({ progress }: { progress: Progress }) {
         <h2 id="semaine" className={cardTitle}>
           Ta semaine
         </h2>
-        <Link href="/progression" className="text-[13px] text-mute hover:text-ink">
+        <Link href="/progression" className="-my-1 inline-flex min-h-8 items-center text-[13px] text-mute hover:text-ink">
           Progression →
         </Link>
       </div>
@@ -265,7 +265,7 @@ export function LeadersCard({ board, lastWeek = false }: { board: Leaderboard; l
               >
                 <span
                   aria-hidden="true"
-                  className="grid size-5 shrink-0 place-items-center rounded-full text-[11px] font-semibold text-[#1c1c1c]"
+                  className="grid size-5 shrink-0 place-items-center rounded-full text-xs font-semibold text-[#1c1c1c]"
                   style={{ background: PODIUM_TINTS[entry.rank - 1] ?? PODIUM_TINTS[2] }}
                 >
                   {entry.rank}
@@ -294,7 +294,7 @@ export function LeadersCard({ board, lastWeek = false }: { board: Leaderboard; l
       )}
       <Link
         href={lastWeek && board.week ? `/classements?semaine=${board.week}` : "/classements"}
-        className="mt-2 inline-block text-[13px] text-mute underline underline-offset-4 hover:text-ink"
+        className="mt-1 inline-flex min-h-8 items-center text-[13px] text-mute underline underline-offset-4 hover:text-ink"
       >
         Voir le classement
       </Link>
@@ -323,7 +323,7 @@ export function CourseNotesCard({ notes }: { notes: CourseNoteSummary[] }) {
           </li>
         ))}
       </ul>
-      <Link href="/rappels" className="mt-2 inline-block text-[13px] text-mute underline underline-offset-4 hover:text-ink">
+      <Link href="/rappels" className="mt-1 inline-flex min-h-8 items-center text-[13px] text-mute underline underline-offset-4 hover:text-ink">
         Tous les rappels
       </Link>
     </section>
@@ -334,7 +334,7 @@ export function CourseNotesCard({ notes }: { notes: CourseNoteSummary[] }) {
 export function VisitorHero() {
   return (
     <section aria-labelledby="accroche">
-      {/* Le nom du site dans le titre : il aide les moteurs à associer « XiMaths » à ce site. */}
+      {/* Le nom du site dans le titre : il aide les moteurs à associer « XiMaths » à ce site. */}
       <h1 id="accroche" className="max-w-[22ch]">
         XiMaths : des exercices de maths du supérieur, et ta copie corrigée par des étudiants.
       </h1>

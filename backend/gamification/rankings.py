@@ -42,7 +42,7 @@ class Week:
 
     @classmethod
     def parse(cls, label):
-        """« 2026-W44 » ; ValueError si la semaine n'existe pas."""
+        """« 2026-W44 » ; ValueError si la semaine n'existe pas."""
         match = WEEK_RE.match(label)
         if not match:
             raise ValueError(f"Semaine invalide : {label}")
@@ -132,7 +132,7 @@ def points_by_user(*, week=None, level=None, user=None):
 
 def standings(*, week=None, level=None, peers_level=None):
     """Classement complet, du premier au dernier. Ex aequo : même rang (1, 2, 2, 4).
-    `peers_level` ne garde que ceux qui ont déclaré ce niveau (« mes pairs »)."""
+    `peers_level` ne garde que ceux qui ont déclaré ce niveau (« mes pairs »)."""
     points = {pk: total for pk, total in points_by_user(week=week, level=level).items() if total > 0}
     users = ranked_users().filter(pk__in=points)
     if peers_level is not None:
@@ -157,7 +157,7 @@ def neighbourhood(entries, user_id, size=NEIGHBOURS):
 
 
 def absence_reason(user, *, week=None, where=""):
-    """Pourquoi `user` n'apparaît pas dans un classement. `where` : « en MP »…"""
+    """Pourquoi `user` n'apparaît pas dans un classement. `where` : « en MP »…"""
     if not user.leaderboard_visible:
         return "Tu as masqué ta présence dans les classements."
     if user.status != User.Status.ACTIVE or excluded_ids().filter(user_id=user.pk).exists():

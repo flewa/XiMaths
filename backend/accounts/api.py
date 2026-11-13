@@ -205,7 +205,7 @@ class PasswordIn(Schema):
 
 
 class DeleteIn(Schema):
-    confirmation: str = Field(description="« SUPPRIMER », en toutes lettres.")
+    confirmation: str = Field(description="« SUPPRIMER », en toutes lettres.")
     password: str = Field(default="", max_length=128)
 
 
@@ -358,7 +358,7 @@ def resend_verification(request):
 )
 def academic_email(request, payload: EmailIn):
     """Envoie un lien à une adresse académique : une fois confirmée, elle donne le
-    badge « Étudiant vérifié ». Seuls son domaine et son empreinte sont gardés."""
+    badge « Étudiant vérifié ». Seuls son domaine et son empreinte sont gardés."""
     try:
         academic.send_academic_link(request.auth, payload.email)
     except RuleError as error:

@@ -142,13 +142,13 @@ def post_message(request, exercise_id: int, payload: MessageIn):
         url = f"/exercices/{exercise.pk}#discussion"
         if parent is None:
             if exercise.author_id != user.pk:
-                notify(exercise.author, Kind.DISCUSSION, f"Une question sous ton exercice « {exercise.title} »", excerpt(body), url)
+                notify(exercise.author, Kind.DISCUSSION, f"Une question sous ton exercice « {exercise.title} »", excerpt(body), url)
         else:
             # L'auteur de la question, et ceux qui lui ont déjà répondu : une fois chacun.
             people = {parent.author_id, *parent.replies.filter(removed_at=None).values_list("author_id", flat=True)}
             people -= {user.pk, None}
             for member in User.objects.filter(pk__in=people):
-                notify(member, Kind.DISCUSSION, f"Une réponse sous « {exercise.title} »", excerpt(body), url)
+                notify(member, Kind.DISCUSSION, f"Une réponse sous « {exercise.title} »", excerpt(body), url)
     return 201, thread(exercise, user)
 
 
@@ -207,7 +207,7 @@ def flag_message(request, message_id: int):
             notify(
                 member,
                 Kind.DISCUSSION,
-                f"Message signalé sous « {message.exercise.title} »",
+                f"Message signalé sous « {message.exercise.title} »",
                 excerpt(message.body),
                 "/moderation?file=messages",
                 email=True,

@@ -7,6 +7,7 @@ import { Tag } from "@/components/Tag";
 import { ChallengeStart } from "@/components/Training";
 import { type DailyChallenge, type Me, fetchDailyChallenges, fetchMe } from "@/lib/api";
 import { MathText } from "@/components/MathText";
+import { PageIntro } from "@/components/PageIntro";
 
 export const metadata: Metadata = {
   title: "Défi du jour",
@@ -104,11 +105,11 @@ export default async function ChallengePage() {
   return (
     <div className="max-w-[720px]">
       <h1>Défi du jour</h1>
-      <p className="mt-2 text-body">
+      <PageIntro id="defi">
         Chaque jour, un exercice pour la 1re année, un pour la 2e, un pour la L3 et un pour le master, comptés
         dans le classement de la semaine. Tu peux relever n&apos;importe lequel : les points comptent pour le
         niveau de l&apos;exercice.
-      </p>
+      </PageIntro>
 
       <p className="mt-3 text-sm text-mute">
         30 minutes, une seule tentative, copie écrite à la main et photographiée. Les règles complètes sont sous la liste.

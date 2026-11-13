@@ -51,6 +51,6 @@ class TitleApiTests(ContentTestCase):
 
     def test_notifications_write_formulas_out(self):
         user = make_user("membre")
-        notify(user, Notification.Kind.BADGE, r"Ton exercice « $x^n$ »", r"Sur $\R$.")
+        notify(user, Notification.Kind.BADGE, r"Ton exercice « $x^n$ »", r"Sur $\R$.")
         notification = user.notifications.get()
-        self.assertEqual((notification.title, notification.body), ("Ton exercice « xⁿ »", "Sur ℝ."))
+        self.assertEqual((notification.title, notification.body), ("Ton exercice « xⁿ »", "Sur ℝ."))

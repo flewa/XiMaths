@@ -44,7 +44,7 @@ class NotionTaggingTests(ContentTestCase):
         exercise = Exercise.objects.create(
             author=self.author,
             title=title,
-            statement=f"Énoncé propre à « {title} », pour ne pas passer pour un doublon.",
+            statement=f"Énoncé propre à « {title} », pour ne pas passer pour un doublon.",
             difficulty_declared=2,
             primary_level=Level.objects.get(code=level),
             **fields,

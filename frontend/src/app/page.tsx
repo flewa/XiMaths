@@ -172,7 +172,9 @@ export default async function Home({
         <JsonLd data={SITE_DATA} />
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start lg:gap-10">
           <VisitorHero />
-          <div className="hidden lg:block">
+          {/* Aussi sur téléphone, juste après l'accroche : sans lui, le premier exercice
+              n'arrivait qu'au bas du deuxième écran. */}
+          <div className="mt-8 lg:mt-0">
             <ExercisePreview exercises={exercises.slice(0, 4)} />
           </div>
         </div>

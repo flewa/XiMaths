@@ -73,7 +73,7 @@ def run(jobs, now):
             result = job(now)
             logger.info("%s : %s", name, "fait" if result is None else result)
         except Exception:
-            logger.exception("Échec de la tâche « %s »", name)
+            logger.exception("Échec de la tâche « %s »", name)
             failures += 1
     return failures
 

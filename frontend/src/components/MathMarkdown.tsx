@@ -27,8 +27,8 @@ function isFormula(node: RootContent | ElementContent | undefined): node is Elem
   return Array.isArray(className) && className.includes("katex");
 }
 
-/** Garde « formule + espace insécable + ponctuation » sur une même ligne : le navigateur
- * couperait sinon entre la formule et l'espace, et la ligne suivante commencerait par « : ». */
+/** Garde « formule + espace insécable + ponctuation » sur une même ligne : le navigateur
+ * couperait sinon entre la formule et l'espace, et la ligne suivante commencerait par « : ». */
 export function keepPunctuationWithMath() {
   function glue(node: Root | Element) {
     const children: (RootContent | ElementContent)[] = node.children;

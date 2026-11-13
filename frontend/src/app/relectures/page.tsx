@@ -12,6 +12,7 @@ import { Tag } from "@/components/Tag";
 import { fetchMe, fetchOpenSolutions, fetchReviewTasks } from "@/lib/api";
 import { AI_USAGE_BADGES, dueLabel, plural } from "@/lib/labels";
 import { MathText } from "@/components/MathText";
+import { PageIntro } from "@/components/PageIntro";
 
 export const metadata: Metadata = { title: "Relectures", robots: { index: false } };
 
@@ -53,11 +54,11 @@ export default async function ReviewsPage() {
   return (
     <>
       <h1>Relectures</h1>
-      <p className="mt-2 text-body">
+      <PageIntro id="relectures">
         L&apos;auteur reste anonyme et tu ne vois pas les autres verdicts avant d&apos;avoir rendu le
         tien. Une relecture tirée au sort est à rendre sous 72 heures ; au-delà, elle est confiée à
         quelqu&apos;un d&apos;autre, sans pénalité.
-      </p>
+      </PageIntro>
       {team && (
         <p className="mt-3 rounded-xl bg-accent-soft px-4 py-3 text-accent-text">
           Tu fais partie de l&apos;équipe : ta relecture vaut décision. Dès que tu la rends, la copie est validée ou

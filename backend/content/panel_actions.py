@@ -91,7 +91,7 @@ def decide_solution(solution, decision, *, me, reason, now=None):
     if solution.author_id == me.pk:
         raise PermissionDenied("C'est ta copie : un autre membre de l'équipe en décide.")
     if solution.status not in ALLOWED[decision]:
-        raise RuleError(f"Impossible depuis le statut « {solution.get_status_display()} ».")
+        raise RuleError(f"Impossible depuis le statut « {solution.get_status_display()} ».")
     now = now or timezone.now()
     url = f"/exercices/{solution.exercise_id}"
     if decision in REMOVALS:
@@ -136,7 +136,7 @@ def decide_solution(solution, decision, *, me, reason, now=None):
     log_action(
         me,
         Action.SOLUTION_DECIDED,
-        f"{SUMMARIES[decision]} sur « {solution.exercise.title} ». Motif : {reason}",
+        f"{SUMMARIES[decision]} sur « {solution.exercise.title} ». Motif : {reason}",
         member=solution.author,
         url=url,
     )
@@ -238,9 +238,9 @@ def edit_exercise(request, exercise_id: int, payload: ExerciseEditIn):
         exercise.levels.set(levels)
         exercise.topics.set(topics)
         url = f"/exercices/{exercise.pk}"
-        log_action(me, Action.EXERCISE_EDITED, f"« {exercise.title} » modifié. Motif : {reason}", member=exercise.author, url=url)
+        log_action(me, Action.EXERCISE_EDITED, f"« {exercise.title} » modifié. Motif : {reason}", member=exercise.author, url=url)
         if exercise.author_id and exercise.author_id != me.pk:
-            notify(exercise.author, Kind.CONTENT_REMOVED, f"L'équipe a modifié ton exercice « {exercise.title} »", f"Motif : {reason}", url, email=False, now=now)
+            notify(exercise.author, Kind.CONTENT_REMOVED, f"L'équipe a modifié ton exercice « {exercise.title} »", f"Motif : {reason}", url, email=False, now=now)
     return exercise_detail(get_exercise(exercise_id))
 
 
@@ -255,8 +255,8 @@ def set_exercise_status(exercise, action, *, me, reason):
         exercise.status = Exercise.Status.PUBLISHED
         exercise.save(update_fields=["status", "updated_at"])
         url = f"/exercices/{exercise.pk}"
-        log_action(me, Action.EXERCISE_RESTORED, f"« {exercise.title} » rétabli. Motif : {reason}", member=exercise.author, url=url)
-        notify(exercise.author, Kind.APPEAL_DECIDED, f"Ton exercice « {exercise.title} » est rétabli", f"Motif : {reason}", url)
+        log_action(me, Action.EXERCISE_RESTORED, f"« {exercise.title} » rétabli. Motif : {reason}", member=exercise.author, url=url)
+        notify(exercise.author, Kind.APPEAL_DECIDED, f"Ton exercice « {exercise.title} » est rétabli", f"Motif : {reason}", url)
     else:
         if exercise.status != Exercise.Status.PUBLISHED:
             raise RuleError("Seul un exercice publié se retire.")
@@ -454,8 +454,8 @@ def rename(request, username: str, payload: RenameIn):
     old = member.username
     member.username = new
     member.save(update_fields=["username"])
-    log_action(me, Action.ACCOUNT_RENAMED, f"Pseudo « {old} » changé. Motif : {reason}", member=member)
-    notify(member, Kind.SANCTION, f"Ton pseudo est maintenant « {new} »", f"L'équipe l'a changé. Motif : {reason}", "/reglages", email=True)
+    log_action(me, Action.ACCOUNT_RENAMED, f"Pseudo « {old} » changé. Motif : {reason}", member=member)
+    notify(member, Kind.SANCTION, f"Ton pseudo est maintenant « {new} »", f"L'équipe l'a changé. Motif : {reason}", "/reglages", email=True)
     return {"username": member.username}
 
 

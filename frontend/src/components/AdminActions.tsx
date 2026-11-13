@@ -214,6 +214,16 @@ export function BulkActions({ formId, kind }: { formId: string; kind: keyof type
 
 // ---------------------------------------------------------------- exercices
 
+/** Case à cocher en pastille : toute la pastille se clique, au moins 32 px de haut. */
+function ToggleChip({ label, checked, onChange }: { label: string; checked: boolean; onChange: () => void }) {
+  return (
+    <label className="inline-flex min-h-8 cursor-pointer items-center rounded-full border border-hairline-strong px-3 text-sm text-mute hover:text-ink has-checked:border-accent has-checked:bg-accent-soft has-checked:text-accent-text has-focus-visible:outline-2 has-focus-visible:outline-accent has-focus-visible:outline">
+      <input type="checkbox" checked={checked} onChange={onChange} className="sr-only" />
+      {label}
+    </label>
+  );
+}
+
 /** Corriger un exercice : tout ce qu'un auteur peut écrire, plus son statut. */
 export function ExerciseEditor({ initial, levels, topics }: { initial: PanelExerciseDetail; levels: Level[]; topics: Topic[] }) {
   const [form, setForm] = useState({ ...initial, hints: initial.hints.length ? initial.hints : [""] });
@@ -273,7 +283,7 @@ export function ExerciseEditor({ initial, levels, topics }: { initial: PanelExer
             </div>
           ))}
           {form.hints.length < 5 && (
-            <button type="button" onClick={() => set("hints", [...form.hints, ""])} className="text-sm text-mute underline underline-offset-4 hover:text-ink">
+            <button type="button" onClick={() => set("hints", [...form.hints, ""])} className="inline-flex min-h-8 items-center text-sm text-mute underline underline-offset-4 hover:text-ink">
               Ajouter une indication
             </button>
           )}
@@ -302,14 +312,16 @@ export function ExerciseEditor({ initial, levels, topics }: { initial: PanelExer
           {LEVEL_TRACKS.map(({ track, label }) => (
             <div key={track} className="mt-2">
               <p className="text-xs text-mute">{label}</p>
-              <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
                 {levels
                   .filter((level) => level.track === track)
                   .map((level) => (
-                    <label key={level.code} className="flex items-center gap-1.5 text-sm">
-                      <input type="checkbox" checked={form.levels.includes(level.code)} onChange={() => toggle("levels", level.code)} />
-                      {level.code}
-                    </label>
+                    <ToggleChip
+                      key={level.code}
+                      label={level.code}
+                      checked={form.levels.includes(level.code)}
+                      onChange={() => toggle("levels", level.code)}
+                    />
                   ))}
               </div>
             </div>
@@ -317,26 +329,40 @@ export function ExerciseEditor({ initial, levels, topics }: { initial: PanelExer
         </fieldset>
         <fieldset>
           <legend className="font-medium text-ink">Chapitres et notions</legend>
-          <div className="mt-2 space-y-2">
+          <p className="mt-1 text-sm text-mute">Les notions d&apos;un chapitre s&apos;affichent quand il est coché.</p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
             {chapters.map((chapter) => (
-              <div key={chapter.slug}>
-                <label className="flex items-center gap-1.5 text-sm font-medium text-ink">
-                  <input type="checkbox" checked={form.topics.includes(chapter.slug)} onChange={() => toggle("topics", chapter.slug)} />
-                  {chapter.name}
-                </label>
-                <div className="ml-6 mt-1 flex flex-wrap gap-x-4 gap-y-1">
+              <ToggleChip
+                key={chapter.slug}
+                label={chapter.name}
+                checked={form.topics.includes(chapter.slug)}
+                onChange={() => toggle("topics", chapter.slug)}
+              />
+            ))}
+          </div>
+          {chapters
+            .filter(
+              (chapter) =>
+                form.topics.includes(chapter.slug) ||
+                topics.some((topic) => topic.parent === chapter.slug && form.topics.includes(topic.slug)),
+            )
+            .map((chapter) => (
+              <div key={chapter.slug} className="mt-3">
+                <p className="text-xs text-mute">Notions : {chapter.name}</p>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
                   {topics
                     .filter((topic) => topic.parent === chapter.slug)
                     .map((topic) => (
-                      <label key={topic.slug} className="flex items-center gap-1.5 text-sm text-body">
-                        <input type="checkbox" checked={form.topics.includes(topic.slug)} onChange={() => toggle("topics", topic.slug)} />
-                        {topic.name}
-                      </label>
+                      <ToggleChip
+                        key={topic.slug}
+                        label={topic.name}
+                        checked={form.topics.includes(topic.slug)}
+                        onChange={() => toggle("topics", topic.slug)}
+                      />
                     ))}
                 </div>
               </div>
             ))}
-          </div>
         </fieldset>
         <Reason id="motif-exercice" value={reason} onChange={setReason} placeholder="Par exemple : coquille dans la question 2." />
         <button type="submit" disabled={save.pending || !reason.trim()} className={primaryButtonClass}>
@@ -520,7 +546,7 @@ export function MemberAdmin({
           Irréversible. Ses données personnelles sont effacées ; ses exercices et messages restent publiés, sans pseudo, comme
           quand un membre supprime lui-même son compte. Pour écarter quelqu&apos;un, un bannissement suffit souvent.
         </p>
-        <Field label={`Retape « ${username} » pour confirmer`} htmlFor="confirmer-suppression">
+        <Field label={`Retape « ${username} » pour confirmer`} htmlFor="confirmer-suppression">
           <input id="confirmer-suppression" value={confirm} onChange={(event) => setConfirm(event.target.value)} className={`${inputClass} sm:max-w-60`} />
         </Field>
         <Reason id="suppression-motif" value={deleteReason} onChange={setDeleteReason} />

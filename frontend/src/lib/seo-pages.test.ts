@@ -11,7 +11,7 @@ const topics = [
 ];
 
 describe("ofChapter", () => {
-  it("met « d' » devant une voyelle ou un h, « de » sinon", () => {
+  it("met « d' » devant une voyelle ou un h, « de » sinon", () => {
     expect(ofChapter("Analyse")).toBe("d'analyse");
     expect(ofChapter("Équations différentielles")).toBe("d'équations différentielles");
     expect(ofChapter("Séries entières")).toBe("de séries entières");

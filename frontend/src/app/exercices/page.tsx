@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
-import { ExerciseList } from "@/components/ExerciseList";
+import { PAGE_STEP, PagedExerciseList, shownCount } from "@/components/ExerciseList";
 import { FilterChip, Tabs } from "@/components/FilterChip";
 import { LevelPicker } from "@/components/LevelPicker";
 import { SearchBox } from "@/components/SearchBox";
+import { PageIntro } from "@/components/PageIntro";
 import { fetchExercises, fetchLevels, type ExerciseSort } from "@/lib/api";
 import { plural } from "@/lib/labels";
 import { levelPath } from "@/lib/seo-pages";
@@ -31,11 +32,12 @@ const SORTS: { value: string; sort: ExerciseSort; label: string }[] = [
   { value: "sans-solution", sort: "unsolved", label: "Sans solution" },
 ];
 
-function browseHref(niveau: string | undefined, tri: string, q?: string) {
+function browseHref(niveau: string | undefined, tri: string, q?: string, voir?: number) {
   const query = new URLSearchParams();
   if (q) query.set("q", q);
   if (niveau) query.set("niveau", niveau);
   if (tri !== SORTS[0].value) query.set("tri", tri);
+  if (voir && voir > PAGE_STEP) query.set("voir", String(voir));
   const search = query.toString();
   return search ? `/exercices?${search}` : "/exercices";
 }
@@ -43,9 +45,10 @@ function browseHref(niveau: string | undefined, tri: string, q?: string) {
 export default async function BrowsePage({
   searchParams,
 }: {
-  searchParams: Promise<{ niveau?: string; tri?: string; q?: string }>;
+  searchParams: Promise<{ niveau?: string; tri?: string; q?: string; voir?: string }>;
 }) {
-  const { niveau, tri } = await searchParams;
+  const { niveau, tri, voir } = await searchParams;
+  const shown = shownCount(voir);
   const q = (await searchParams).q?.trim() || undefined;
   const current = SORTS.find((sort) => sort.value === tri) ?? SORTS[0];
   let data;
@@ -60,14 +63,14 @@ export default async function BrowsePage({
   return (
     <>
       <h1>Parcourir les exercices</h1>
-      <p className="mt-2 text-body">
+      <PageIntro id="catalogue">
         Populaires : classés par nombre de solutions et de votes, de façon logarithmique, pour que
         les exercices déjà très vus n&apos;écrasent pas les autres.
-      </p>
+      </PageIntro>
       <SearchBox id="recherche-catalogue" defaultValue={q ?? ""} className="mt-6 max-w-[28rem]" />
       {q && (
         <p className="mt-4 text-body">
-          {plural(exercises.length, "exercice")} pour « {q} ».{" "}
+          {plural(exercises.length, "exercice")} pour « {q} ».{" "}
           <a href={browseHref(niveau, current.value)} className="text-mute underline underline-offset-4 hover:text-ink">
             Effacer la recherche
           </a>
@@ -93,7 +96,11 @@ export default async function BrowsePage({
       {exercises.length === 0 ? (
         <p className="py-6 text-mute">Aucun exercice ici pour l&apos;instant.</p>
       ) : (
-        <ExerciseList exercises={exercises} />
+        <PagedExerciseList
+          exercises={exercises}
+          shown={shown}
+          moreHref={(count) => browseHref(niveau, current.value, q, count)}
+        />
       )}
     </>
   );

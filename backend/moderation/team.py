@@ -114,7 +114,7 @@ def brief(user):
 
 
 class ClaimOut(Schema):
-    """« Je m'en occupe » : qui a ouvert le dossier, depuis quand ; `mine` si c'est moi."""
+    """« Je m'en occupe » : qui a ouvert le dossier, depuis quand ; `mine` si c'est moi."""
 
     username: str
     since: datetime
@@ -355,7 +355,7 @@ def appeal_out(appeal, me, held=None):
         reason, decided_at, decider = decision.decision_note, decision.decided_at, decision.decided_by
         url = f"/exercices/{decision.exercise_id or decision.solution.exercise_id}"
     elif isinstance(decision, Message):
-        kind, title = "message", f"Message retiré sous « {decision.exercise.title} »"
+        kind, title = "message", f"Message retiré sous « {decision.exercise.title} »"
         reason, decided_at, decider = decision.removal_reason, decision.removed_at, decision.removed_by
         url = f"/exercices/{decision.exercise_id}#discussion"
     else:
@@ -423,7 +423,7 @@ class ClaimIn(Schema):
 
 @router.post("/moderation/claims", response=ClaimOut, auth=django_auth)
 def take_claim(request, payload: ClaimIn):
-    """« Je m'en occupe » : les collègues voient le dossier pris, pendant deux heures."""
+    """« Je m'en occupe » : les collègues voient le dossier pris, pendant deux heures."""
     me = team(request)
     try:
         return claims.claim_out(claims.take(payload.key, me, take_over=payload.take_over), me)
@@ -580,7 +580,7 @@ def member_file(member, me):
     for message in Message.objects.filter(author=member, removed_by_team=True).select_related("exercise", "removed_by"):
         removals.append(
             {
-                "what": f"Message sous « {message.exercise.title} »",
+                "what": f"Message sous « {message.exercise.title} »",
                 "reason": message.removal_reason,
                 "decided_at": message.removed_at,
                 "decided_by": message.removed_by.username if message.removed_by else None,

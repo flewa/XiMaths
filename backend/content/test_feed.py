@@ -94,7 +94,7 @@ class BuildFeedTests(FeedTestCase):
             self.solve(self.published(days_ago=40), days_ago=1)
         fresh = {self.published(days_ago=3).pk for _ in range(8)}
         for _ in range(6):
-            self.published(days_ago=20)  # récents, hors « À résoudre »
+            self.published(days_ago=20)  # récents, hors « À résoudre »
 
         feed = self.feed()
 

@@ -36,7 +36,7 @@ const SUBSCRIPTS: Record<string, string> = {
  * \sum_{n \geq 1} \frac{1}{n^2}. Une approximation, qui n'a pas à être réversible. */
 export function latexToText(latex: string) {
   let text = latex
-    // Matrice : (0 0 1 ; 1 0 0 ; 0 1 0), lignes séparées par « ; ».
+    // Matrice : (0 0 1 ; 1 0 0 ; 0 1 0), lignes séparées par « ; ».
     .replace(/\\begin\{[pbvBV]?matrix\}([\s\S]*?)\\end\{[pbvBV]?matrix\}/g, (_, body: string) =>
       `(${body
         .split("\\\\")
@@ -65,7 +65,7 @@ export function latexToText(latex: string) {
       const char = braced ?? bare ?? "";
       return SUBSCRIPTS[char] ?? `_${char}`;
     })
-    // Indice ou exposant composé : entre parenthèses (le « _ » du Markdown serait retiré).
+    // Indice ou exposant composé : entre parenthèses (le « _ » du Markdown serait retiré).
     .replace(/_\{([^{}]*)\}/g, (_, inner: string) => ` (${inner.trim()})`)
     .replace(/\^\{([^{}]*)\}/g, (_, inner: string) => `^(${inner.trim()})`)
     .replace(/[{}]/g, "");
@@ -78,7 +78,7 @@ function wrap(term: string) {
 }
 
 /** Texte brut d'un énoncé, pour une balise description : sans balisage Markdown, les
- * formules en texte lisible, sur une ligne, coupé à un mot près avec « … ». */
+ * formules en texte lisible, sur une ligne, coupé à un mot près avec « … ». */
 export function excerpt(markdown: string, max = DESCRIPTION_LENGTH) {
   const text = markdown
     .replace(/!\[[^\]]*\]\([^)]*\)/g, "") // images

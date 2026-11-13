@@ -1,7 +1,7 @@
 """Embedding E1 des énoncés : bge-m3, servi par Text Embeddings Inference (TEI).
 
 Sans EMBEDDINGS_URL, ou si le service ne répond pas, la détection se rabat sur
-les seules signatures MinHash : les bandes « très similaire » et « peut-être lié »
+les seules signatures MinHash : les bandes « très similaire » et « peut-être lié »
 ne sont alors pas détectées.
 """
 

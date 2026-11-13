@@ -240,7 +240,7 @@ class ReportApiTests(ModerationTestCase):
         self.client.force_login(reviewer)
         response = self.post(payload)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.json()["title"], f"Une copie relue de « {self.exercise.title} »")
+        self.assertEqual(response.json()["title"], f"Une copie relue de « {self.exercise.title} »")
 
     def test_a_confirmed_report_shows_its_points(self):
         self.client.force_login(self.witness)

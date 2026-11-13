@@ -46,7 +46,7 @@ EMBEDDING_NEIGHBOURS = 20
 WEIGHT_E1 = 0.45
 WEIGHT_E2 = 0.35
 WEIGHT_F = 0.20
-# Bandes qui affichent l'écran « Cet exercice existe peut-être déjà » à la publication.
+# Bandes qui affichent l'écran « Cet exercice existe peut-être déjà » à la publication.
 CONFIRM_BANDS = (Band.QUASI_COPY, Band.VERY_SIMILAR, Band.VARIANT)
 BAND_ORDER = [Band.QUASI_COPY, Band.VERY_SIMILAR, Band.VARIANT, Band.MAYBE_RELATED]
 
@@ -131,7 +131,7 @@ def classify(jaccard, abstract_jaccard, score):
         return Band.VARIANT
     if jaccard >= QUASI_COPY_JACCARD:
         return Band.QUASI_COPY
-    # Avant « très similaire » : Σ 1/n² et Σ 1/n ont des embeddings presque
+    # Avant « très similaire » : Σ 1/n² et Σ 1/n ont des embeddings presque
     # identiques, mais la version abstraite montre qu'ils diffèrent par une constante.
     if abstract_jaccard >= VARIANT_JACCARD:
         return Band.VARIANT
@@ -223,9 +223,9 @@ def publish_checked(exercise, *, choice="", target_id=None, note="", now=None):
 
     Si un exercice publié est proche (quasi-copie, très similaire ou variante) et que
     l'auteur n'a pas encore choisi, lève DuplicateSuspected. Sinon :
-    - « variante » : publie en lien avec l'exercice choisi ;
-    - « différent » : publie, et les paires partent en file d'arbitrage, sans pénalité.
-    « C'est le même » ne publie rien : le front renvoie vers l'exercice existant."""
+    - « variante » : publie en lien avec l'exercice choisi ;
+    - « différent » : publie, et les paires partent en file d'arbitrage, sans pénalité.
+    « C'est le même » ne publie rien : le front renvoie vers l'exercice existant."""
     if exercise.status != Exercise.Status.DRAFT:
         raise RuleError("Seul un brouillon peut être publié.")
     prints = compute_prints(exercise.statement)
@@ -356,7 +356,7 @@ def _merge(pair):
         merged.author,
         Notification.Kind.DUPLICATE_MERGED,
         "Ton exercice a été regroupé avec un exercice existant",
-        f"« {merged.title} » rejoint « {canonical.title} ». Tu gardes tes points, et ses solutions "
+        f"« {merged.title} » rejoint « {canonical.title} ». Tu gardes tes points, et ses solutions "
         "sont désormais sur l'exercice d'origine.",
         f"/exercices/{canonical.pk}",
     )

@@ -55,7 +55,7 @@
   --ink-deep: #191919;
   --charcoal: #3a3a3a;
   --body: #4b4b4b;
-  --mute: #73726e;
+  --mute: #6b6a66;
   --stone: #8f8e8a;
   --ash: #b9b8b4;
   --hairline: rgba(0, 0, 0, 0.08);
@@ -64,10 +64,10 @@
   --selected: rgba(0, 0, 0, 0.06);
   --on-dark: #2f2f2f;
   --on-dark-mute: #73726e;
-  /* 5:1 sur le blanc, en texte comme sous un texte blanc. */
+  /* Fond : 5:1 sous un texte blanc. Texte rouge un peu plus foncé : 4,5:1 même sur les pastilles teintées. */
   --accent: #c73e35;
   --accent-ink: #ffffff;
-  --accent-text: #c73e35;
+  --accent-text: #b8372e;
   --accent-soft: rgba(199, 62, 53, 0.08);
   --success: #2f7d4f;
   --warning: #9a5b13;
@@ -88,7 +88,7 @@
     --ink-deep: #191919;
     --charcoal: #3a3a3a;
     --body: #4b4b4b;
-    --mute: #73726e;
+    --mute: #6b6a66;
     --stone: #8f8e8a;
     --ash: #b9b8b4;
     --hairline: rgba(0, 0, 0, 0.08);
@@ -99,7 +99,7 @@
     --on-dark-mute: #73726e;
     --accent: #c73e35;
     --accent-ink: #ffffff;
-    --accent-text: #c73e35;
+    --accent-text: #b8372e;
     --accent-soft: rgba(199, 62, 53, 0.08);
     --success: #2f7d4f;
     --warning: #9a5b13;

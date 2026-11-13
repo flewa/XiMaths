@@ -58,12 +58,12 @@ GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 # pas de notification push, et le réglage n'apparaît pas.
 VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
 VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "")
-# Contact donné aux services de push : « mailto:… » ou « https://domaine ». Par défaut,
+# Contact donné aux services de push : « mailto:… » ou « https://domaine ». Par défaut,
 # l'adresse d'envoi des emails.
 VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT") or f"mailto:{parseaddr(DEFAULT_FROM_EMAIL)[1]}"
 
 # Domaines d'établissements à reconnaître en plus de ceux d'accounts/academic.py,
-# séparés par des virgules : « univ-exemple.fr,ecole.fr ».
+# séparés par des virgules : « univ-exemple.fr,ecole.fr ».
 ACADEMIC_EXTRA_DOMAINS = [
     domain.strip().lower() for domain in os.environ.get("ACADEMIC_EXTRA_DOMAINS", "").split(",") if domain.strip()
 ]
@@ -197,7 +197,7 @@ LOGGING = {
     "loggers": {"django.request": {"level": "ERROR"}},
 }
 
-# Suivi des erreurs, facultatif : SENTRY_DSN, et le groupe de dépendances « prod ».
+# Suivi des erreurs, facultatif : SENTRY_DSN, et le groupe de dépendances « prod ».
 SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
 if SENTRY_DSN:
     import sentry_sdk

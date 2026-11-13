@@ -294,7 +294,7 @@ def delete_account(user):
 
 
 def available_username(base):
-    """Pseudo libre dérivé d'une adresse ou d'un nom : « marie.curie », « marie.curie2 »…"""
+    """Pseudo libre dérivé d'une adresse ou d'un nom : « marie.curie », « marie.curie2 »…"""
     stem = re.sub(r"[^\w.-]", "", base.split("@")[0])[:26] or "membre"
     if len(stem) < 3:
         stem = f"{stem}-xi"

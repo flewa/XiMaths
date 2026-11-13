@@ -83,8 +83,8 @@ class EditorialNotesTests(TestCase):
                 self.assertFalse(any(line.lstrip().startswith("|") for line in note.body.splitlines()))
 
     def test_a_minus_after_an_opening_bracket_is_unary(self):
-        # « ]-r, r[ » : KaTeX lit le « - » comme une soustraction et l'écarte du crochet ;
-        # on écrit « ]{-}r, r[ ».
+        # « ]-r, r[ » : KaTeX lit le « - » comme une soustraction et l'écarte du crochet ;
+        # on écrit « ]{-}r, r[ ».
         for note in load_sources():
             with self.subTest(note=note.slug):
                 self.assertIsNone(re.search(r"\][ ]*-", note.body))

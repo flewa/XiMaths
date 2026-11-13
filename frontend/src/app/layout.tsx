@@ -122,7 +122,7 @@ export default async function RootLayout({
                 <a
                   href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr"
                   rel="license"
-                  className="hover:text-ink sm:ml-auto"
+                  className="inline-flex min-h-6 items-center hover:text-ink sm:ml-auto"
                 >
                   Contenus sous licence CC BY-SA 4.0
                 </a>
