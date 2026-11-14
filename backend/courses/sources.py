@@ -1,6 +1,7 @@
-"""Fiches de la rédaction : un fichier Markdown + LaTeX par fiche, dans notes/sup/ et
-notes/spe/. Le nom du fichier donne l'adresse de la fiche (/rappels/<nom>), son dossier le
-cycle. Chaque fichier commence par un en-tête :
+"""Textes de la rédaction : un fichier Markdown + LaTeX par texte. Les fiches de rappels sont
+dans notes/sup/ et notes/spe/ (le dossier donne le cycle), les démonstrations dans
+notes/demonstrations/ (niveau deuxième année). Le nom du fichier donne l'adresse
+(/rappels/<nom> ou /demonstrations/<nom>). Chaque fichier commence par un en-tête :
 
     ---
     titre: Séries entières
@@ -9,7 +10,9 @@ cycle. Chaque fichier commence par un en-tête :
     notion: series-entieres
     ---
 
-`notion` (facultatif) est le chapitre ou la notion du site où la fiche publiée est proposée.
+`notion` (facultatif) est le chapitre ou la notion du site où le texte publié est proposé.
+Une démonstration ajoute `statut` : au-programme, preuve-hors-programme ou hors-programme,
+sa place par rapport au programme de prépa (MPSI, MP).
 """
 
 import hashlib
@@ -19,8 +22,11 @@ from pathlib import Path
 
 NOTES_DIR = Path(__file__).resolve().parent / "notes"
 CYCLES = ("sup", "spe")
+# Dossier, nature des textes qu'il contient, cycle.
+FOLDERS = (("sup", "fiche", "sup"), ("spe", "fiche", "spe"), ("demonstrations", "demonstration", "spe"))
+STATUSES = ("au-programme", "preuve-hors-programme", "hors-programme")
 REQUIRED = {"titre", "programmes", "ordre"}
-KNOWN = REQUIRED | {"notion"}
+KNOWN = REQUIRED | {"notion", "statut"}
 SLUG = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 
@@ -33,15 +39,19 @@ class Source:
     position: int
     topic: str | None
     body: str
+    kind: str = "fiche"
+    status: str = ""
 
     @property
     def digest(self):
         fields = (self.cycle, self.title, self.programs, str(self.position), self.topic or "", self.body)
+        if self.kind != "fiche":
+            fields += (self.kind, self.status)
         return hashlib.sha256("\x1f".join(fields).encode()).hexdigest()
 
 
-def parse(text, *, slug, cycle):
-    """Une fiche lue depuis son texte ; ValueError si l'en-tête est incomplet ou inconnu."""
+def parse(text, *, slug, cycle, kind="fiche"):
+    """Un texte lu depuis son fichier ; ValueError si l'en-tête est incomplet ou inconnu."""
     if not SLUG.match(slug):
         raise ValueError(f"{slug} : nom de fichier invalide (minuscules, chiffres et tirets).")
     if not text.startswith("---\n"):
@@ -62,6 +72,11 @@ def parse(text, *, slug, cycle):
         raise ValueError(f"{slug} : « ordre » doit être un entier.")
     if not body.strip():
         raise ValueError(f"{slug} : la fiche est vide.")
+    status = fields.get("statut", "")
+    if kind == "demonstration" and status not in STATUSES:
+        raise ValueError(f"{slug} : « statut » doit valoir {', '.join(STATUSES)}.")
+    if kind == "fiche" and status:
+        raise ValueError(f"{slug} : « statut » est réservé aux démonstrations.")
     return Source(
         slug=slug,
         cycle=cycle,
@@ -70,17 +85,21 @@ def parse(text, *, slug, cycle):
         position=int(fields["ordre"]),
         topic=fields.get("notion") or None,
         body=body.strip() + "\n",
+        kind=kind,
+        status=status,
     )
 
 
 def load_sources(directory=NOTES_DIR):
-    """Toutes les fiches, sup puis spé, dans l'ordre de leurs sommaires."""
+    """Tous les textes : fiches de sup, fiches de spé, puis démonstrations, chacun dans l'ordre
+    de son sommaire."""
     sources = []
-    for cycle in CYCLES:
-        for path in sorted((directory / cycle).glob("*.md")):
-            sources.append(parse(path.read_text(encoding="utf-8"), slug=path.stem, cycle=cycle))
+    for folder, kind, cycle in FOLDERS:
+        for path in sorted((directory / folder).glob("*.md")):
+            sources.append(parse(path.read_text(encoding="utf-8"), slug=path.stem, cycle=cycle, kind=kind))
     slugs = [source.slug for source in sources]
     duplicates = sorted({slug for slug in slugs if slugs.count(slug) > 1})
     if duplicates:
         raise ValueError(f"Fiches en double : {', '.join(duplicates)}.")
-    return sorted(sources, key=lambda source: (CYCLES.index(source.cycle), source.position, source.title))
+    order = [(kind, cycle) for _, kind, cycle in FOLDERS]
+    return sorted(sources, key=lambda source: (order.index((source.kind, source.cycle)), source.position, source.title))

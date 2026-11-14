@@ -3,13 +3,29 @@ from django.db import models
 
 
 class CourseNote(models.Model):
-    """Fiche de rappels de cours de prépa, écrite par la rédaction (courses/notes/). Seule
-    l'équipe la voit tant qu'elle n'est pas publiée : un admin la relit, puis la publie."""
+    """Texte de cours écrit par la rédaction (courses/notes/) : une fiche de rappels, ou la
+    démonstration d'un théorème. Seule l'équipe le voit tant qu'il n'est pas publié : un
+    admin le relit, puis le publie."""
 
     class Cycle(models.TextChoices):
         SUP = "sup", "Première année (sup)"
         SPE = "spe", "Deuxième année (spé)"
 
+    class Kind(models.TextChoices):
+        FICHE = "fiche", "Fiche de rappels"
+        DEMONSTRATION = "demonstration", "Démonstration"
+
+    class Status(models.TextChoices):
+        """Place d'une démonstration par rapport au programme de prépa (MPSI, MP)."""
+
+        AU_PROGRAMME = "au-programme", "Au programme"
+        PREUVE_HORS_PROGRAMME = "preuve-hors-programme", "Énoncé au programme, démonstration hors programme"
+        HORS_PROGRAMME = "hors-programme", "Hors programme"
+
+    kind = models.CharField(max_length=20, choices=Kind.choices, default=Kind.FICHE)
+    status = models.CharField(
+        max_length=30, choices=Status.choices, blank=True, help_text="Démonstrations seulement : place au programme."
+    )
     slug = models.SlugField(max_length=100, unique=True)
     title = models.CharField(max_length=200)
     cycle = models.CharField(max_length=3, choices=Cycle.choices)

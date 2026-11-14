@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 
 import { CourseNoteReview } from "@/components/CourseNotes";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { JsonLd, breadcrumb } from "@/components/JsonLd";
 import { MathMarkdown } from "@/components/MathMarkdown";
-import { fetchCourseNote, fetchCourseNotes, fetchMe, nullOnError } from "@/lib/api";
-import { courseNotePath, cycleOf, frenchSpacing, neighbours } from "@/lib/course-notes";
+import { fetchCourseNote, fetchCourseNotes, fetchDemonstrations, fetchMe, nullOnError } from "@/lib/api";
+import { courseNotePath, cycleOf, demonstrationPath, frenchSpacing, neighbours } from "@/lib/course-notes";
 import { chapterPath, ofChapter } from "@/lib/seo-pages";
 import { SHARE_IMAGE } from "@/lib/site";
 
@@ -40,12 +40,16 @@ export default async function CourseNotePage({ params }: Props) {
       fetchMe().catch(nullOnError),
     ]);
     if (!note) notFound();
-    data = { note, notes, me };
+    // Une démonstration a sa propre adresse.
+    if (note.kind === "demonstration") permanentRedirect(demonstrationPath(note.slug));
+    // Les démonstrations du même chapitre, pour aller plus loin que le rappel.
+    const proofs = note.topic ? await fetchDemonstrations(note.topic) : [];
+    data = { note, notes, me, proofs };
   } catch (error) {
     logApiError(error);
     return <ApiUnavailable />;
   }
-  const { note, notes, me } = data;
+  const { note, notes, me, proofs } = data;
   const cycle = cycleOf(note);
   const { previous, next } = neighbours(notes, note.slug);
 
@@ -77,11 +81,20 @@ export default async function CourseNotePage({ params }: Props) {
       </div>
 
       {note.topic && note.topic_name && (
-        <p className="mt-10 rounded-xl bg-surface-soft px-5 py-4">
-          <Link href={chapterPath(note.topic)} className="font-medium text-ink underline underline-offset-4">
-            S&apos;entraîner : exercices {ofChapter(note.topic_name)}
-          </Link>
-        </p>
+        <div className="mt-10 space-y-2 rounded-xl bg-surface-soft px-5 py-4">
+          <p>
+            <Link href={chapterPath(note.topic)} className="font-medium text-ink underline underline-offset-4">
+              S&apos;entraîner : exercices {ofChapter(note.topic_name)}
+            </Link>
+          </p>
+          {proofs.map((proof) => (
+            <p key={proof.slug}>
+              <Link href={demonstrationPath(proof.slug)} className="font-medium text-ink underline underline-offset-4">
+                Démonstration : {proof.title}
+              </Link>
+            </p>
+          ))}
+        </div>
       )}
 
       {(previous || next) && (
