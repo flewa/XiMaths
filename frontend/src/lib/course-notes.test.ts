@@ -12,13 +12,13 @@ import { normalizeMath } from "@/components/MathMarkdown";
 import { MACROS } from "@/lib/katex-macros";
 
 import type { CourseNoteSummary } from "./api";
-import { CONVENTIONS, frenchSpacing, neighbours } from "./course-notes";
+import { CONVENTIONS, frenchSpacing, neighbours, notePath, proofSections } from "./course-notes";
 
-// Les fiches de la rédaction, écrites côté serveur (backend/courses/notes/).
+// Les fiches et les démonstrations de la rédaction, écrites côté serveur (backend/courses/notes/).
 const NOTES = join(__dirname, "../../../backend/courses/notes");
 
 function notes() {
-  return ["sup", "spe"].flatMap((cycle) =>
+  return ["sup", "spe", "demonstrations"].flatMap((cycle) =>
     readdirSync(join(NOTES, cycle))
       .filter((name) => name.endsWith(".md"))
       .map((name) => ({ name: `${cycle}/${name}`, text: readFileSync(join(NOTES, cycle, name), "utf8") })),
@@ -68,6 +68,25 @@ describe("frenchSpacing", () => {
       "Soit $x \\in \\{ y : y > 0 \\}$\u00a0: alors\u00a0; vrai\u00a0? oui\u00a0!",
     );
     expect(frenchSpacing("> $$\n> a : b\n> $$\nFin :")).toBe("> $$\n> a : b\n> $$\nFin\u00a0:");
+  });
+});
+
+describe("démonstrations", () => {
+  const proof = (slug: string, status: CourseNoteSummary["status"]) =>
+    ({ slug, kind: "demonstration", status }) as CourseNoteSummary;
+
+  it("ont leur propre adresse", () => {
+    expect(notePath(proof("lemme-des-noyaux", "au-programme"))).toBe("/demonstrations/lemme-des-noyaux");
+    expect(notePath({ slug: "polynomes", kind: "fiche" })).toBe("/rappels/polynomes");
+  });
+
+  it("se rangent en théorèmes du cours, puis hors programme", () => {
+    const list = [proof("a", "au-programme"), proof("b", "hors-programme"), proof("c", "preuve-hors-programme")];
+    expect(proofSections(list).map((section) => [section.id, section.proofs.map((item) => item.slug)])).toEqual([
+      ["cours", ["a", "c"]],
+      ["hors-programme", ["b"]],
+    ]);
+    expect(proofSections([proof("b", "hors-programme")]).map((section) => section.id)).toEqual(["hors-programme"]);
   });
 });
 

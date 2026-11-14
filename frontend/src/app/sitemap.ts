@@ -14,7 +14,7 @@ const PAGES = ["", "/exercices", "/chapitres", "/defi", "/classements", "/badges
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const pages: MetadataRoute.Sitemap = PAGES.map((path) => ({ url: `${SITE_URL}${path}` }));
   try {
-    const { exercises, levels, topics, courseNotes } = await fetchSitemap();
+    const { exercises, levels, topics, courseNotes, demonstrations } = await fetchSitemap();
     return [
       ...pages,
       // Les pages d'entrée : ce que cherchent les élèves (« exercices MPSI », « exercices de probabilités »).
@@ -26,6 +26,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       // Rappels de cours publiés par l'équipe ; aucun tant qu'ils sont en relecture.
       ...(courseNotes.length > 0 ? [{ url: `${SITE_URL}/rappels` }] : []),
       ...courseNotes.map((note) => ({ url: `${SITE_URL}/rappels/${note.slug}`, lastModified: note.updated_at })),
+      ...(demonstrations.length > 0 ? [{ url: `${SITE_URL}/demonstrations` }] : []),
+      ...demonstrations.map((note) => ({
+        url: `${SITE_URL}/demonstrations/${note.slug}`,
+        lastModified: note.updated_at,
+      })),
       ...exercises.map((exercise) => ({
         url: `${SITE_URL}/exercices/${exercise.id}`,
         lastModified: exercise.updated_at,

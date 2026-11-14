@@ -15,6 +15,8 @@ router = Router(tags=["Rappels de cours"])
 class CourseNoteSummaryOut(Schema):
     slug: str
     title: str
+    kind: str
+    status: str
     cycle: str
     programs: str
     position: int
@@ -54,8 +56,11 @@ def staff_note(request, slug):
 
 
 @router.get("/course-notes", response=list[CourseNoteSummaryOut])
-def list_course_notes(request, topic: str | None = None):
-    notes = visible_notes(request.user)
+def list_course_notes(request, topic: str | None = None, kind: str = CourseNote.Kind.FICHE):
+    """Les fiches de rappels, ou avec `kind=demonstration` les démonstrations."""
+    if kind not in CourseNote.Kind.values:
+        raise HttpError(400, "Nature de texte inconnue.")
+    notes = visible_notes(request.user).filter(kind=kind)
     if topic:
         notes = notes.filter(topic__slug=topic)
     return list(notes)
