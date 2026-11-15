@@ -70,6 +70,12 @@ function itemsFor(account: NavAccount | null): Item[] {
       label: "Rappels de cours",
       match: (path) => path.startsWith("/rappels"),
     },
+    {
+      href: "/demonstrations",
+      icon: "proof",
+      label: "Démonstrations",
+      match: (path) => path.startsWith("/demonstrations"),
+    },
   ];
   if (account) {
     items.push(

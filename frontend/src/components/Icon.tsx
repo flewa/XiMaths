@@ -4,6 +4,8 @@ const PATHS = {
   grid: <path d="M3.75 3.75h5v5h-5zM11.25 3.75h5v5h-5zM3.75 11.25h5v5h-5zM11.25 11.25h5v5h-5z" />,
   browse: <path d="M4 5h12M4 10h12M4 15h7" />,
   book: <path d="M10 5.5C8.5 4.3 6.3 4 3.5 4.25v11c2.8-.25 5 .05 6.5 1.25 1.5-1.2 3.7-1.5 6.5-1.25v-11C13.7 4 11.5 4.3 10 5.5zm0 0v11" />,
+  // Une page et sa coche : un théorème démontré.
+  proof: <path d="M5 3.5h10v13H5zM7.5 10.25l1.75 1.75 3.25-3.5" />,
   timer: (
     <>
       <circle cx="10" cy="11" r="6.25" />

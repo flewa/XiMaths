@@ -10,11 +10,12 @@ import {
   type Level,
   type Topic,
   fetchCourseNotes,
+  fetchDemonstrations,
   fetchExercises,
   fetchLevels,
   fetchTopics,
 } from "@/lib/api";
-import { courseNotePath } from "@/lib/course-notes";
+import { courseNotePath, demonstrationPath } from "@/lib/course-notes";
 import { plural } from "@/lib/labels";
 import { chapterPath, levelPath, notionsOf, ofChapter, topicIntro } from "@/lib/seo-pages";
 import { SHARE_IMAGE } from "@/lib/site";
@@ -94,17 +95,18 @@ export default async function ChapterPage({ params, searchParams }: Props) {
   try {
     const found = await load(slug);
     if (!found) notFound();
-    const [exercises, levels, courseNotes] = await Promise.all([
+    const [exercises, levels, courseNotes, proofs] = await Promise.all([
       fetchExercises(undefined, "recent", found.topic.slug),
       fetchLevels(),
       fetchCourseNotes(found.topic.slug),
+      fetchDemonstrations(found.topic.slug),
     ]);
-    data = { ...found, exercises, levels, courseNotes };
+    data = { ...found, exercises, levels, courseNotes, proofs };
   } catch (error) {
     logApiError(error);
     return <ApiUnavailable />;
   }
-  const { topic, parent, topics, exercises, levels, courseNotes } = data;
+  const { topic, parent, topics, exercises, levels, courseNotes, proofs } = data;
   const reached = levelsOf(exercises, levels);
   const trail: [string, string][] = [
     ["Accueil", "/"],
@@ -148,6 +150,22 @@ export default async function ChapterPage({ params, searchParams }: Props) {
               className="rounded-full bg-surface-card px-3 py-1 text-ink hover:bg-surface-dark-elevated"
             >
               {note.title} <span className="text-mute">{note.published ? note.programs : "brouillon"}</span>
+            </Link>
+          ))}
+        </p>
+      )}
+
+      {proofs.length > 0 && (
+        <p className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+          <span className="mr-1 text-mute">Démonstrations :</span>
+          {proofs.map((proof) => (
+            <Link
+              key={proof.slug}
+              href={demonstrationPath(proof.slug)}
+              className="rounded-full bg-surface-card px-3 py-1 text-ink hover:bg-surface-dark-elevated"
+            >
+              {proof.title}
+              {!proof.published && <span className="text-mute"> brouillon</span>}
             </Link>
           ))}
         </p>

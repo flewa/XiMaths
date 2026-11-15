@@ -21,6 +21,8 @@ def import_sources(sources):
             "position": source.position,
             "topic": topics.get(source.topic) if source.topic else None,
             "body": source.body,
+            "kind": source.kind,
+            "status": source.status,
             "source_hash": source.digest,
         }
         note = CourseNote.objects.filter(slug=source.slug).first()

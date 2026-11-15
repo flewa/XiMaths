@@ -7,8 +7,17 @@ import { apiPost } from "@/lib/client-api";
 
 import { FormMessage, primaryButtonClass, secondaryButtonClass } from "./Form";
 
-/** Relecture d'une fiche par l'équipe : la publier une fois relue, ou la retirer. */
-export function CourseNoteReview({ slug, published }: { slug: string; published: boolean }) {
+/** Relecture d'une fiche (ou d'une démonstration) par l'équipe : la publier une fois relue,
+ * ou la retirer. */
+export function CourseNoteReview({
+  slug,
+  published,
+  noun = "fiche",
+}: {
+  slug: string;
+  published: boolean;
+  noun?: "fiche" | "démonstration";
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +33,7 @@ export function CourseNoteReview({ slug, published }: { slug: string; published:
 
   return (
     <section
-      aria-label="Relecture de la fiche"
+      aria-label={`Relecture de la ${noun}`}
       className="mt-6 space-y-3 rounded-xl border border-hairline bg-surface-soft p-4 text-sm"
     >
       <p className="text-body">
@@ -46,7 +55,7 @@ export function CourseNoteReview({ slug, published }: { slug: string; published:
         disabled={busy}
         className={published ? secondaryButtonClass : primaryButtonClass}
       >
-        {published ? "Repasser en brouillon" : "Publier cette fiche"}
+        {published ? "Repasser en brouillon" : `Publier cette ${noun}`}
       </button>
       <FormMessage error={error} />
     </section>

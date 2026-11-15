@@ -477,10 +477,16 @@ async function get<T>(path: string): Promise<T | null> {
 
 export type SitemapEntry = { id: number; updated_at: string };
 
-/** Fiche de rappels de cours de prépa. Non publiée, seule l'équipe la voit. */
+/** Place d'une démonstration par rapport au programme de MP ; vide pour une fiche. */
+export type ProofStatus = "" | "au-programme" | "preuve-hors-programme" | "hors-programme";
+
+/** Fiche de rappels de cours de prépa, ou démonstration d'un théorème. Non publiée, seule
+ * l'équipe la voit. */
 export type CourseNoteSummary = {
   slug: string;
   title: string;
+  kind: "fiche" | "demonstration";
+  status: ProofStatus;
   cycle: "sup" | "spe";
   /** Filières dont le programme couvre la fiche, par exemple « MP, PSI ». */
   programs: string;
@@ -508,18 +514,28 @@ async function getPublic<T>(path: string): Promise<T> {
 /** Ce que liste le plan du site : exercices publiés, niveaux, chapitres et rappels de cours
  * publiés (lus sans session : jamais les brouillons). */
 export async function fetchSitemap() {
-  const [exercises, levels, topics, courseNotes] = await Promise.all([
+  const [exercises, levels, topics, courseNotes, demonstrations] = await Promise.all([
     getPublic<SitemapEntry[]>("/sitemap"),
     getPublic<Level[]>("/levels"),
     getPublic<Topic[]>("/topics"),
     getPublic<CourseNoteSummary[]>("/course-notes"),
+    getPublic<CourseNoteSummary[]>("/course-notes?kind=demonstration"),
   ]);
-  return { exercises, levels, topics, courseNotes };
+  return { exercises, levels, topics, courseNotes, demonstrations };
 }
 
-/** Rappels de cours visibles du visiteur : publiés, plus les brouillons pour l'équipe. */
-export async function fetchCourseNotes(topic?: string) {
-  return (await get<CourseNoteSummary[]>(`/course-notes${topic ? `?topic=${encodeURIComponent(topic)}` : ""}`)) ?? [];
+/** Rappels de cours (ou démonstrations) visibles du visiteur : publiés, plus les brouillons
+ * pour l'équipe. */
+export async function fetchCourseNotes(topic?: string, kind: CourseNoteSummary["kind"] = "fiche") {
+  const query = new URLSearchParams();
+  if (topic) query.set("topic", topic);
+  if (kind !== "fiche") query.set("kind", kind);
+  const search = query.toString();
+  return (await get<CourseNoteSummary[]>(`/course-notes${search ? `?${search}` : ""}`)) ?? [];
+}
+
+export function fetchDemonstrations(topic?: string) {
+  return fetchCourseNotes(topic, "demonstration");
 }
 
 export function fetchCourseNote(slug: string) {

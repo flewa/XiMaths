@@ -29,8 +29,26 @@ Soit $(a_n)_{n \\in \\mathbb{N}}$ une suite complexe.
 """
 
 
-def source(text=NOTE, slug="series-entieres", cycle="spe"):
-    return parse(text, slug=slug, cycle=cycle)
+PROOF = """---
+titre: Lemme des noyaux
+programmes: MP, MPI
+statut: au-programme
+ordre: 1
+notion: reduction
+---
+
+## Énoncé
+
+Soient $P_1, \\dots, P_r$ premiers entre eux deux à deux.
+
+## Démonstration
+
+Par récurrence sur $r$.
+"""
+
+
+def source(text=NOTE, slug="series-entieres", cycle="spe", kind="fiche"):
+    return parse(text, slug=slug, cycle=cycle, kind=kind)
 
 
 class SourceTests(TestCase):
@@ -49,6 +67,16 @@ class SourceTests(TestCase):
         ]:
             with self.subTest(message=message), self.assertRaisesMessage(ValueError, message):
                 source(text)
+
+    def test_a_demonstration_states_its_place_in_the_programme(self):
+        proof = source(PROOF, slug="lemme-des-noyaux", kind="demonstration")
+        self.assertEqual((proof.kind, proof.status, proof.cycle), ("demonstration", "au-programme", "spe"))
+        with self.assertRaisesMessage(ValueError, "statut"):
+            source(PROOF.replace("statut: au-programme\n", ""), slug="lemme-des-noyaux", kind="demonstration")
+        with self.assertRaisesMessage(ValueError, "statut"):
+            source(PROOF.replace("au-programme", "facultatif"), slug="lemme-des-noyaux", kind="demonstration")
+        with self.assertRaisesMessage(ValueError, "réservé aux démonstrations"):
+            source(PROOF, slug="lemme-des-noyaux")
 
     def test_two_files_with_the_same_name_are_refused(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -72,9 +100,16 @@ class EditorialNotesTests(TestCase):
                 self.assertEqual(note.body.count("$$") % 2, 0, "un bloc $$ n'est pas fermé")
 
     def test_positions_are_distinct_within_a_cycle(self):
-        for cycle in ("sup", "spe"):
-            positions = [note.position for note in load_sources() if note.cycle == cycle]
-            self.assertEqual(len(positions), len(set(positions)), cycle)
+        for kind, cycle in (("fiche", "sup"), ("fiche", "spe"), ("demonstration", "spe")):
+            positions = [note.position for note in load_sources() if (note.kind, note.cycle) == (kind, cycle)]
+            self.assertEqual(len(positions), len(set(positions)), (kind, cycle))
+
+    def test_every_demonstration_states_the_theorem_then_proves_it(self):
+        proofs = [note for note in load_sources() if note.kind == "demonstration"]
+        self.assertGreater(len(proofs), 0)
+        for proof in proofs:
+            with self.subTest(proof=proof.slug):
+                self.assertLess(proof.body.index("## Énoncé"), proof.body.index("## Démonstration"))
 
     def test_notes_avoid_tables_the_site_does_not_render(self):
         # Le rendu du site (react-markdown sans GFM) n'affiche pas les tableaux Markdown.
@@ -174,6 +209,17 @@ class ApiTests(TestCase):
         self.client.force_login(self.member)
         self.assertEqual(self.client.post("/api/course-notes/polynomes/publish").status_code, 403)
         self.assertFalse(CourseNote.objects.get(slug="polynomes").published)
+
+    def test_demonstrations_are_listed_apart_from_the_notes(self):
+        import_sources([source(PROOF, slug="lemme-des-noyaux", kind="demonstration")])
+        self.client.force_login(self.admin)
+        self.client.post("/api/course-notes/lemme-des-noyaux/publish")
+        self.client.logout()
+        self.assertEqual(self.client.get("/api/course-notes").json(), [])
+        listed = self.client.get("/api/course-notes?kind=demonstration").json()
+        self.assertEqual([(note["slug"], note["kind"], note["status"]) for note in listed], [("lemme-des-noyaux", "demonstration", "au-programme")])
+        self.assertEqual(self.client.get("/api/course-notes/lemme-des-noyaux").json()["kind"], "demonstration")
+        self.assertEqual(self.client.get("/api/course-notes?kind=roman").status_code, 400)
 
     def test_me_tells_the_site_who_is_staff(self):
         self.client.force_login(self.admin)
