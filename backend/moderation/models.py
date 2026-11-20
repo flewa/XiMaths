@@ -180,6 +180,8 @@ class Appeal(models.Model):
         PENDING = "en_attente", "En attente"
         UPHELD = "maintenue", "Décision maintenue"
         OVERTURNED = "annulee", "Décision annulée"
+        # Le compte qui a fait appel a été supprimé : il n'y a plus personne à qui répondre.
+        CLOSED = "sans_objet", "Sans objet (compte supprimé)"
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="appeals")
     sanction = models.OneToOneField(Sanction, null=True, blank=True, on_delete=models.CASCADE, related_name="appeal")

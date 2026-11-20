@@ -249,7 +249,7 @@ def delete_account(user):
     compte anonymisé pour que les classements passés ne changent pas."""
     from content.models import Exercise, ExerciseRead, Message, MessageFlag, ModelCopyView, Solution
     from gamification.models import Goal, UserBadge, WeeklyStreak
-    from moderation.models import ComprehensionQuestion
+    from moderation.models import Appeal, ComprehensionQuestion
     from notifications.models import Notification, PushSubscription
     from training.models import TimedSession
 
@@ -270,6 +270,13 @@ def delete_account(user):
     WeeklyStreak.objects.filter(user=user).delete()
     Goal.objects.filter(user=user).delete()
     ComprehensionQuestion.objects.filter(user=user).delete()
+    # Plus personne à qui répondre : ses appels en attente sont classés sans objet, au lieu de
+    # rester dans la file de l'équipe (et en retard) pour toujours.
+    Appeal.objects.filter(user=user, status=Appeal.Status.PENDING).update(
+        status=Appeal.Status.CLOSED,
+        decided_at=timezone.now(),
+        decision_note="Compte supprimé : l'appel est sans objet.",
+    )
     user.username = f"supprime-{user.pk}"
     user.email = f"supprime-{user.pk}@invalide.ximaths.test"
     user.first_name = user.last_name = ""

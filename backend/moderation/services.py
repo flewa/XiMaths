@@ -423,7 +423,8 @@ def decide_appeal(appeal, *, overturn, moderator, note, now=None):
 def appeal_stats():
     """Garde-fou du document : plus de 20 % de décisions annulées en appel signifie des
     seuils trop agressifs. Aussi : délai médian de traitement des signalements."""
-    decided = Appeal.objects.exclude(status=Appeal.Status.PENDING)
+    # Les appels classés sans objet (compte supprimé) n'ont pas été jugés : ils ne comptent pas.
+    decided = Appeal.objects.filter(status__in=[Appeal.Status.UPHELD, Appeal.Status.OVERTURNED])
     total = decided.count()
     overturned = decided.filter(status=Appeal.Status.OVERTURNED).count()
     delays = [
