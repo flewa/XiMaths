@@ -145,7 +145,7 @@ export default async function QuestionsPage() {
       )}
 
       <section aria-labelledby="regles" className="mt-10">
-        <h2 id="regles" className="font-sans text-[13px] font-semibold uppercase tracking-[0.04em] text-ink">
+        <h2 id="regles" className="font-sans text-xs font-semibold uppercase tracking-[0.04em] text-ink">
           Comment ça marche
         </h2>
         <ul className="mt-3 space-y-2 text-sm text-body">

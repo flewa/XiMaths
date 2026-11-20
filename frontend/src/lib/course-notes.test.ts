@@ -12,7 +12,7 @@ import { normalizeMath } from "@/components/MathMarkdown";
 import { MACROS } from "@/lib/katex-macros";
 
 import type { CourseNoteSummary } from "./api";
-import { CONVENTIONS, frenchSpacing, neighbours, notePath, proofSections } from "./course-notes";
+import { CONVENTIONS, frenchSpacing, neighbours, notePath, outline, proofSections } from "./course-notes";
 
 // Les fiches et les démonstrations de la rédaction, écrites côté serveur (backend/courses/notes/).
 const NOTES = join(__dirname, "../../../backend/courses/notes");
@@ -98,5 +98,32 @@ describe("neighbours", () => {
     expect(neighbours(list, "b")).toEqual({ previous: list[0], next: null });
     expect(neighbours(list, "c")).toEqual({ previous: null, next: list[3] });
     expect(neighbours(list, "z")).toEqual({ previous: null, next: null });
+  });
+});
+
+describe("outline", () => {
+  it("relève les titres de niveau 2, hors formules, avec des ancres uniques", () => {
+    const text = [
+      "Intro.",
+      "## Conjugué et module",
+      "$$",
+      "## pas un titre",
+      "$$",
+      "### Sous-partie ignorée",
+      "## Le cas $n = 2$",
+      "## Conjugué et module",
+    ].join("\n");
+    expect(outline(text)).toEqual([
+      { id: "conjugue-et-module", title: "Conjugué et module" },
+      { id: "le-cas-n-2", title: "Le cas $n = 2$" },
+      { id: "conjugue-et-module-2", title: "Conjugué et module" },
+    ]);
+  });
+
+  it("couvre chaque titre des fiches réelles", () => {
+    for (const { name, text } of notes()) {
+      const headings = text.split("\n").filter((line) => line.startsWith("## ")).length;
+      expect(outline(text).length, name).toBe(headings);
+    }
   });
 });

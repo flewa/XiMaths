@@ -6,8 +6,9 @@ import { CourseNoteReview } from "@/components/CourseNotes";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { JsonLd, breadcrumb } from "@/components/JsonLd";
 import { MathMarkdown } from "@/components/MathMarkdown";
+import { Outline } from "@/components/Outline";
 import { fetchCourseNote, fetchCourseNotes, fetchDemonstrations, fetchMe, nullOnError } from "@/lib/api";
-import { courseNotePath, cycleOf, demonstrationPath, frenchSpacing, neighbours } from "@/lib/course-notes";
+import { courseNotePath, cycleOf, demonstrationPath, frenchSpacing, neighbours, outline } from "@/lib/course-notes";
 import { chapterPath, ofChapter } from "@/lib/seo-pages";
 import { SHARE_IMAGE } from "@/lib/site";
 
@@ -52,6 +53,7 @@ export default async function CourseNotePage({ params }: Props) {
   const { note, notes, me, proofs } = data;
   const cycle = cycleOf(note);
   const { previous, next } = neighbours(notes, note.slug);
+  const parts = outline(note.body);
 
   return (
     <article>
@@ -76,8 +78,10 @@ export default async function CourseNotePage({ params }: Props) {
       </p>
       {me?.is_staff && <CourseNoteReview slug={note.slug} published={note.published} />}
 
+      <Outline items={parts} />
+
       <div className="course-note mt-8">
-        <MathMarkdown>{frenchSpacing(note.body)}</MathMarkdown>
+        <MathMarkdown headingIds={parts.map((part) => part.id)}>{frenchSpacing(note.body)}</MathMarkdown>
       </div>
 
       {note.topic && note.topic_name && (
@@ -100,14 +104,14 @@ export default async function CourseNotePage({ params }: Props) {
       {(previous || next) && (
         <nav aria-label="Fiches voisines" className="mt-8 flex flex-wrap justify-between gap-4 text-sm">
           {previous ? (
-            <Link href={courseNotePath(previous.slug)} className="text-mute hover:text-ink">
+            <Link href={courseNotePath(previous.slug)} className="inline-flex min-h-10 items-center text-body hover:text-ink">
               ← {previous.title}
             </Link>
           ) : (
             <span />
           )}
           {next && (
-            <Link href={courseNotePath(next.slug)} className="text-mute hover:text-ink">
+            <Link href={courseNotePath(next.slug)} className="inline-flex min-h-10 items-center text-body hover:text-ink">
               {next.title} →
             </Link>
           )}

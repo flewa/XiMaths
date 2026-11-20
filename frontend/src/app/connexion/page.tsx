@@ -4,13 +4,9 @@ import { redirect } from "next/navigation";
 import { GoogleButton, LoginForm } from "@/components/AuthForms";
 import { FormMessage } from "@/components/Form";
 import { fetchMe, fetchProviders, nullOnError } from "@/lib/api";
+import { safeNext } from "@/lib/safe-next";
 
 export const metadata: Metadata = { title: "Connexion", robots: { index: false } };
-
-/** Seules les adresses internes sont acceptées comme destination après connexion. */
-function safeNext(next: string | undefined) {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
-}
 
 export default async function LoginPage({
   searchParams,

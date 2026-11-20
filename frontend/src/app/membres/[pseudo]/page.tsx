@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: decodeURIComponent(pseudo), robots: { index: false } };
 }
 
-const sectionTitle = "font-sans text-[13px] font-semibold uppercase tracking-[0.04em] text-ink";
+const sectionTitle = "font-sans text-xs font-semibold uppercase tracking-[0.04em] text-ink";
 
 function stats(member: Member) {
   return [

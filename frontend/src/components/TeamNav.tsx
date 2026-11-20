@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { Icon } from "./Icon";
+
 /** Les onglets de l'espace de l'équipe. La modération (/moderation) et l'administration
  * (/administration) sont deux pages, mais un seul espace : un administrateur y passe de l'une
  * à l'autre sans changer de menu. Un modérateur ne voit que les onglets de modération. */
@@ -29,9 +31,12 @@ function tabsFor(staff: boolean, counts: TeamCounts) {
   ];
 }
 
-/** Titre et onglets, communs aux deux pages. Les onglets passent à la ligne plutôt que de
- * défiler : sur téléphone, rien n'est coupé. */
+/** Titre et onglets, communs aux deux pages. Rien n'est coupé : les onglets passent à la ligne
+ * sur grand écran et deviennent un menu sur téléphone. */
 export function TeamHeader({ staff, counts, active }: { staff: boolean; counts: TeamCounts; active: TeamTab }) {
+  const tabs = tabsFor(staff, counts);
+  const current = tabs.find((tab) => tab.value === active);
+  const waiting = tabs.reduce((sum, tab) => sum + tab.count, 0);
   return (
     <>
       <h1>{staff ? "Gestion du site" : "Modération"}</h1>
@@ -43,17 +48,46 @@ export function TeamHeader({ staff, counts, active }: { staff: boolean; counts: 
           inscrite au journal. Tu ne tranches jamais ce qui te concerne : un autre membre de l&apos;équipe le fait.
         </p>
       )}
-      <nav aria-label="Espace de l'équipe" className="mt-7 flex flex-wrap gap-1.5 border-b border-hairline pb-3">
-        {tabsFor(staff, counts).map((tab) => (
+      {/* Sur téléphone, huit onglets prenaient trois lignes : un menu qui affiche l'onglet ouvert.
+          Sur grand écran, ils tiennent sur une ligne. */}
+      <details className="plain group relative mt-6 sm:hidden">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-lg border border-hairline px-4 text-sm font-medium text-ink [&::-webkit-details-marker]:hidden">
+          <span>
+            {current?.label ?? "Sections"}
+            {waiting > 0 && <span className="ml-2 text-xs font-semibold text-accent-text">{waiting} en attente</span>}
+          </span>
+          <Icon name="chevron" size={16} className="text-mute transition-transform group-open:rotate-180" />
+        </summary>
+        <ul className="mt-1.5 rounded-lg border border-hairline bg-surface-soft p-1.5">
+          {tabs.map((tab) => (
+            <li key={tab.value}>
+              <Link
+                href={tab.href}
+                aria-current={tab.value === active ? "page" : undefined}
+                className={`flex min-h-10 items-center justify-between rounded-md px-3 text-sm ${tab.value === active ? chipActive : chipIdle}`}
+              >
+                {tab.label}
+                {tab.count > 0 && (
+                  <span className="rounded-full bg-accent px-1.5 text-xs font-semibold leading-[18px] text-accent-ink">
+                    {tab.count}
+                  </span>
+                )}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </details>
+      <nav aria-label="Espace de l'équipe" className="mt-7 flex flex-wrap gap-1.5 border-b border-hairline pb-3 max-sm:hidden">
+        {tabs.map((tab) => (
           <Link
             key={tab.value}
             href={tab.href}
             aria-current={tab.value === active ? "page" : undefined}
-            className={`${chip} min-h-9 text-[15px] ${tab.value === active ? chipActive : chipIdle}`}
+            className={`${chip} min-h-10 text-sm ${tab.value === active ? chipActive : chipIdle}`}
           >
             {tab.label}
             {tab.count > 0 && (
-              <span className="ml-1.5 rounded-full bg-accent px-1.5 text-[12px] font-semibold leading-[18px] text-accent-ink">
+              <span className="ml-1.5 rounded-full bg-accent px-1.5 text-xs font-semibold leading-[18px] text-accent-ink">
                 {tab.count}
               </span>
             )}

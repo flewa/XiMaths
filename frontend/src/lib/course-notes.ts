@@ -75,3 +75,41 @@ export const CONVENTIONS = String.raw`- $\N$ désigne l'ensemble des entiers nat
 - Pour deux entiers $p \leq q$, $[\![p, q]\!]$ désigne l'ensemble des entiers $k$ tels que $p \leq k \leq q$.
 - Sauf mention contraire, un intervalle est une partie de $\R$ convexe, non vide et non réduite à un point.
 - Chaque énoncé donne ses hypothèses en entier : une hypothèse qui n'y figure pas n'est pas nécessaire, une hypothèse qui y figure ne peut pas être omise.`;
+
+/** Identifiant d'ancre d'un titre : minuscules, sans accents ni formules. */
+export function anchorOf(title: string) {
+  return (
+    title
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/\\[a-zA-Z]+/g, " ")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "partie"
+  );
+}
+
+/** Les parties d'un texte (ses titres « ## »), dans l'ordre, avec une ancre unique chacune :
+ * de quoi faire un sommaire. Les blocs de code et de formules sont ignorés. */
+export function outline(markdown: string) {
+  const items: { id: string; title: string }[] = [];
+  const used = new Map<string, number>();
+  let inCode = false;
+  let inMath = false;
+  for (const line of markdown.split("\n")) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("```")) inCode = !inCode;
+    if (inCode) continue;
+    if ((trimmed.match(/\$\$/g) ?? []).length % 2 === 1) {
+      inMath = !inMath;
+      continue;
+    }
+    if (inMath || !line.startsWith("## ")) continue;
+    const title = line.slice(3).trim();
+    const base = anchorOf(title);
+    const seen = used.get(base) ?? 0;
+    used.set(base, seen + 1);
+    items.push({ id: seen === 0 ? base : `${base}-${seen + 1}`, title });
+  }
+  return items;
+}

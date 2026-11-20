@@ -183,7 +183,8 @@ export default async function Home({
   const courseNotes = suggestedNotes(notes, { year: declared?.year ?? null, topics });
 
   // Deux colonnes sur grand écran : le défi et les exercices, puis le suivi à droite. Sur
-  // téléphone, une seule : la semaine, le défi, l'à-faire, les exercices, le cours, le classement.
+  // téléphone, une seule : le défi, l'à-faire, la semaine, les exercices, le cours, le classement.
+  // Le défi d'abord : un nouveau venu voyait sinon « 0/3 jour actif » avant toute chose.
   return (
     <div className="page-wide">
       <JsonLd data={SITE_DATA} />
@@ -191,7 +192,7 @@ export default async function Home({
       <div className="mt-7 flex flex-col gap-8 xl:grid xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start xl:gap-10">
         <div className="contents xl:flex xl:min-w-0 xl:flex-col xl:gap-9">
           {challenge && (
-            <div className="order-2 xl:order-none">
+            <div className="order-1 xl:order-none">
               <ChallengeCard challenge={challenge.challenge} state={challenge.state} />
             </div>
           )}
@@ -199,11 +200,11 @@ export default async function Home({
         </div>
         <div className="contents xl:flex xl:flex-col xl:gap-4">
           {progress && (
-            <div className="order-1 xl:order-none">
+            <div className="order-3 xl:order-none">
               <WeekCard progress={progress} />
             </div>
           )}
-          <div className="order-3 xl:order-none">
+          <div className="order-2 xl:order-none">
             <TodoCard me={me} progress={progress} />
           </div>
           {courseNotes.length > 0 && (

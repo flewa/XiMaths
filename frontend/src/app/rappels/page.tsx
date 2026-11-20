@@ -76,7 +76,7 @@ export default async function CourseNotesPage() {
       )}
 
       <details className="mt-8 text-sm">
-        <summary className="font-medium text-ink">Conventions communes aux fiches</summary>
+        <summary className="font-medium text-ink py-1.5">Conventions communes aux fiches</summary>
         <div className="mt-2 text-body">
           <MathMarkdown>{frenchSpacing(CONVENTIONS)}</MathMarkdown>
         </div>

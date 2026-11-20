@@ -87,7 +87,7 @@ export function AnswerQuestion({ question }: { question: ComprehensionQuestion }
       <FormMessage error={error} />
       <SubmitButton pending={pending}>Envoyer ma réponse</SubmitButton>
       <details className="plain border-t border-hairline pt-3">
-        <summary className="cursor-pointer text-sm text-mute">Revoir l&apos;énoncé et ma solution</summary>
+        <summary className="cursor-pointer text-sm text-mute py-1.5">Revoir l&apos;énoncé et ma solution</summary>
         {question.statement && <MathMarkdown>{question.statement}</MathMarkdown>}
         <CopyPhotoList photos={question.solution_photos} />
         {question.solution_body && (

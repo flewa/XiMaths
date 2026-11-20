@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ChipRow, chipLinkClass } from "@/components/ChipRow";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { PagedExerciseList, shownCount } from "@/components/ExerciseList";
 import { JsonLd, breadcrumb } from "@/components/JsonLd";
@@ -76,35 +77,20 @@ export default async function LevelPage({ params, searchParams }: Props) {
       <h1 className="mt-3">{heading(level)}</h1>
       <p className="mt-4 max-w-[65ch] text-lg text-body">{LEVEL_INTROS[level.code]}</p>
 
-      {chapters.length > 0 && (
-        <p className="mt-6 flex flex-wrap items-center gap-2 text-sm">
-          <span className="mr-1 text-mute">Par chapitre :</span>
-          {chapters.map((topic) => (
-            <Link
-              key={topic.slug}
-              href={chapterPath(topic.slug)}
-              className="rounded-full bg-surface-card px-3 py-1 text-ink hover:bg-surface-dark-elevated"
-            >
-              {topic.name}
-            </Link>
-          ))}
-        </p>
-      )}
-
-      {notions.length > 0 && (
-        <p className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-          <span className="mr-1 text-mute">Par notion :</span>
-          {notions.map((topic) => (
-            <Link
-              key={topic.slug}
-              href={chapterPath(topic.slug)}
-              className="rounded-full bg-surface-card px-3 py-1 text-ink hover:bg-surface-dark-elevated"
-            >
-              {topic.name} <span className="text-mute">{notionCount.get(topic.name)}</span>
-            </Link>
-          ))}
-        </p>
-      )}
+      <ChipRow label="Par chapitre" count={chapters.length} className="mt-6">
+        {chapters.map((topic) => (
+          <Link key={topic.slug} href={chapterPath(topic.slug)} className={chipLinkClass}>
+            {topic.name}
+          </Link>
+        ))}
+      </ChipRow>
+      <ChipRow label="Par notion" count={notions.length}>
+        {notions.map((topic) => (
+          <Link key={topic.slug} href={chapterPath(topic.slug)} className={chipLinkClass}>
+            {topic.name} <span className="ml-1 text-mute">{notionCount.get(topic.name)}</span>
+          </Link>
+        ))}
+      </ChipRow>
 
       <section aria-labelledby="liste" className="mt-10">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">

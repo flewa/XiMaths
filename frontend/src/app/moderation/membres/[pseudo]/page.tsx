@@ -66,7 +66,7 @@ export default async function MemberFilePage({ params }: Props) {
       <dl className="mt-6 grid grid-cols-3 gap-2 sm:grid-cols-5">
         {tiles.map((tile) => (
           <div key={tile.label} className="flex flex-col-reverse rounded-xl bg-surface-soft px-3 py-2">
-            <dt className="text-[13px] text-mute">{tile.label}</dt>
+            <dt className="text-xs text-mute">{tile.label}</dt>
             <dd className="font-serif text-xl leading-tight text-ink-deep tabular-nums">{tile.value}</dd>
           </div>
         ))}
@@ -106,7 +106,7 @@ export default async function MemberFilePage({ params }: Props) {
         )}
         {file.can_sanction ? (
           <details className="mt-4 rounded-2xl border border-hairline px-4 py-3">
-            <summary className="font-medium">Prononcer une sanction</summary>
+            <summary className="font-medium py-1.5">Prononcer une sanction</summary>
             <p className="mt-2 text-sm text-mute">
               Le membre reçoit le motif et peut faire appel sous 14 jours ; un autre membre de l&apos;équipe tranche
               l&apos;appel. Une suspension ou un bannissement l&apos;empêche d&apos;écrire sur le site.

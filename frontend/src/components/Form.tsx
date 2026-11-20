@@ -4,11 +4,22 @@ import { Icon } from "./Icon";
 export const inputClass =
   "w-full rounded-lg border border-hairline bg-surface-soft px-3 py-2 text-ink outline-none transition-colors placeholder:text-stone focus:border-accent";
 
-export const primaryButtonClass =
-  "inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-1.5 text-center text-[15px] font-semibold text-accent-ink hover:brightness-110 disabled:bg-surface-card disabled:text-ash disabled:hover:brightness-100";
+// Trois tailles de bouton sur tout le site : petit (32 px), moyen (40 px, par défaut) et grand
+// (48 px, pour l'action unique d'un écran d'accueil).
+const button = "inline-flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-center";
+const small = "min-h-8 px-3 text-sm";
+const medium = "min-h-10 px-4 text-sm";
+const large = "min-h-12 px-6 text-base";
+const primary =
+  "bg-accent font-semibold text-accent-ink hover:brightness-110 disabled:bg-surface-card disabled:text-ash disabled:hover:brightness-100";
+const secondary = "bg-surface-card font-medium text-ink hover:bg-surface-dark-elevated disabled:text-ash";
 
-export const secondaryButtonClass =
-  "inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg bg-surface-card px-4 py-1.5 text-center text-[15px] font-medium text-ink hover:bg-surface-dark-elevated";
+export const primaryButtonClass = `${button} ${medium} ${primary}`;
+export const largePrimaryButtonClass = `${button} ${large} ${primary}`;
+export const secondaryButtonClass = `${button} ${medium} ${secondary}`;
+export const smallSecondaryButtonClass = `${button} ${small} ${secondary}`;
+export const smallOutlineButtonClass = `${button} ${small} border border-hairline-strong font-medium text-ink hover:bg-hover`;
+export const dangerButtonClass = `${button} ${medium} bg-danger font-semibold text-white hover:brightness-110 disabled:bg-surface-card disabled:text-ash`;
 
 export function Field({
   label,
@@ -78,9 +89,17 @@ export function Checkbox({
   );
 }
 
-export function SubmitButton({ pending, children }: { pending: boolean; children: React.ReactNode }) {
+export function SubmitButton({
+  pending,
+  danger = false,
+  children,
+}: {
+  pending: boolean;
+  danger?: boolean;
+  children: React.ReactNode;
+}) {
   return (
-    <button type="submit" disabled={pending} className={primaryButtonClass}>
+    <button type="submit" disabled={pending} className={danger ? dangerButtonClass : primaryButtonClass}>
       {pending ? "Un instant…" : children}
     </button>
   );

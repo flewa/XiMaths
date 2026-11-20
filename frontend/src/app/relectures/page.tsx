@@ -97,7 +97,7 @@ export default async function ReviewsPage() {
             return (
               <details key={task.id} open={task.id === urgent?.id} className="mt-4 rounded-xl border border-hairline">
                 <summary className="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3">
-                  <span className="text-sm text-mute">[{task.primary_level}]</span>
+                  <Tag>{task.primary_level}</Tag>
                   <span className="font-medium text-ink">
                     <MathText>{task.exercise_title}</MathText>
                   </span>
@@ -155,7 +155,9 @@ export default async function ReviewsPage() {
                 return (
                   <li key={item.solution_id} className="flex flex-wrap items-center justify-between gap-3 py-3">
                     <span className="min-w-0">
-                      <span className="text-mute">[{item.primary_level}] </span>
+                      <span className="mr-2 align-[0.1em]">
+                        <Tag>{item.primary_level}</Tag>
+                      </span>
                       <MathText>{item.exercise_title}</MathText>
                       <span className="block text-sm text-mute">
                         <span className={late ? "font-medium text-accent-text" : ""}>

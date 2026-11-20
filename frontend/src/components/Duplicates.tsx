@@ -56,7 +56,7 @@ export function SimilarPanel({ exercises }: { exercises: SimilarExercise[] }) {
           <li key={exercise.id}>
             <SimilarHeader exercise={exercise} />
             <details>
-              <summary className="text-sm text-mute">Voir l&apos;énoncé</summary>
+              <summary className="text-sm text-mute py-1.5">Voir l&apos;énoncé</summary>
               <MathMarkdown>{exercise.statement}</MathMarkdown>
             </details>
           </li>

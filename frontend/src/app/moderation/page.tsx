@@ -120,7 +120,7 @@ function ReportCard({ group, now }: { group: ReportGroup; now: Date }) {
         </Link>
       </p>
       <details className="mt-2">
-        <summary className="text-sm text-mute">{group.target === "exercise" ? "Voir l'énoncé" : "Voir l'énoncé et la copie"}</summary>
+        <summary className="text-sm text-mute py-1.5">{group.target === "exercise" ? "Voir l'énoncé" : "Voir l'énoncé et la copie"}</summary>
         <div className="mt-2 rounded-xl bg-surface-soft px-4 py-1">
           <MathMarkdown>{group.statement}</MathMarkdown>
         </div>

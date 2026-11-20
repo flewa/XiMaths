@@ -46,13 +46,22 @@ export function ExerciseShare({ url, title, image }: { url: string; title: strin
     }
   }
 
-  return (
-    <div className="mt-8 flex flex-wrap items-center gap-2">
-      <span className="mr-1 inline-flex items-center gap-1.5 text-sm text-mute">
-        <Icon name="share" size={16} />
-        Partager
-      </span>
-      {native && (
+  const copyButton = (
+    <button
+      type="button"
+      onClick={copy}
+      data-umami-event="partage-exercice"
+      data-umami-event-via="lien"
+      className={pill}
+    >
+      {copied ? "Lien copié" : "Copier le lien"}
+    </button>
+  );
+
+  // Sur téléphone, un seul bouton : la feuille de partage du système contient déjà tout.
+  if (native) {
+    return (
+      <>
         <button
           type="button"
           onClick={() => navigator.share({ title, text, url }).catch(() => {})}
@@ -60,36 +69,49 @@ export function ExerciseShare({ url, title, image }: { url: string; title: strin
           data-umami-event-via="appareil"
           className={pill}
         >
-          Mes applications…
+          <Icon name="share" size={16} />
+          Partager
         </button>
-      )}
-      {/* Sur téléphone, la feuille de partage du système contient déjà toutes les applications. */}
-      {!native && targets(url, text, image).map((target) => (
-        <a
-          key={target.name}
-          href={target.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          data-umami-event="partage-exercice"
-          data-umami-event-via={target.name.toLowerCase()}
-          className={pill}
-        >
-          {target.name}
-        </a>
-      ))}
-      <button
-        type="button"
-        onClick={copy}
-        data-umami-event="partage-exercice"
-        data-umami-event-via="lien"
-        className={pill}
-      >
-        {copied ? "Lien copié" : "Copier le lien"}
-      </button>
-      <span className="sr-only" aria-live="polite">
-        {copied ? "Lien de l'exercice copié." : ""}
-      </span>
-    </div>
+        {copyButton}
+        <Live copied={copied} />
+      </>
+    );
+  }
+  // Ailleurs, les réseaux restent repliés derrière « Partager » : six boutons sous le
+  // formulaire d'envoi lui faisaient concurrence.
+  return (
+    <details className="plain group">
+      <summary className={`${pill} cursor-pointer list-none [&::-webkit-details-marker]:hidden`}>
+        <Icon name="share" size={16} />
+        Partager
+        <Icon name="chevron" size={14} className="transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {targets(url, text, image).map((target) => (
+          <a
+            key={target.name}
+            href={target.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-umami-event="partage-exercice"
+            data-umami-event-via={target.name.toLowerCase()}
+            className={pill}
+          >
+            {target.name}
+          </a>
+        ))}
+        {copyButton}
+      </div>
+      <Live copied={copied} />
+    </details>
+  );
+}
+
+function Live({ copied }: { copied: boolean }) {
+  return (
+    <span className="sr-only" aria-live="polite">
+      {copied ? "Lien de l'exercice copié." : ""}
+    </span>
   );
 }
 

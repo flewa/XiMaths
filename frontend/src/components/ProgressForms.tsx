@@ -6,7 +6,7 @@ import { useState } from "react";
 import type { Topic } from "@/lib/api";
 import { apiDelete, apiPost, apiPut } from "@/lib/client-api";
 
-import { Field, FormMessage, SubmitButton, inputClass, secondaryButtonClass } from "./Form";
+import { Field, FormMessage, SubmitButton, inputClass, smallSecondaryButtonClass } from "./Form";
 
 /** Objectif de la série : de 2 à 7 jours actifs par semaine. */
 export function WeeklyGoalForm({ days }: { days: number }) {
@@ -201,7 +201,7 @@ export function DeleteGoalButton({ goalId }: { goalId: number }) {
         setPending(false);
         if (deleted.ok) router.refresh();
       }}
-      className={`${secondaryButtonClass} h-7 px-3 text-sm leading-[26px]`}
+      className={smallSecondaryButtonClass}
     >
       Retirer
     </button>

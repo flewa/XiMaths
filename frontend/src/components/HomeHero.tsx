@@ -7,7 +7,7 @@ import { ordinal, plural } from "@/lib/labels";
 import { PODIUM_TINTS } from "@/lib/profile-art";
 
 import { Avatar } from "./Avatar";
-import { primaryButtonClass } from "./Form";
+import { largePrimaryButtonClass } from "./Form";
 import { Icon, type IconName } from "./Icon";
 import { SearchBox } from "./SearchBox";
 import { MathText } from "./MathText";
@@ -16,7 +16,7 @@ const DAY_LETTERS = ["L", "M", "M", "J", "V", "S", "D"];
 const DAY_NAMES = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
 
 const card = "rounded-2xl border border-hairline bg-surface-soft p-5";
-const cardTitle = "font-sans text-[13px] font-semibold uppercase tracking-[0.04em] text-ink";
+const cardTitle = "font-sans text-xs font-semibold uppercase tracking-[0.04em] text-ink";
 const pill = "rounded-full bg-surface-card px-2 py-px text-xs font-medium text-body";
 
 /** La semaine en sept cases : pleine si active, cerclée pour aujourd'hui, pâle pour les jours à venir. */
@@ -101,7 +101,7 @@ export function MemberHeader({ me, levelName, today }: { me: Me; levelName: stri
           {today}
           {levelName && ` · ${levelName}`}
         </p>
-        <h1 id="accroche" className="mt-1 text-[2rem] sm:text-[2.25rem]">
+        <h1 id="accroche" className="mt-1 text-[2rem]">
           Bonjour, {me.username}.
         </h1>
       </div>
@@ -131,7 +131,7 @@ export function ChallengeCard({ challenge, state = "a-faire" }: { challenge: Dai
   }
   return (
     <section aria-labelledby="defi" className="rounded-2xl border border-hairline bg-surface-soft px-5 py-6 sm:px-7">
-      <div className="flex flex-wrap items-center gap-2.5 text-[13px] text-mute">
+      <div className="flex flex-wrap items-center gap-2.5 text-xs text-mute">
         <span className="grid size-7 place-items-center rounded-lg bg-accent-soft text-accent-text">
           <Icon name="timer" size={16} />
         </span>
@@ -144,11 +144,11 @@ export function ChallengeCard({ challenge, state = "a-faire" }: { challenge: Dai
         <span className={pill}>{challenge.minutes} minutes</span>
         <span className="sm:ml-auto">Ferme à minuit</span>
       </div>
-      <p className="mt-4 font-serif text-[1.5rem] leading-snug text-ink-deep sm:text-[1.625rem]">
+      <p className="mt-4 font-serif text-2xl leading-snug text-ink-deep">
         <MathText>{challenge.exercise_title}</MathText>
       </p>
       <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3">
-        <Link href="/defi" className={`${primaryButtonClass} min-h-11 px-5`}>
+        <Link href="/defi" className={largePrimaryButtonClass}>
           {state === "en-cours" ? "Reprendre le défi" : "Commencer le défi"}
         </Link>
         <span className="text-sm text-body">
@@ -168,24 +168,24 @@ export function WeekCard({ progress }: { progress: Progress }) {
         <h2 id="semaine" className={cardTitle}>
           Ta semaine
         </h2>
-        <Link href="/progression" className="-my-1 inline-flex min-h-8 items-center text-[13px] text-mute hover:text-ink">
+        <Link href="/progression" className="-my-1 inline-flex min-h-8 items-center text-xs text-mute hover:text-ink">
           Progression →
         </Link>
       </div>
       <p className="mt-3.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <span className="font-serif text-[2.125rem] leading-none text-ink-deep">
+        <span className="font-serif text-[2rem] leading-none text-ink-deep">
           {progress.active_days}/{progress.goal_days}
         </span>
         <span className="text-sm text-body">{progress.active_days > 1 ? "jours actifs" : "jour actif"}</span>
         {progress.achieved && (
-          <span className="ml-auto inline-flex items-center gap-1 text-[13px] text-success">
+          <span className="ml-auto inline-flex items-center gap-1 text-xs text-success">
             <Icon name="check" size={14} />
             objectif atteint
           </span>
         )}
       </p>
       <WeekSquares days={progress.days} />
-      <p className="mt-3.5 text-[13px] text-mute">
+      <p className="mt-3.5 text-xs text-mute">
         {progress.vacation ? (
           "Mode vacances : ta série est en pause."
         ) : progress.streak > 0 ? (
@@ -223,7 +223,7 @@ export function TodoCard({ me, progress }: { me: Me; progress: Progress | null }
                 <span className="min-w-0 text-sm leading-snug">
                   <span className="text-ink">{action.label}</span>
                   {action.detail && (
-                    <span className={`mt-0.5 block text-[13px] ${action.urgent ? "text-accent-text" : "text-mute"}`}>
+                    <span className={`mt-0.5 block text-xs ${action.urgent ? "text-accent-text" : "text-mute"}`}>
                       {action.detail}
                     </span>
                   )}
@@ -288,13 +288,13 @@ export function LeadersCard({ board, lastWeek = false }: { board: Leaderboard; l
         <p className="mt-2 text-sm text-mute">Le podium est libre : personne n&apos;a encore marqué de points.</p>
       )}
       {mine !== null && mine > 3 && (
-        <p className="mt-1 text-[13px] text-mute">
+        <p className="mt-1 text-xs text-mute">
           Toi : {ordinal(mine)} sur {board.total}.
         </p>
       )}
       <Link
         href={lastWeek && board.week ? `/classements?semaine=${board.week}` : "/classements"}
-        className="mt-1 inline-flex min-h-8 items-center text-[13px] text-mute underline underline-offset-4 hover:text-ink"
+        className="mt-1 inline-flex min-h-8 items-center text-xs text-mute underline underline-offset-4 hover:text-ink"
       >
         Voir le classement
       </Link>
@@ -309,7 +309,7 @@ export function CourseNotesCard({ notes }: { notes: CourseNoteSummary[] }) {
       <h2 id="cours" className={cardTitle}>
         Revoir le cours
       </h2>
-      <p className="mb-2 mt-1 text-[13px] text-mute">Les rappels des notions de ton fil.</p>
+      <p className="mb-2 mt-1 text-xs text-mute">Les rappels des notions de ton fil.</p>
       <ul>
         {notes.map((note) => (
           <li key={note.slug} className="border-t border-hairline">
@@ -318,12 +318,12 @@ export function CourseNotesCard({ notes }: { notes: CourseNoteSummary[] }) {
               className="flex min-h-10 items-center justify-between gap-3 py-2 text-sm text-ink hover:text-ink-deep"
             >
               <span>{note.title}</span>
-              <span className="shrink-0 text-[13px] text-mute">{note.programs}</span>
+              <span className="shrink-0 text-xs text-mute">{note.programs}</span>
             </Link>
           </li>
         ))}
       </ul>
-      <Link href="/rappels" className="mt-1 inline-flex min-h-8 items-center text-[13px] text-mute underline underline-offset-4 hover:text-ink">
+      <Link href="/rappels" className="mt-1 inline-flex min-h-8 items-center text-xs text-mute underline underline-offset-4 hover:text-ink">
         Tous les rappels
       </Link>
     </section>

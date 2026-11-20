@@ -143,9 +143,9 @@ function Figure({ value, label, note }: { value: number; label: string; note?: s
     <div className="flex flex-col-reverse justify-end rounded-2xl bg-surface-soft px-4 py-3">
       <dt className="text-sm text-mute">
         {label}
-        {note && <span className="block text-[13px]">{note}</span>}
+        {note && <span className="block text-xs">{note}</span>}
       </dt>
-      <dd className="font-serif text-[1.75rem] leading-tight text-ink-deep tabular-nums">{value}</dd>
+      <dd className="font-serif text-[2rem] leading-tight text-ink-deep tabular-nums">{value}</dd>
     </div>
   );
 }
@@ -248,7 +248,7 @@ function Overview({ data, counts }: { data: PanelOverview; counts: { reports: nu
           ))}
         </div>
         <details className="mt-3 text-sm">
-          <summary className="text-mute hover:text-ink">Voir les chiffres jour par jour</summary>
+          <summary className="text-mute hover:text-ink py-1.5">Voir les chiffres jour par jour</summary>
           <div className="mt-2 overflow-x-auto">
             <table className="w-full min-w-[420px] text-left tabular-nums">
               <thead className="text-mute">
@@ -514,7 +514,7 @@ function MembersTable({ members, sorting }: { members: PanelMember[]; sorting: S
                 <Link href={memberHref(member.username)} className="font-medium text-ink hover:underline">
                   {member.username}
                 </Link>
-                <span className="block text-[13px] text-mute">
+                <span className="block text-xs text-mute">
                   {member.is_staff ? "Administrateur" : member.trust_label}
                   {!member.email_verified && " · adresse non vérifiée"}
                 </span>
@@ -573,7 +573,7 @@ function ExercisesTable({ exercises, sorting }: { exercises: PanelExercise[]; so
                     <MathText>{exercise.title}</MathText>
                   </span>
                 )}
-                <span className="block text-[13px] text-mute">
+                <span className="block text-xs text-mute">
                   {exercise.author ? `par ${exercise.author}` : "auteur supprimé"} · difficulté {exercise.difficulty}/5 ·{" "}
                   <Link
                     href={`/administration/exercices/${exercise.id}`}

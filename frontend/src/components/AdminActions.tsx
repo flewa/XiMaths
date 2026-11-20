@@ -421,7 +421,7 @@ const ROLES: { value: MemberRole; label: string; help: string }[] = [
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <details className="rounded-2xl border border-hairline px-4 py-3">
-      <summary className="font-medium text-ink">{title}</summary>
+      <summary className="font-medium text-ink py-1.5">{title}</summary>
       <div className="mt-3 space-y-3">{children}</div>
     </details>
   );
@@ -554,7 +554,7 @@ export function MemberAdmin({
           type="button"
           disabled={removal.pending || confirm.trim() !== username || !deleteReason.trim()}
           onClick={() => removal.run(() => apiPost(`${base}/delete`, { confirm: confirm.trim(), reason: deleteReason }), "Compte supprimé.", () => router.push("/administration?vue=membres"))}
-          className="inline-flex min-h-9 items-center justify-center rounded-lg bg-danger px-4 py-1.5 text-[15px] font-semibold text-white hover:brightness-110 disabled:bg-surface-card disabled:text-ash"
+          className="inline-flex min-h-10 items-center justify-center rounded-lg bg-danger px-4 py-1.5 text-sm font-semibold text-white hover:brightness-110 disabled:bg-surface-card disabled:text-ash"
         >
           Supprimer définitivement
         </button>

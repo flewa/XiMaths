@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ChipRow, chipLinkClass } from "@/components/ChipRow";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { PagedExerciseList, shownCount } from "@/components/ExerciseList";
 import { JsonLd, breadcrumb } from "@/components/JsonLd";
@@ -70,21 +71,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-function TopicChips({ label, topics }: { label: string; topics: Topic[] }) {
-  if (topics.length === 0) return null;
+function TopicChips({ label, topics, className }: { label: string; topics: Topic[]; className?: string }) {
   return (
-    <p className="mt-6 flex flex-wrap items-center gap-2 text-sm">
-      <span className="mr-1 text-mute">{label}</span>
+    <ChipRow label={label} count={topics.length} className={className}>
       {topics.map((topic) => (
-        <Link
-          key={topic.slug}
-          href={chapterPath(topic.slug)}
-          className="rounded-full bg-surface-card px-3 py-1 text-ink hover:bg-surface-dark-elevated"
-        >
-          {topic.name} <span className="text-mute">{topic.exercises}</span>
+        <Link key={topic.slug} href={chapterPath(topic.slug)} className={chipLinkClass}>
+          {topic.name} <span className="ml-1 text-mute">{topic.exercises}</span>
         </Link>
       ))}
-    </p>
+    </ChipRow>
   );
 }
 
@@ -138,54 +133,30 @@ export default async function ChapterPage({ params, searchParams }: Props) {
 
       {/* Un chapitre s'ouvre sur ses notions, comme un sommaire ; une notion garde ses
           voisines pour après la liste, qui est ce qu'on vient chercher. */}
-      {!parent && <TopicChips label="Par notion :" topics={notionsOf(topics, topic.slug)} />}
+      {!parent && <TopicChips label="Par notion" className="mt-6" topics={notionsOf(topics, topic.slug)} />}
 
-      {courseNotes.length > 0 && (
-        <p className="mt-6 flex flex-wrap items-center gap-2 text-sm">
-          <span className="mr-1 text-mute">Rappels de cours :</span>
-          {courseNotes.map((note) => (
-            <Link
-              key={note.slug}
-              href={courseNotePath(note.slug)}
-              className="rounded-full bg-surface-card px-3 py-1 text-ink hover:bg-surface-dark-elevated"
-            >
-              {note.title} <span className="text-mute">{note.published ? note.programs : "brouillon"}</span>
-            </Link>
-          ))}
-        </p>
-      )}
-
-      {proofs.length > 0 && (
-        <p className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-          <span className="mr-1 text-mute">Démonstrations :</span>
-          {proofs.map((proof) => (
-            <Link
-              key={proof.slug}
-              href={demonstrationPath(proof.slug)}
-              className="rounded-full bg-surface-card px-3 py-1 text-ink hover:bg-surface-dark-elevated"
-            >
-              {proof.title}
-              {!proof.published && <span className="text-mute"> brouillon</span>}
-            </Link>
-          ))}
-        </p>
-      )}
-
-      {reached.length > 0 && (
-        <p className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-          <span className="mr-1 text-mute">Par niveau :</span>
-          {reached.map((level) => (
-            <Link
-              key={level.code}
-              href={levelPath(level.code)}
-              title={level.name}
-              className="rounded-full bg-surface-card px-3 py-1 text-ink hover:bg-surface-dark-elevated"
-            >
-              {level.code}
-            </Link>
-          ))}
-        </p>
-      )}
+      <ChipRow label="Rappels de cours" count={courseNotes.length}>
+        {courseNotes.map((note) => (
+          <Link key={note.slug} href={courseNotePath(note.slug)} className={chipLinkClass}>
+            {note.title} <span className="ml-1 text-mute">{note.published ? note.programs : "brouillon"}</span>
+          </Link>
+        ))}
+      </ChipRow>
+      <ChipRow label="Démonstrations" count={proofs.length}>
+        {proofs.map((proof) => (
+          <Link key={proof.slug} href={demonstrationPath(proof.slug)} className={chipLinkClass}>
+            {proof.title}
+            {!proof.published && <span className="ml-1 text-mute">brouillon</span>}
+          </Link>
+        ))}
+      </ChipRow>
+      <ChipRow label="Par niveau" count={reached.length}>
+        {reached.map((level) => (
+          <Link key={level.code} href={levelPath(level.code)} title={level.name} className={chipLinkClass}>
+            {level.code}
+          </Link>
+        ))}
+      </ChipRow>
 
       <section aria-labelledby="liste" className="mt-10">
         <h2 id="liste" className="mb-4">
@@ -206,7 +177,8 @@ export default async function ChapterPage({ params, searchParams }: Props) {
 
       {parent && (
         <TopicChips
-          label={`Autres notions ${ofChapter(parent.name)} :`}
+          label={`Autres notions ${ofChapter(parent.name)}`}
+          className="mt-10"
           topics={notionsOf(topics, parent.slug).filter((notion) => notion.slug !== topic.slug)}
         />
       )}

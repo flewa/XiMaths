@@ -70,10 +70,11 @@ export function BottomNav({ signedIn }: { signedIn: boolean }) {
                 className={`flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium leading-none ${active ? "text-ink-deep" : "text-mute"}`}
               >
                 {item.main ? (
-                  // Plein seulement sur sa page : sinon on croirait l'onglet sélectionné.
+                  // Fond corail seulement sur sa page ; ailleurs, l'icône seule est corail. Un fond
+                  // teinté en permanence faisait croire l'onglet sélectionné.
                   <span
                     className={`grid h-7 w-10 place-items-center rounded-lg ${
-                      active ? "bg-accent text-accent-ink" : "bg-accent-soft text-accent-text"
+                      active ? "bg-accent text-accent-ink" : "text-accent-text"
                     }`}
                   >
                     <Icon name={item.icon} size={18} />

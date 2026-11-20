@@ -180,7 +180,7 @@ function MenuGroup({ id, label, current, children }: { id: string; label: string
       }}
       className="plain group"
     >
-      <summary className={`${row} text-mute hover:bg-hover hover:text-ink`}>
+      <summary className={`${row} text-body hover:bg-hover hover:text-ink`}>
         <Icon name="chevron" size={16} className="-rotate-90 text-stone transition-transform group-open:rotate-0" />
         {label}
       </summary>
@@ -195,7 +195,7 @@ function MenuLink({ href, label, active }: { href: string; label: string; active
       <Link
         href={href}
         aria-current={active ? "page" : undefined}
-        className={`${row} pl-7 ${active ? "bg-selected text-ink-deep" : "text-mute hover:bg-hover hover:text-ink"}`}
+        className={`${row} pl-7 ${active ? "bg-selected text-ink-deep" : "text-body hover:bg-hover hover:text-ink"}`}
       >
         <span className="truncate">{label}</span>
       </Link>
@@ -292,11 +292,11 @@ export function Brand({ className = "" }: { className?: string }) {
   return (
     <Link
       href="/"
-      className={`flex items-baseline gap-2 text-[17px] font-semibold text-ink-deep ${className}`}
+      className={`flex items-baseline gap-2 text-lg font-semibold text-ink-deep ${className}`}
     >
       <span
         aria-hidden="true"
-        className="font-serif text-[26px] italic leading-none text-accent-text"
+        className="font-serif text-2xl italic leading-none text-accent-text"
       >
         ξ
       </span>
@@ -323,7 +323,7 @@ export function SidebarContent({
         geste principal de chaque page (envoyer sa copie, rendre sa relecture). */}
       <Link
         href={account ? "/exercices/nouveau" : "/inscription"}
-        className={`mx-0.5 mb-3.5 flex h-9 items-center justify-center gap-1.5 rounded-lg font-semibold ${
+        className={`mx-0.5 mb-3.5 flex min-h-10 items-center justify-center gap-1.5 rounded-lg font-semibold ${
           account
             ? "border border-hairline bg-surface-card text-ink hover:bg-hover"
             : "bg-accent text-accent-ink hover:brightness-110"
@@ -342,7 +342,7 @@ export function SidebarContent({
                 <Link
                   href={item.href}
                   aria-current={active ? "page" : undefined}
-                  className={`${row} ${active ? "bg-selected text-ink-deep" : "text-mute hover:bg-hover hover:text-ink"}`}
+                  className={`${row} ${active ? "bg-selected text-ink-deep" : "text-body hover:bg-hover hover:text-ink"}`}
                 >
                   <Icon name={item.icon} />
                   {item.label}
@@ -359,20 +359,31 @@ export function SidebarContent({
           })}
         </ul>
 
-        <p className="mb-1 mt-5 px-2 text-xs font-medium text-mute">Niveaux</p>
-        {LEVEL_TRACKS.map(({ track, label }) => (
-          <LevelGroup key={track} track={track} label={label} levels={levels.filter((level) => level.track === track)} pathname={pathname} />
-        ))}
-        {topics.length > 0 && (
-          <MenuGroup id="chapitres" label="Chapitres" current={pathname.startsWith("/chapitres")}>
-            <ul>
-              <MenuLink href="/chapitres" label="Tous les chapitres" active={pathname === "/chapitres"} />
-              {topics.map((topic) => (
-                <MenuLink key={topic.slug} href={chapterPath(topic.slug)} label={topic.name} active={pathname === chapterPath(topic.slug)} />
+        {/* Niveaux et chapitres repliés sous une seule entrée : « Parcourir » mène déjà au
+            catalogue, et cinq lignes de plus allongeaient le menu de chaque page. */}
+        <div className="mt-4 border-t border-hairline pt-3">
+          <MenuGroup
+            id="niveaux"
+            label="Niveaux et chapitres"
+            current={pathname.startsWith("/niveaux") || pathname.startsWith("/chapitres")}
+          >
+            <div className="pl-3">
+              {LEVEL_TRACKS.map(({ track, label }) => (
+                <LevelGroup key={track} track={track} label={label} levels={levels.filter((level) => level.track === track)} pathname={pathname} />
               ))}
-            </ul>
+              {topics.length > 0 && (
+                <MenuGroup id="chapitres" label="Chapitres" current={pathname.startsWith("/chapitres")}>
+                  <ul>
+                    <MenuLink href="/chapitres" label="Tous les chapitres" active={pathname === "/chapitres"} />
+                    {topics.map((topic) => (
+                      <MenuLink key={topic.slug} href={chapterPath(topic.slug)} label={topic.name} active={pathname === chapterPath(topic.slug)} />
+                    ))}
+                  </ul>
+                </MenuGroup>
+              )}
+            </div>
           </MenuGroup>
-        )}
+        </div>
       </nav>
 
       {/* Le compte reste visible en bas, même quand le menu défile. */}
@@ -382,7 +393,7 @@ export function SidebarContent({
         ) : (
           <Link
             href="/connexion"
-            className={`${row} text-mute hover:bg-hover hover:text-ink`}
+            className={`${row} text-body hover:bg-hover hover:text-ink`}
           >
             <Icon name="user" />
             Se connecter

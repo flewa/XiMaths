@@ -51,8 +51,22 @@ export function keepPunctuationWithMath() {
   return (tree: Root) => glue(tree);
 }
 
+/** Pose les ancres données sur les titres de niveau 2, dans l'ordre : le sommaire d'une fiche
+ * pointe vers ses parties. */
+function anchorHeadings(ids: string[]) {
+  // Seuls les titres du premier niveau du texte : ceux que `outline` a trouvés en début de ligne.
+  return () => (tree: Root) => {
+    let index = 0;
+    for (const child of tree.children) {
+      if (child.type === "element" && child.tagName === "h2" && index < ids.length) {
+        child.properties = { ...child.properties, id: ids[index++], className: ["scroll-mt-20"] };
+      }
+    }
+  };
+}
+
 /** Markdown + LaTeX rendu côté serveur. Le HTML brut est ignoré par react-markdown. */
-export function MathMarkdown({ children }: { children: string }) {
+export function MathMarkdown({ children, headingIds }: { children: string; headingIds?: string[] }) {
   const katexOptions = {
     trust: false,
     strict: "ignore" as const,
@@ -66,7 +80,11 @@ export function MathMarkdown({ children }: { children: string }) {
     <div className="math-markdown">
       <ReactMarkdown
         remarkPlugins={[remarkMath]}
-        rehypePlugins={[[rehypeKatex, katexOptions], keepPunctuationWithMath]}
+        rehypePlugins={[
+          [rehypeKatex, katexOptions],
+          keepPunctuationWithMath,
+          ...(headingIds ? [anchorHeadings(headingIds)] : []),
+        ]}
       >
         {normalizeMath(children)}
       </ReactMarkdown>

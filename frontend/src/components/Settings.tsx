@@ -266,7 +266,9 @@ export function DeleteAccountForm({ hasPassword }: { hasPassword: boolean }) {
         </Field>
       )}
       <FormMessage error={error} />
-      <SubmitButton pending={pending}>Supprimer mon compte</SubmitButton>
+      <SubmitButton pending={pending} danger>
+        Supprimer mon compte
+      </SubmitButton>
     </form>
   );
 }

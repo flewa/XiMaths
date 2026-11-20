@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { ExerciseForm } from "@/components/ExerciseForm";
-import { FormMessage } from "@/components/Form";
+import { VerifyEmailNotice } from "@/components/AccountControls";
 import { fetchLevels, fetchMe, fetchTopics } from "@/lib/api";
 
 export const metadata: Metadata = { title: "Publier un exercice" };
@@ -30,7 +30,7 @@ export default async function NewExercisePage() {
         {me.email_verified ? (
           <ExerciseForm levels={levels} topics={topics} defaultLevel={me.declared_level} />
         ) : (
-          <FormMessage error="Confirme d'abord ton adresse email : le lien t'a été envoyé à l'inscription." />
+          <VerifyEmailNotice email={me.email} action="publier un exercice" />
         )}
       </div>
     </>

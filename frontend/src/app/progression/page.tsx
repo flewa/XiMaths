@@ -26,8 +26,8 @@ export const metadata: Metadata = { title: "Ma progression" };
 const shortDate = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", timeZone: "UTC" });
 
 const card = "rounded-2xl border border-hairline bg-surface-soft p-5";
-const cardTitle = "font-sans text-[13px] font-semibold uppercase tracking-[0.04em] text-ink";
-const sectionIntro = "mt-1 text-sm text-mute";
+const cardTitle = "font-sans text-xs font-semibold uppercase tracking-[0.04em] text-ink";
+const sectionIntro = "mt-1 text-sm text-body";
 
 function day(iso: string) {
   return dateFormat.format(new Date(iso));
@@ -55,7 +55,18 @@ function Summary({ progress }: { progress: Progress }) {
     { value: summary.in_review, label: summary.in_review > 1 ? "copies en relecture" : "copie en relecture" },
     { value: summary.needs_work, label: "à reprendre", alert: summary.needs_work > 0 },
     { value: summary.points_week, label: summary.points_week > 1 ? "points cette semaine" : "point cette semaine" },
-  ];
+  ].filter((tile) => tile.value > 0);
+  // Des cases à zéro occupaient tout un écran de téléphone : seuls les chiffres non nuls restent.
+  if (tiles.length === 0) {
+    return (
+      <p className="mt-8 rounded-2xl bg-surface-soft px-4 py-3 text-body">
+        Rien à compter pour l&apos;instant : tes copies validées et tes points apparaîtront ici.{" "}
+        <Link href="/exercices" className="font-medium text-ink underline underline-offset-4">
+          Trouver un exercice
+        </Link>
+      </p>
+    );
+  }
   return (
     <dl className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
       {tiles.map((tile) => (
@@ -140,7 +151,7 @@ function Copies({ progress, firstExercise }: { progress: Progress; firstExercise
                       <span className="block text-ink sm:truncate">
                         <MathText>{copy.exercise_title}</MathText>
                       </span>
-                      <span className="block text-[13px] text-mute">{copyDetail(copy)}</span>
+                      <span className="block text-xs text-mute">{copyDetail(copy)}</span>
                     </span>
                   </span>
                   <Icon name="chevron" size={16} className="shrink-0 -rotate-90 text-stone" />
@@ -319,7 +330,7 @@ function WeeksChart({ history }: { history: Progress["history"] }) {
   );
   return (
     <figure className="mt-5">
-      <figcaption className="text-[13px] text-mute">
+      <figcaption className="text-xs text-mute">
         {weeks.length > 1 ? `Tes ${weeks.length} dernières semaines` : "Ta dernière semaine"}
       </figcaption>
       <ol className="mt-2 flex h-16 items-end gap-0.5 border-b border-hairline-strong">
@@ -348,7 +359,7 @@ function WeeksChart({ history }: { history: Progress["history"] }) {
         <span>{short(weeks[0].week_start)}</span>
         <span>{short(weeks[weeks.length - 1].week_start)}</span>
       </div>
-      <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-mute">
+      <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-mute">
         {statuses.map((status) => (
           <li key={status} className="inline-flex items-center gap-1.5">
             <span aria-hidden="true" className={`size-2 rounded-sm ${WEEK_FILL[status]}`} />
@@ -371,7 +382,7 @@ function Regularity({ progress }: { progress: Progress }) {
       <h2 id="regularite" className={cardTitle}>
         Régularité
       </h2>
-      <p className="mt-1 text-[13px] text-mute">{weekRange(progress.days[0].date, progress.days[6].date)}</p>
+      <p className="mt-1 text-xs text-mute">{weekRange(progress.days[0].date, progress.days[6].date)}</p>
       <WeekSquares days={progress.days} />
       <p className="mt-3 text-sm text-ink">
         {progress.achieved
@@ -386,16 +397,16 @@ function Regularity({ progress }: { progress: Progress }) {
       {progress.history.length > 0 ? (
         <WeeksChart history={progress.history} />
       ) : (
-        <p className="mt-4 text-[13px] text-mute">Tes semaines passées s&apos;afficheront ici, semaine après semaine.</p>
+        <p className="mt-4 text-xs text-mute">Tes semaines passées s&apos;afficheront ici, semaine après semaine.</p>
       )}
 
       <details className="mt-4 border-t border-hairline pt-3">
-        <summary className="cursor-pointer text-sm text-mute hover:text-ink">Régler mon rythme</summary>
+        <summary className="cursor-pointer text-sm text-mute hover:text-ink py-1.5">Régler mon rythme</summary>
         <div className="mt-3 space-y-5">
           <WeeklyGoalForm days={progress.goal_days} />
           <div>
             <p className="text-sm font-medium text-ink">Examens ou vacances</p>
-            <p className="mt-0.5 text-[13px] text-mute">La série se met en pause jusqu&apos;à 4 semaines, sans rien perdre.</p>
+            <p className="mt-0.5 text-xs text-mute">La série se met en pause jusqu&apos;à 4 semaines, sans rien perdre.</p>
             <div className="mt-2">
               <VacationForm until={progress.vacation?.end ?? null} />
             </div>
@@ -423,8 +434,8 @@ function NextBadges({ badges }: { badges: BadgeProgress[] }) {
               <BadgeMedal slug={badge.slug} size={40} locked />
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-medium text-ink">{badge.name}</span>
-                <span className="block text-[13px] leading-snug text-mute">{badge.criterion}</span>
-                <span className="mt-1.5 flex items-center gap-2 text-[13px] tabular-nums text-body">
+                <span className="block text-xs leading-snug text-mute">{badge.criterion}</span>
+                <span className="mt-1.5 flex items-center gap-2 text-xs tabular-nums text-body">
                   <ProgressBar done={badge.done} target={badge.target} className="w-auto flex-1" />
                   {badge.done} / {badge.target}
                 </span>
@@ -433,7 +444,7 @@ function NextBadges({ badges }: { badges: BadgeProgress[] }) {
           ))}
         </ul>
       )}
-      <Link href="/badges" className="mt-2 inline-flex min-h-8 items-center text-[13px] text-mute underline underline-offset-4 hover:text-ink">
+      <Link href="/badges" className="mt-2 inline-flex min-h-8 items-center text-xs text-mute underline underline-offset-4 hover:text-ink">
         Tous les badges
       </Link>
     </section>
@@ -490,7 +501,7 @@ export default async function ProgressPage() {
       </div>
 
       <details className="mt-14 border-t border-hairline pt-4 text-sm text-mute">
-        <summary className="cursor-pointer hover:text-ink">Comment sont calculés ces chiffres ?</summary>
+        <summary className="cursor-pointer hover:text-ink py-1.5">Comment sont calculés ces chiffres ?</summary>
         <div className="mt-3 max-w-[70ch] space-y-2">
           <p>
             <span className="text-ink">Jour actif.</span> Une tentative de solution, une relecture ou 15 minutes de
