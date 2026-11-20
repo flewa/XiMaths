@@ -5,7 +5,6 @@ import { PAGE_STEP, PagedExerciseList, shownCount } from "@/components/ExerciseL
 import { FilterChip, Tabs } from "@/components/FilterChip";
 import { LevelPicker } from "@/components/LevelPicker";
 import { SearchBox } from "@/components/SearchBox";
-import { PageIntro } from "@/components/PageIntro";
 import { fetchExercises, fetchLevels, type ExerciseSort } from "@/lib/api";
 import { plural } from "@/lib/labels";
 import { levelPath } from "@/lib/seo-pages";
@@ -26,10 +25,22 @@ export async function generateMetadata({
 }
 
 // Valeurs de ?tri= dans l'adresse, et tri correspondant de l'API.
-const SORTS: { value: string; sort: ExerciseSort; label: string }[] = [
-  { value: "recents", sort: "recent", label: "Récents" },
-  { value: "populaires", sort: "popular", label: "Populaires" },
-  { value: "sans-solution", sort: "unsolved", label: "Sans solution" },
+// Chaque tri dit ce qu'il montre : l'explication suit l'onglet choisi.
+const SORTS: { value: string; sort: ExerciseSort; label: string; intro: string }[] = [
+  { value: "recents", sort: "recent", label: "Récents", intro: "Récents : les derniers exercices publiés d'abord." },
+  {
+    value: "populaires",
+    sort: "popular",
+    label: "Populaires",
+    intro:
+      "Populaires : classés par nombre de solutions et de votes, de façon logarithmique, pour que les exercices déjà très vus n'écrasent pas les autres.",
+  },
+  {
+    value: "sans-solution",
+    sort: "unsolved",
+    label: "Sans solution",
+    intro: "Sans solution : personne n'a encore envoyé de copie. La première validée rapporte le badge Pionnier.",
+  },
 ];
 
 function browseHref(niveau: string | undefined, tri: string, q?: string, voir?: number) {
@@ -63,10 +74,7 @@ export default async function BrowsePage({
   return (
     <>
       <h1>Parcourir les exercices</h1>
-      <PageIntro id="catalogue">
-        Populaires : classés par nombre de solutions et de votes, de façon logarithmique, pour que
-        les exercices déjà très vus n&apos;écrasent pas les autres.
-      </PageIntro>
+      <p className="mt-2 max-w-[70ch] text-body">{current.intro}</p>
       <SearchBox id="recherche-catalogue" defaultValue={q ?? ""} className="mt-6 max-w-[28rem]" />
       {q && (
         <p className="mt-4 text-body">

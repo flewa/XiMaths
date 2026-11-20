@@ -52,7 +52,7 @@ export function FilterChip({
       href={href}
       title={title}
       aria-current={active ? "page" : undefined}
-      className={`-mb-px shrink-0 whitespace-nowrap border-b-2 px-2 py-1.5 text-[15px] leading-7 ${
+      className={`-mb-px shrink-0 whitespace-nowrap border-b-2 px-2 py-1.5 text-sm leading-7 ${
         active ? "border-ink-deep text-ink-deep" : "border-transparent text-mute hover:text-ink"
       }`}
     >

@@ -56,11 +56,11 @@ export function ExerciseList({
                 {/* Le lien s'étend à toute la ligne (after:) ; le pseudo de l'auteur passe au-dessus. */}
                 <Link
                   href={`/exercices/${exercise.id}`}
-                  className="block font-serif text-[1.1875rem] leading-snug text-ink-deep after:absolute after:inset-0 after:rounded-xl"
+                  className="block font-serif text-lg leading-snug text-ink-deep after:absolute after:inset-0 after:rounded-xl"
                 >
                   <MathText>{exercise.title}</MathText>
                 </Link>
-                <span className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px] text-mute">
+                <span className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-mute">
                   {author && (
                     <>
                       <Link
@@ -76,7 +76,7 @@ export function ExerciseList({
                   )}
                   {exercise.topics.length > 0 && (
                     <>
-                      <span>{exercise.topics.join(", ")}</span>
+                      <span className="text-body">{exercise.topics.join(", ")}</span>
                       <span aria-hidden="true">·</span>
                     </>
                   )}
@@ -110,7 +110,7 @@ export function ExerciseList({
                   )}
                 </span>
               </span>
-              <span className="hidden w-36 shrink-0 text-right text-[13px] sm:block">
+              <span className="hidden w-36 shrink-0 text-right text-xs sm:block">
                 {tag && <span className={`block ${tag.className}`}>{tag.label}</span>}
                 {sent && <span className="block text-mute">{sent}</span>}
               </span>
@@ -165,4 +165,4 @@ export function PagedExerciseList({
 }
 
 const moreClass =
-  "inline-flex min-h-10 items-center justify-center rounded-lg bg-surface-card px-4 text-[15px] font-medium text-ink hover:bg-surface-dark-elevated";
+  "inline-flex min-h-10 items-center justify-center rounded-lg bg-surface-card px-4 text-sm font-medium text-ink hover:bg-surface-dark-elevated";

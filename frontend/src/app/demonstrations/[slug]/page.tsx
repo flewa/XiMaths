@@ -6,8 +6,9 @@ import { CourseNoteReview } from "@/components/CourseNotes";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { JsonLd, breadcrumb } from "@/components/JsonLd";
 import { MathMarkdown } from "@/components/MathMarkdown";
+import { Outline } from "@/components/Outline";
 import { fetchCourseNote, fetchCourseNotes, fetchDemonstrations, fetchMe, nullOnError } from "@/lib/api";
-import { PROOF_STATUS, courseNotePath, demonstrationPath, frenchSpacing, neighbours } from "@/lib/course-notes";
+import { PROOF_STATUS, courseNotePath, demonstrationPath, frenchSpacing, neighbours, outline } from "@/lib/course-notes";
 import { chapterPath, ofChapter } from "@/lib/seo-pages";
 import { SHARE_IMAGE } from "@/lib/site";
 
@@ -50,6 +51,7 @@ export default async function DemonstrationPage({ params }: Props) {
   }
   const { proof, proofs, me, notes } = data;
   const { previous, next } = neighbours(proofs, proof.slug);
+  const parts = outline(proof.body);
   const status = proof.status ? PROOF_STATUS[proof.status] : null;
 
   return (
@@ -75,8 +77,10 @@ export default async function DemonstrationPage({ params }: Props) {
       </p>
       {me?.is_staff && <CourseNoteReview slug={proof.slug} published={proof.published} noun="démonstration" />}
 
+      <Outline items={parts} />
+
       <div className="course-note mt-8">
-        <MathMarkdown>{frenchSpacing(proof.body)}</MathMarkdown>
+        <MathMarkdown headingIds={parts.map((part) => part.id)}>{frenchSpacing(proof.body)}</MathMarkdown>
       </div>
 
       {(notes.length > 0 || (proof.topic && proof.topic_name)) && (
@@ -101,14 +105,14 @@ export default async function DemonstrationPage({ params }: Props) {
       {(previous || next) && (
         <nav aria-label="Démonstrations voisines" className="mt-8 flex flex-wrap justify-between gap-4 text-sm">
           {previous ? (
-            <Link href={demonstrationPath(previous.slug)} className="text-mute hover:text-ink">
+            <Link href={demonstrationPath(previous.slug)} className="inline-flex min-h-10 items-center text-body hover:text-ink">
               ← {previous.title}
             </Link>
           ) : (
             <span />
           )}
           {next && (
-            <Link href={demonstrationPath(next.slug)} className="text-mute hover:text-ink">
+            <Link href={demonstrationPath(next.slug)} className="inline-flex min-h-10 items-center text-body hover:text-ink">
               {next.title} →
             </Link>
           )}

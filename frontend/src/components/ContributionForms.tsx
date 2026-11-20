@@ -103,13 +103,15 @@ const VERDICTS = [
 ];
 
 export function ReviewForm({ reviewId }: { reviewId: number }) {
-  const [verdict, setVerdict] = useState("correcte");
+  // Aucun verdict d'avance : un relecteur pressé validerait sans l'avoir choisi.
+  const [verdict, setVerdict] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
   const [result, setResult] = useState<{ error?: string; success?: string }>({});
   const [pending, setPending] = useState(false);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!verdict) return setResult({ error: "Choisis un verdict : correcte, avec lacunes ou incorrecte." });
     setPending(true);
     const response = await apiPost<{ solution_status: keyof typeof SOLUTION_STATUS_LABELS }>(
       `/reviews/${reviewId}`,
@@ -136,6 +138,7 @@ export function ReviewForm({ reviewId }: { reviewId: number }) {
               value={option.value}
               checked={verdict === option.value}
               onChange={() => setVerdict(option.value)}
+              required
               className="shrink-0"
             />
             <span>
@@ -182,7 +185,7 @@ export function VoteButton({
 
   if (disabledReason) {
     return (
-      <span title={disabledReason} className="rounded-sm bg-surface-card px-3 text-sm leading-7 text-mute">
+      <span title={disabledReason} className="inline-flex min-h-8 items-center rounded-lg bg-surface-card px-3 text-sm text-mute">
         ▲ {label}
       </span>
     );
@@ -205,7 +208,7 @@ export function VoteButton({
             setMessage(result.error);
           }
         }}
-        className="rounded-sm border border-hairline-strong px-3 text-sm font-medium leading-7 active:bg-surface-card aria-pressed:bg-surface-card"
+        className="inline-flex min-h-8 items-center rounded-lg border border-hairline-strong px-3 text-sm font-medium active:bg-surface-card aria-pressed:bg-surface-card"
       >
         ▲ {label}
       </button>

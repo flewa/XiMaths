@@ -5,10 +5,13 @@ import { redirect } from "next/navigation";
 import { GoogleButton, SignupForm } from "@/components/AuthForms";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { fetchLevels, fetchMe, fetchProviders } from "@/lib/api";
+import { safeNext } from "@/lib/safe-next";
 
 export const metadata: Metadata = { title: "Créer un compte" };
 
-export default async function SignupPage() {
+export default async function SignupPage({ searchParams }: { searchParams: Promise<{ suivant?: string }> }) {
+  // Venu d'un exercice, on y revient une fois le compte créé.
+  const next = safeNext((await searchParams).suivant);
   let data;
   try {
     data = await Promise.all([fetchMe(), fetchLevels(), fetchProviders()]);
@@ -17,7 +20,7 @@ export default async function SignupPage() {
     return <ApiUnavailable />;
   }
   const [me, levels, providers] = data;
-  if (me) redirect("/");
+  if (me) redirect(next);
   return (
     <div className="mx-auto max-w-sm">
       <h1>Créer un compte</h1>
@@ -26,11 +29,11 @@ export default async function SignupPage() {
       </p>
       {providers.google && (
         <div className="mt-6 border-b border-hairline pb-6">
-          <GoogleButton next="/" />
+          <GoogleButton next={next} />
         </div>
       )}
       <div className="mt-6">
-        <SignupForm levels={levels} />
+        <SignupForm levels={levels} next={next} />
       </div>
       <p className="mt-6 text-sm text-mute">
         En créant un compte, tu acceptes les{" "}

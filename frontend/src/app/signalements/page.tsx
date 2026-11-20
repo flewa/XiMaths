@@ -130,7 +130,7 @@ export default async function MyReportsPage() {
       )}
 
       <details className="mt-10 text-sm text-mute">
-        <summary className="hover:text-ink">Que se passe-t-il quand un signalement est confirmé ?</summary>
+        <summary className="hover:text-ink py-1.5">Que se passe-t-il quand un signalement est confirmé ?</summary>
         <ul className="mt-3 space-y-1.5">
           {OUTCOMES.map(([reason, outcome]) => (
             <li key={reason}>

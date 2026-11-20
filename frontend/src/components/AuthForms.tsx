@@ -50,7 +50,10 @@ export function LoginForm({ next }: { next: string }) {
         <Link href="/mot-de-passe-oublie" className="underline underline-offset-4">
           Mot de passe oublié ?
         </Link>
-        <Link href="/inscription" className="underline underline-offset-4">
+        <Link
+          href={next === "/" ? "/inscription" : `/inscription?suivant=${encodeURIComponent(next)}`}
+          className="underline underline-offset-4"
+        >
           Créer un compte
         </Link>
       </p>
@@ -166,7 +169,7 @@ export function ResetPasswordForm({ uid, token }: { uid: string; token: string }
   );
 }
 
-export function SignupForm({ levels }: { levels: Level[] }) {
+export function SignupForm({ levels, next = "/" }: { levels: Level[]; next?: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -183,7 +186,7 @@ export function SignupForm({ levels }: { levels: Level[] }) {
     });
     setPending(false);
     if (!result.ok) return setError(result.error);
-    router.push("/");
+    router.push(next);
     router.refresh();
   }
 
@@ -225,7 +228,10 @@ export function SignupForm({ levels }: { levels: Level[] }) {
       <SubmitButton pending={pending}>Créer mon compte</SubmitButton>
       <p className="text-sm text-mute">
         Déjà inscrit ?{" "}
-        <Link href="/connexion" className="underline underline-offset-4">
+        <Link
+          href={next === "/" ? "/connexion" : `/connexion?suivant=${encodeURIComponent(next)}`}
+          className="underline underline-offset-4"
+        >
           Se connecter
         </Link>
       </p>

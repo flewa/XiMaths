@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ApiUnavailable, Difficulty, logApiError } from "@/components/ExerciseMeta";
-import { FormMessage } from "@/components/Form";
+import { VerifyEmailNotice } from "@/components/AccountControls";
+import { primaryButtonClass } from "@/components/Form";
 import { Tag } from "@/components/Tag";
 import { ChallengeStart } from "@/components/Training";
 import { type DailyChallenge, type Me, fetchDailyChallenges, fetchMe } from "@/lib/api";
@@ -34,8 +35,8 @@ const ATTEMPT_LABELS: Record<string, string> = {
 function Attempt({ attempt }: { attempt: NonNullable<DailyChallenge["attempt"]> }) {
   if (attempt.status === "en_cours" || attempt.status === "en_pause") {
     return (
-      <Link href={`/entrainement/${attempt.session_id}`} className="underline underline-offset-4">
-        [→] Reprendre : le chrono tourne
+      <Link href={`/entrainement/${attempt.session_id}`} className={primaryButtonClass}>
+        Reprendre : le chrono tourne
       </Link>
     );
   }
@@ -54,15 +55,14 @@ function Attempt({ attempt }: { attempt: NonNullable<DailyChallenge["attempt"]> 
 function ChallengeCard({ challenge, me }: { challenge: DailyChallenge; me: Me | null }) {
   return (
     <li className="py-5">
+      {/* Le groupe en petite étiquette, l'exercice en titre : on choisit un défi par son énoncé. */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2>
-          {challenge.group_label}{" "}
-          <span className="font-normal text-mute">
-            · <MathText>{challenge.exercise_title}</MathText>
-          </span>
-        </h2>
+        <p className="text-xs font-semibold uppercase tracking-wide text-body">{challenge.group_label}</p>
         {challenge.attempt && <Tag strong>{ATTEMPT_LABELS[challenge.attempt.status]}</Tag>}
       </div>
+      <h2 className="mt-1">
+        <MathText>{challenge.exercise_title}</MathText>
+      </h2>
       <p className="mt-1 text-sm text-mute">
         {/* Le défi vaut pour tout le groupe : un exercice de PTSI s'adresse aussi à la MPSI et à la L1. */}
         Exercice de {challenge.level}
@@ -75,13 +75,18 @@ function ChallengeCard({ challenge, me }: { challenge: DailyChallenge; me: Me | 
         {challenge.attempt ? (
           <Attempt attempt={challenge.attempt} />
         ) : !me ? (
-          <Link href="/connexion?suivant=/defi" className="underline underline-offset-4">
-            Connecte-toi pour relever le défi
-          </Link>
+          <p className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <Link href="/inscription?suivant=/defi" className={primaryButtonClass}>
+              S&apos;inscrire pour relever le défi
+            </Link>
+            <Link href="/connexion?suivant=/defi" className="inline-flex min-h-8 items-center text-sm text-body underline underline-offset-4 hover:text-ink">
+              J&apos;ai déjà un compte
+            </Link>
+          </p>
         ) : me.email_verified ? (
           <ChallengeStart challengeId={challenge.id} minutes={challenge.minutes} />
         ) : (
-          <FormMessage error="Confirme d'abord ton adresse email : le lien t'a été envoyé à l'inscription." />
+          <VerifyEmailNotice email={me.email} action="relever le défi" />
         )}
       </div>
     </li>
@@ -127,7 +132,7 @@ export default async function ChallengePage() {
       )}
 
       <details className="mt-6 rounded-2xl border border-hairline px-4 py-3">
-        <summary className="font-medium text-ink">Les règles du défi</summary>
+        <summary className="font-medium text-ink py-1.5">Les règles du défi</summary>
         <ul className="mt-3 space-y-2 text-body">
           {RULES.map((rule) => (
             <li key={rule} className="flex gap-2">

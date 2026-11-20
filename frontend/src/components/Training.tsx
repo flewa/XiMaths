@@ -293,7 +293,7 @@ export function TrainingRoom({ initial }: { initial: TrainingSession }) {
               ))
             : session.hints.map((hint, index) => (
                 <details key={index} className="border-b border-hairline py-3">
-                  <summary className="font-medium">Indication {index + 1}</summary>
+                  <summary className="font-medium py-1.5">Indication {index + 1}</summary>
                   <MathMarkdown>{hint}</MathMarkdown>
                 </details>
               ))}
@@ -396,11 +396,11 @@ function TrainingResult({ session }: { session: TrainingSession }) {
       <dl className="mt-8 grid grid-cols-2 border-y border-hairline">
         <div className="flex flex-col-reverse py-4">
           <dt className="text-sm text-mute">temps utilisé, sur {clock(session.limit_s)}</dt>
-          <dd className="text-[28px] font-bold leading-normal tabular-nums">{clock(session.elapsed_s)}</dd>
+          <dd className="text-[2rem] font-bold leading-normal tabular-nums">{clock(session.elapsed_s)}</dd>
         </div>
         <div className="flex flex-col-reverse border-l border-hairline px-4 py-4">
           <dt className="text-sm text-mute">médiane des autres sessions</dt>
-          <dd className="text-[28px] font-bold leading-normal tabular-nums">{median === null ? "—" : clock(median)}</dd>
+          <dd className="text-[2rem] font-bold leading-normal tabular-nums">{median === null ? "—" : clock(median)}</dd>
         </div>
       </dl>
 

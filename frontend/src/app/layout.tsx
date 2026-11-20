@@ -93,16 +93,19 @@ export default async function RootLayout({
           </aside>
           <MobileBar account={account} levels={levels} topics={topics} />
           {/* Une page qui contient .page-wide (l'accueil) prend plus de largeur, pied de page compris. */}
-          <div className="group/colonne min-w-0">
+          <div className="min-w-0">
             {me && !me.email_verified && <VerifyBanner email={me.email} />}
             <main
               id="contenu"
               tabIndex={-1}
-              className="mx-auto max-w-[860px] px-5 py-8 outline-none has-[.page-wide]:max-w-[1180px] sm:px-10 sm:py-14"
+              className="mx-auto max-w-[1180px] px-5 py-8 outline-none sm:px-10 sm:py-14"
             >
-              {children}
+              {/* Une seule marge gauche pour toutes les pages : la colonne de lecture garde sa
+                  largeur, mais commence au même endroit que les pages larges. Le titre ne
+                  « saute » plus d'une page à l'autre. */}
+              <div className="max-w-[780px] has-[.page-wide]:max-w-none">{children}</div>
             </main>
-            <footer className="mx-auto max-w-[860px] px-5 pb-10 text-sm text-mute group-has-[.page-wide]/colonne:max-w-[1180px] sm:px-10">
+            <footer className="mx-auto max-w-[1180px] px-5 pb-10 text-sm text-mute sm:px-10">
               <nav
                 aria-label="Pied de page"
                 className="flex flex-wrap gap-x-5 gap-y-0.5 border-t border-hairline pt-5"

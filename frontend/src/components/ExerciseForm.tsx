@@ -234,7 +234,7 @@ export function ExerciseForm({
               ))}
           </div>
           <details className="pt-1">
-            <summary className="cursor-pointer text-sm text-mute hover:text-ink">
+            <summary className="cursor-pointer text-sm text-mute hover:text-ink py-1.5">
               Préciser la notion (facultatif) : l&apos;exercice apparaîtra aussi sur sa page
             </summary>
             <div className="mt-3 space-y-3">

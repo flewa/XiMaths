@@ -7,6 +7,7 @@ import type { DiscussionMessage, DiscussionReply } from "@/lib/api";
 import { apiDelete, apiPost } from "@/lib/client-api";
 import { dateFormat } from "@/lib/labels";
 
+import { VerifyEmailNotice } from "./AccountControls";
 import { Avatar } from "./Avatar";
 import { BadgeMedal } from "./BadgeMedal";
 import { FormMessage, inputClass, primaryButtonClass } from "./Form";
@@ -18,7 +19,7 @@ const action = "text-sm text-mute underline-offset-4 hover:text-ink hover:underl
 const tag = "rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent-text";
 
 /** Qui regarde : null pour un visiteur ; `verified` dit si le membre peut écrire. */
-type Viewer = { verified: boolean } | null;
+type Viewer = { verified: boolean; email: string } | null;
 
 function Composer({
   exerciseId,
@@ -260,13 +261,13 @@ export function Discussion({
       <div className="mt-5">
         {!viewer ? (
           <p className="text-body">
-            <Link href={`/connexion?suivant=/exercices/${exerciseId}%23discussion`} className="underline underline-offset-4">
+            <Link href={`/connexion?suivant=/exercices/${exerciseId}%23discussion`} className="font-medium underline underline-offset-4">
               Connecte-toi
             </Link>{" "}
             pour poser une question ou répondre.
           </p>
         ) : !viewer.verified ? (
-          <p className="text-body">Confirme ton adresse email pour écrire ici.</p>
+          <VerifyEmailNotice email={viewer.email} action="poser une question ou répondre" compact />
         ) : (
           <Composer exerciseId={exerciseId} onPosted={onThread} />
         )}

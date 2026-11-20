@@ -1,14 +1,14 @@
 import { Caveat } from "next/font/google";
 import Link from "next/link";
 
+import { largePrimaryButtonClass } from "./Form";
 import { Brand } from "./SidebarNav";
 
 // L'écriture à la main de la copie : chargée seulement sur cette page.
 const hand = Caveat({ subsets: ["latin", "latin-ext"], weight: ["500", "600", "700"] });
 
-/** Le bouton principal de la page : plus grand que ceux du reste du site, c'est la seule action. */
-const mainAction =
-  "inline-flex min-h-12 items-center justify-center rounded-lg bg-accent px-6 text-base font-semibold text-accent-ink hover:brightness-110";
+/** Le bouton principal de la page : en grand, c'est la seule action. */
+const mainAction = largePrimaryButtonClass;
 
 /**
  * L'accueil d'un visiteur, réduit à l'essentiel : ce qu'est le site en une phrase, une action,
@@ -23,7 +23,7 @@ export function Landing() {
         <Brand />
         <Link
           href="/connexion"
-          className="inline-flex min-h-10 items-center rounded-lg px-3 text-[15px] font-medium text-ink hover:bg-hover"
+          className="inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-medium text-ink hover:bg-hover"
         >
           Se connecter
         </Link>

@@ -28,7 +28,6 @@ function sections(withPush: boolean) {
     { id: "email-academique", label: "Email académique" },
     { id: "mot-de-passe", label: "Mot de passe" },
     { id: "donnees", label: "Mes données" },
-    { id: "suppression", label: "Supprimer mon compte" },
   ];
 }
 
@@ -58,12 +57,21 @@ export default async function SettingsPage() {
             <li key={section.id}>
               <a
                 href={`#${section.id}`}
-                className="block rounded-full bg-surface-card px-3 py-1 text-body hover:bg-hover hover:text-ink"
+                className="inline-flex min-h-8 items-center rounded-full bg-surface-card px-3 text-body hover:bg-hover hover:text-ink"
               >
                 {section.label}
               </a>
             </li>
           ))}
+          {/* À part et en rouge : une action définitive ne se range pas parmi les préférences. */}
+          <li className="ml-auto">
+            <a
+              href="#suppression"
+              className="inline-flex min-h-8 items-center px-1 text-danger-text underline-offset-4 hover:underline"
+            >
+              Supprimer mon compte
+            </a>
+          </li>
         </ul>
       </nav>
 

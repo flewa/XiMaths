@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
-import { FormMessage } from "@/components/Form";
+import { VerifyEmailNotice } from "@/components/AccountControls";
 import { TrainingStart } from "@/components/Training";
 import { fetchExercise, fetchMe, fetchTrainingOptions } from "@/lib/api";
 import { MathText } from "@/components/MathText";
@@ -52,7 +52,7 @@ export default async function TrainingRulesPage({ params }: Props) {
         {me.email_verified ? (
           <TrainingStart exerciseId={exercise.id} options={options} />
         ) : (
-          <FormMessage error="Confirme d'abord ton adresse email : le lien t'a été envoyé à l'inscription." />
+          <VerifyEmailNotice email={me.email} action="t'entraîner en temps limité" />
         )}
       </div>
     </div>

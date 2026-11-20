@@ -109,6 +109,13 @@
   }
 }
 
+/* Échelle de texte : 13, 14, 16, 18, 20, 24, 32 et 44 px. Le plus petit corps passe de 12 à
+   13 px : deux tailles voisines (12 et 13) se côtoyaient sans qu'on les distingue. */
+@theme {
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.5;
+}
+
 @theme inline {
   --color-ink: var(--ink);
   --color-ink-deep: var(--ink-deep);
@@ -154,7 +161,7 @@
   /* Titres en Computer Modern, sans gras : la typographie d'un manuel. */
   h1 {
     font-family: var(--font-serif);
-    font-size: 2.125rem;
+    font-size: 2rem;
     font-weight: 400;
     line-height: 1.15;
     color: var(--ink-deep);
@@ -287,7 +294,7 @@
 .course-note h3 {
   margin: 1.75rem 0 0.5rem;
   font-family: var(--font-serif);
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   color: var(--ink-deep);
 }
 

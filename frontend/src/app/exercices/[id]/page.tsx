@@ -7,6 +7,7 @@ import {
   SolutionForm,
   VoteButton,
 } from "@/components/ContributionForms";
+import { VerifyEmailNotice } from "@/components/AccountControls";
 import { Avatar } from "@/components/Avatar";
 import { BadgeMedal } from "@/components/BadgeMedal";
 import { CopyPhotoList } from "@/components/CopyPhotos";
@@ -14,7 +15,7 @@ import { Discussion } from "@/components/Discussion";
 import { ExerciseShare, ReadBeacon } from "@/components/ExerciseShare";
 import { ApiUnavailable, Difficulty, License, logApiError } from "@/components/ExerciseMeta";
 import { ExerciseList } from "@/components/ExerciseList";
-import { secondaryButtonClass } from "@/components/Form";
+import { primaryButtonClass, secondaryButtonClass } from "@/components/Form";
 import { Icon } from "@/components/Icon";
 import { JsonLd, breadcrumb } from "@/components/JsonLd";
 import { MathMarkdown } from "@/components/MathMarkdown";
@@ -195,69 +196,61 @@ export default async function ExercisePage({ params }: Props) {
       </h1>
       <JsonLd data={exerciseData(exercise, topics)} />
       <JsonLd data={breadcrumb(trail(exercise, topics))} />
-      <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-body">
+      {/* Une seule ligne d'infos : sur téléphone, l'énoncé doit commencer dans le premier écran. */}
+      <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-body">
         <span className="flex gap-1.5 font-medium">
           {exercise.levels.map((code) => (
             <Link
               key={code}
               href={levelPath(code)}
-              className="rounded-full bg-surface-card px-2.5 py-1 text-xs text-ink hover:bg-hover"
+              className="inline-flex min-h-6 items-center rounded-full bg-surface-card px-2.5 text-xs text-ink hover:bg-hover"
             >
               {code}
             </Link>
           ))}
         </span>
         <Difficulty value={exercise.difficulty} withLabel />
-        {exercise.topics.length + exercise.notions.length > 0 && (
-          <span className="flex flex-wrap gap-x-1.5">
-            {[...exercise.topics, ...exercise.notions].map((name, index) => {
-              const topic = topics.find((item) => item.name === name);
-              const separator = index > 0 ? " · " : "";
-              return topic ? (
-                <span key={name}>
-                  {separator}
-                  <Link
-                    href={chapterPath(topic.slug)}
-                    className="inline-block py-1 hover:text-ink hover:underline hover:underline-offset-4"
-                  >
-                    {name}
-                  </Link>
-                </span>
-              ) : (
-                <span key={name}>
-                  {separator}
-                  {name}
-                </span>
-              );
-            })}
-          </span>
-        )}
+        {[...exercise.topics, ...exercise.notions].map((name) => {
+          const topic = topics.find((item) => item.name === name);
+          // Soulignés : sans cela, chapitres et notions se lisaient comme du texte.
+          return topic ? (
+            <Link
+              key={name}
+              href={chapterPath(topic.slug)}
+              className="inline-flex min-h-6 items-center underline decoration-stone underline-offset-4 hover:text-ink hover:decoration-ink"
+            >
+              {name}
+            </Link>
+          ) : (
+            <span key={name}>{name}</span>
+          );
+        })}
         {exercise.author && (
           <Link
             href={`/membres/${encodeURIComponent(exercise.author)}`}
-            className="inline-flex min-h-6 items-center gap-1.5 hover:underline"
+            className="inline-flex min-h-6 items-center gap-1.5 text-mute hover:text-ink"
           >
             {exercise.author_profile && <Avatar avatar={exercise.author_profile.avatar} size={18} />}
             par {exercise.author}
           </Link>
         )}
-        <VoteButton
-          path={`/exercises/${exercise.id}/vote`}
-          count={exercise.votes}
-          disabledReason={voteBlocker(me, exercise.author)}
-        />
       </p>
 
       <ReadBeacon exerciseId={exercise.id} member={Boolean(me)} />
-      <ExerciseStatsLine stats={exercise.stats} />
-      {/* Un énoncé long repousse la copie sous le pli, surtout sur téléphone : un raccourci. */}
-      {me && !pending && (
-        <p className="mt-3">
-          <a href="#ta-solution" className="inline-flex min-h-8 items-center text-sm text-mute underline underline-offset-4 hover:text-ink">
-            Envoyer ma copie ↓
+      {/* L'action de la page, en vrai bouton : le formulaire est sous l'énoncé, parfois loin. */}
+      <p className="mt-5">
+        {pending ? (
+          <a href="#ta-solution" className={secondaryButtonClass}>
+            Ta copie est en relecture
+            <Icon name="chevron" size={16} />
           </a>
-        </p>
-      )}
+        ) : (
+          <a href="#ta-solution" className={primaryButtonClass}>
+            <Icon name="camera" size={16} />
+            Envoyer ma copie
+          </a>
+        )}
+      </p>
 
       <section aria-labelledby="enonce" className="mt-10">
         <h2 id="enonce" className={sectionTitle}>
@@ -276,7 +269,7 @@ export default async function ExercisePage({ params }: Props) {
           </h2>
           {exercise.hints.map((hint, index) => (
             <details key={index} className="border-b border-hairline py-3">
-              <summary className="font-medium">Indication {index + 1}</summary>
+              <summary className="font-medium py-1.5">Indication {index + 1}</summary>
               <MathMarkdown>{hint}</MathMarkdown>
             </details>
           ))}
@@ -287,18 +280,13 @@ export default async function ExercisePage({ params }: Props) {
         <h2 id="ta-solution" className={`${sectionTitle} scroll-mt-20`}>
           Ta solution
         </h2>
+        <ExerciseStatsLine stats={exercise.stats} />
         {!me ? (
-          <p className="mt-3 text-body">
-            <Link
-              href={`/connexion?suivant=/exercices/${exercise.id}`}
-              className="underline underline-offset-4"
-            >
-              Connecte-toi
-            </Link>{" "}
-            pour envoyer ta copie en photos : trois membres la reliront.
-          </p>
+          <SignupInvite exerciseId={exercise.id} />
         ) : !me.email_verified ? (
-          <p className="mt-3 text-body">Confirme ton adresse email pour proposer une solution.</p>
+          <div className="mt-3">
+            <VerifyEmailNotice email={me.email} action="envoyer ta copie" />
+          </div>
         ) : (
           <>
             {mySolutions.map((solution) => (
@@ -320,13 +308,20 @@ export default async function ExercisePage({ params }: Props) {
         )}
       </section>
 
-      {/* Après la copie, pas avant : sur téléphone, six boutons de partage repoussaient
-          « Ta solution » d'un écran entier. */}
-      <ExerciseShare
-        url={`${SITE_URL}/exercices/${exercise.id}`}
-        title={exercise.title_text}
-        image={`${SITE_URL}${SHARE_IMAGE.url}`}
-      />
+      {/* Après la copie, pas avant : voter et partager viennent une fois l'exercice lu. */}
+      <div className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-hairline pt-5">
+        <span className="text-sm text-body">Cet exercice t&apos;a été utile ?</span>
+        <VoteButton
+          path={`/exercises/${exercise.id}/vote`}
+          count={exercise.votes}
+          disabledReason={voteBlocker(me, exercise.author)}
+        />
+        <ExerciseShare
+          url={`${SITE_URL}/exercices/${exercise.id}`}
+          title={exercise.title_text}
+          image={`${SITE_URL}${SHARE_IMAGE.url}`}
+        />
+      </div>
 
       {exercise.variants.length > 0 && (
         <section aria-labelledby="variantes" className={section}>
@@ -361,7 +356,7 @@ export default async function ExercisePage({ params }: Props) {
       )}
 
       <section id="discussion" aria-labelledby="discussion-titre" className={`${section} scroll-mt-20`}>
-        <Discussion exerciseId={exercise.id} initial={messages} viewer={me ? { verified: me.email_verified } : null} />
+        <Discussion exerciseId={exercise.id} initial={messages} viewer={me ? { verified: me.email_verified, email: me.email } : null} />
       </section>
 
       {exercise.author_profile && <AuthorCard author={exercise.author_profile} />}
@@ -383,6 +378,32 @@ export default async function ExercisePage({ params }: Props) {
         <Report me={me} author={exercise.author} target="exercise" targetId={exercise.id} />
       </div>
     </article>
+  );
+}
+
+/** Le visiteur qui veut envoyer sa copie n'a souvent pas encore de compte : on le lui propose
+ * en premier, et on le ramène ici une fois inscrit. */
+function SignupInvite({ exerciseId }: { exerciseId: number }) {
+  const back = encodeURIComponent(`/exercices/${exerciseId}#ta-solution`);
+  return (
+    <div className="mt-3 rounded-2xl border border-hairline bg-surface-soft px-5 py-5">
+      <p className="text-body">
+        Écris ta solution à la main et envoie une photo : trois étudiants la relisent et te disent ce qui
+        est juste.
+      </p>
+      <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <Link href={`/inscription?suivant=${back}`} className={primaryButtonClass}>
+          Créer un compte
+        </Link>
+        <Link
+          href={`/connexion?suivant=${back}`}
+          className="inline-flex min-h-8 items-center text-sm text-body underline underline-offset-4 hover:text-ink"
+        >
+          J&apos;ai déjà un compte
+        </Link>
+      </p>
+      <p className="mt-3 text-xs text-mute">Gratuit et sans publicité.</p>
+    </div>
   );
 }
 
@@ -421,7 +442,7 @@ function ExerciseStatsLine({ stats }: { stats: ExerciseStats }) {
   // Personne n'a encore tenté : une phrase, plutôt que deux tuiles à zéro qui découragent.
   if (stats.senders === 0) {
     return (
-      <p className="mt-5 text-sm text-mute">
+      <p className="text-sm text-mute">
         Lu par {stats.readers} {stats.readers > 1 ? "personnes" : "personne"} · aucune copie envoyée pour
         l&apos;instant : la première validée rapporte le badge Pionnier.
       </p>
@@ -434,14 +455,14 @@ function ExerciseStatsLine({ stats }: { stats: ExerciseStats }) {
     { value: stats.solvers, label: stats.solvers > 1 ? "l'ont réussi" : "l'a réussi", share: share(stats.solvers) },
   ];
   return (
-    <dl className="mt-5 grid max-w-xl grid-cols-3 gap-2">
+    <dl className="grid max-w-xl grid-cols-3 gap-2">
       {items.map((item) => (
         <div key={item.label} className="flex flex-col-reverse justify-end rounded-xl bg-surface-soft px-3 py-2">
-          <dt className="text-[13px] leading-snug text-mute">{item.label}</dt>
+          <dt className="text-xs leading-snug text-mute">{item.label}</dt>
           <dd className="font-serif text-xl leading-tight text-ink-deep tabular-nums">
             {item.value}
             {item.share && item.value > 0 && (
-              <span className="ml-1.5 font-sans text-[13px] text-mute">
+              <span className="ml-1.5 font-sans text-xs text-mute">
                 {item.share}
                 <span className="sr-only"> des lecteurs</span>
               </span>
@@ -465,7 +486,7 @@ function MySolutionCard({ solution, exerciseId }: { solution: MySolution; exerci
         )}
       </p>
       <details className="mt-2">
-        <summary className="text-sm text-mute">Relire ma solution</summary>
+        <summary className="text-sm text-mute py-1.5">Relire ma solution</summary>
         <CopyPhotoList photos={solution.photos} compact />
         {solution.body && <MathMarkdown>{solution.body}</MathMarkdown>}
       </details>

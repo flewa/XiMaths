@@ -116,7 +116,7 @@ export function ModelCandidates({ initial }: { initial: ModelCandidate[] }) {
 
   return (
     <details className="mt-5 rounded-2xl border border-hairline px-4 py-3">
-      <summary className="font-medium">
+      <summary className="font-medium py-1.5">
         Équipe : choisir la copie modèle{" "}
         <span className="font-normal text-mute">
           · {candidates.length} {candidates.length > 1 ? "copies proposées" : "copie proposée"}

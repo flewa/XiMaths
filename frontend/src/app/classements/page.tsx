@@ -243,7 +243,7 @@ function MyPosition({ board, me }: { board: Leaderboard; me: Me | null }) {
         <span className="mt-1 block text-sm text-body">{gap}</span>
       </p>
       <p className="text-right">
-        <span className="block font-serif text-[1.75rem] leading-none text-ink-deep tabular-nums">{points}</span>
+        <span className="block font-serif text-[2rem] leading-none text-ink-deep tabular-nums">{points}</span>
         <span className="text-sm text-mute">{points > 1 ? "points" : "point"}</span>
       </p>
     </section>
@@ -297,7 +297,7 @@ function Podium({ entries }: { entries: LeaderboardEntry[] }) {
             {entry.is_me && <span className="text-mute"> (toi)</span>}
           </Link>
           <span className="mt-0.5 max-w-full truncate text-xs text-mute">{entry.declared_level ?? "sans niveau"}</span>
-          <span className="mt-2 font-serif text-2xl leading-none text-ink-deep tabular-nums sm:mt-3 sm:text-[1.75rem]">
+          <span className="mt-2 font-serif text-2xl leading-none text-ink-deep tabular-nums sm:mt-3 sm:text-[2rem]">
             {entry.points}
           </span>
           <span className="text-xs text-mute">points</span>
