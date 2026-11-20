@@ -19,9 +19,20 @@ import {
 import { ordinal, plural, weekRange } from "@/lib/labels";
 import { PODIUM_TINTS } from "@/lib/profile-art";
 
-export const metadata: Metadata = { title: "Classements" };
-
 type Search = { classement?: string; semaine?: string; pairs?: string };
+
+/** Une seule page de classements pour les moteurs. Chaque niveau croisé avec chaque semaine
+ * passée donnait une adresse différente : des centaines de pages presque vides, que Google
+ * explorait sans les indexer, au détriment des exercices. */
+export async function generateMetadata({ searchParams }: { searchParams: Promise<Search> }): Promise<Metadata> {
+  const { classement, semaine, pairs } = await searchParams;
+  const variant = Boolean(classement || semaine || pairs);
+  return {
+    title: "Classements",
+    alternates: { canonical: "/classements" },
+    ...(variant ? { robots: { index: false, follow: true } } : {}),
+  };
+}
 
 function rankingsHref({
   board,

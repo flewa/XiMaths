@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 
+from accounts.services import delete_account
 from config.errors import RuleError
 from content.models import Exercise, Solution
 from content.tests import TL, ContentTestCase, make_user
@@ -13,7 +14,7 @@ from gamification.trust import promote
 from notifications.models import Notification
 
 from .models import Appeal, Report, Sanction
-from .services import create_appeal, decide_appeal, lift_expired, resolve_report, sanction
+from .services import appeal_stats, create_appeal, decide_appeal, lift_expired, resolve_report, sanction
 
 
 def give_points(user, amount):
@@ -145,6 +146,20 @@ class AppealTests(ContentTestCase):
         report.solution.refresh_from_db()
         self.assertEqual(report.solution.status, Solution.Status.HIDDEN)
         self.assertEqual(Appeal.objects.get().status, Appeal.Status.UPHELD)
+
+    def test_deleting_the_account_closes_its_pending_appeal(self):
+        decision = sanction(self.student, Sanction.Kind.BAN, reason="Test.", moderator=self.moderator)
+        appeal = create_appeal(self.student, decision, "Je ne sais pas pourquoi.")
+
+        delete_account(self.student)
+
+        # Plus personne à qui répondre : l'appel quitte la file de l'équipe, sans être jugé.
+        appeal.refresh_from_db()
+        self.assertEqual(appeal.status, Appeal.Status.CLOSED)
+        self.assertFalse(Appeal.objects.filter(status=Appeal.Status.PENDING).exists())
+        self.assertEqual(appeal_stats()["appels_tranches"], 0)
+        with self.assertRaises(RuleError):
+            decide_appeal(appeal, overturn=True, moderator=self.other_moderator, note="Trop tard.")
 
     def test_appeals_are_limited_to_the_owner_once_within_fourteen_days(self):
         decision = sanction(self.student, Sanction.Kind.WARNING, reason="Spam.", moderator=self.moderator)

@@ -12,15 +12,17 @@ import { levelPath } from "@/lib/seo-pages";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ niveau?: string }>;
+  searchParams: Promise<{ niveau?: string; q?: string }>;
 }): Promise<Metadata> {
-  const { niveau } = await searchParams;
+  const { niveau, q } = await searchParams;
   return {
     title: "Parcourir les exercices",
     description:
       "Tous les exercices de maths du supérieur publiés sur XiMaths, de la L1 au M2 et en prépa : récents, populaires, ou sans solution envoyée.",
     // Les variantes filtrées ou triées renvoient à une seule adresse : la page du niveau, ou le catalogue.
     alternates: { canonical: niveau ? levelPath(niveau) : "/exercices" },
+    // Une page de résultats de recherche n'a rien à faire dans un moteur de recherche.
+    ...(q ? { robots: { index: false, follow: true } } : {}),
   };
 }
 

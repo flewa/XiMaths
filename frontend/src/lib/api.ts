@@ -348,7 +348,7 @@ export type Decision = {
   state: "en_cours" | "terminee" | "levee" | null;
   appeal_deadline: string | null;
   can_appeal: boolean;
-  appeal_status: "en_attente" | "maintenue" | "annulee" | null;
+  appeal_status: "en_attente" | "maintenue" | "annulee" | "sans_objet" | null;
   appeal_status_label: string | null;
   appeal_note: string | null;
 };
