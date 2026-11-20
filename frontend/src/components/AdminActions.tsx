@@ -412,7 +412,7 @@ export function ExerciseEditor({ initial, levels, topics }: { initial: PanelExer
 const ROLES: { value: MemberRole; label: string; help: string }[] = [
   { value: "nouveau", label: "Nouveau", help: "Vient d'arriver : publie et envoie des copies." },
   { value: "membre", label: "Membre", help: "Contribue régulièrement." },
-  { value: "relecteur", label: "Relecteur", help: "Tiré au sort pour relire les copies des autres." },
+  { value: "relecteur", label: "Relecteur", help: "Signale les doublons. La relecture, elle, est ouverte à tous selon le niveau." },
   { value: "expert", label: "Expert", help: "Relit, et évalue les réponses aux questions de compréhension." },
   { value: "moderateur", label: "Modérateur", help: "Traite signalements, messages et appels ; sa relecture vaut décision." },
   { value: "administrateur", label: "Administrateur", help: "Toute la gestion du site et l'admin technique : quelqu'un de confiance." },

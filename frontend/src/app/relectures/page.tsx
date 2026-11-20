@@ -9,15 +9,13 @@ import { CopyPhotoList, ExpectedAnswer } from "@/components/CopyPhotos";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { ProseSection } from "@/components/Prose";
 import { Tag } from "@/components/Tag";
-import { fetchMe, fetchOpenSolutions, fetchReviewTasks } from "@/lib/api";
+import { canReview, fetchMe, fetchOpenSolutions, fetchReviewTasks } from "@/lib/api";
 import { AI_USAGE_BADGES, dueLabel, plural } from "@/lib/labels";
 import { MathText } from "@/components/MathText";
 import { PageIntro } from "@/components/PageIntro";
 
 export const metadata: Metadata = { title: "Relectures", robots: { index: false } };
 
-// Niveau de confiance à partir duquel on est tiré au sort pour relire.
-const REVIEWER_TRUST_LEVEL = 2;
 // Niveau Expert : il évalue les réponses aux questions de compréhension.
 const EXPERT_TRUST_LEVEL = 3;
 const MODERATOR_TRUST_LEVEL = 4;
@@ -45,7 +43,7 @@ export default async function ReviewsPage() {
   if (!me) redirect("/connexion?suivant=/relectures");
   // L'équipe du site : sa relecture vaut décision, et elle voit toutes les copies en attente.
   const team = me.is_staff || me.trust_level >= MODERATOR_TRUST_LEVEL;
-  const reviewer = team || me.trust_level >= REVIEWER_TRUST_LEVEL;
+  const reviewer = canReview(me);
   const now = new Date();
   // La plus urgente : la première échéance ; à défaut (relectures spontanées), la plus ancienne.
   const urgent =
@@ -74,11 +72,21 @@ export default async function ReviewsPage() {
       )}
 
       {tasks.length === 0 ? (
-        <p className="mt-8 text-mute">
-          {reviewer
-            ? "Aucune relecture en cours pour toi."
-            : "Les relectures sont confiées aux membres de niveau Relecteur : 50 points et 2 copies validées. Continue à résoudre des exercices pour y accéder."}
-        </p>
+        reviewer ? (
+          <p className="mt-8 text-mute">Aucune relecture en cours pour toi.</p>
+        ) : (
+          // Tout le monde relit, à condition d'avoir le niveau : il suffit de l'indiquer.
+          <p className="mt-8 rounded-xl bg-surface-soft px-4 py-3 text-body">
+            {me.email_verified
+              ? "Tout membre peut relire les copies de son niveau et en dessous. Indique ton niveau d'études pour être tiré au sort : "
+              : "Tout membre peut relire les copies de son niveau et en dessous, une fois son adresse email confirmée. "}
+            {me.email_verified && (
+              <Link href="/reglages#preferences" className="font-medium text-ink underline underline-offset-4">
+                choisir mon niveau
+              </Link>
+            )}
+          </p>
+        )
       ) : (
         <>
           <p className="mt-8 rounded-xl border border-hairline bg-surface-soft px-4 py-3">

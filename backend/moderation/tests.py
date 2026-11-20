@@ -227,6 +227,9 @@ class ReportApiTests(ModerationTestCase):
 
 
     def test_only_the_reviewers_of_a_copy_can_report_it(self):
+        # Sans niveau déclaré, le témoin ne peut pas être tiré au sort pour relire cette copie.
+        self.witness.declared_level = None
+        self.witness.save(update_fields=["declared_level"])
         solution = self.publish()
         reviewer = Review.objects.filter(solution=solution).first().reviewer
         reviewer.email_verified_at = timezone.now()

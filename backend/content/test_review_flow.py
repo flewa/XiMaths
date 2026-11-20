@@ -68,12 +68,26 @@ class VolunteerTests(ReviewFlowTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual([item["solution_id"] for item in response.json()], [solution.pk])
 
-    def test_members_and_the_author_cannot_volunteer(self):
-        solution = self.publish()
+    def test_any_confirmed_member_with_the_level_can_volunteer(self):
+        solution = self.publish(exercise=self.make_exercise(level="L2"))
+        member = make_user("membre", trust=TL.NEW, email_verified_at=timezone.now())
+        self.assertFalse(volunteer_review(solution, member).assigned)
+
+    def test_unconfirmed_lower_level_members_and_the_author_cannot_volunteer(self):
+        solution = self.publish(exercise=self.make_exercise(level="L2"))
         with self.assertRaises(PermissionDenied):
-            volunteer_review(solution, make_user("membre"))
+            volunteer_review(solution, make_user("membre"))  # adresse non confirmée
+        with self.assertRaises(PermissionDenied):
+            volunteer_review(solution, make_user("l1", level="L1", email_verified_at=timezone.now()))
         with self.assertRaises(PermissionDenied):
             volunteer_review(solution, self.student)
+
+    def test_volunteers_only_see_copies_of_their_level_or_below(self):
+        solution = self.publish(exercise=self.make_exercise(level="L2"))
+        for name, level, visible in (("l1", "L1", []), ("l3", "L3", [solution.pk])):
+            member = make_user(name, level=level, email_verified_at=timezone.now())
+            self.client.force_login(member)
+            self.assertEqual([item["solution_id"] for item in self.client.get("/api/reviews/open").json()], visible)
 
 
 class RevisionTests(ReviewFlowTestCase):
@@ -166,11 +180,30 @@ class TeamTests(ReviewFlowTestCase):
         self.assertEqual(alert_team(now=sent + timedelta(hours=130)), 0)
         self.assertFalse(Notification.objects.filter(kind=kind).exclude(user=self.team).exists())
 
-    def test_a_copy_without_enough_reviewers_goes_to_the_team_at_once(self):
-        # Un seul relecteur possible : la copie ne peut pas atteindre le consensus.
+    def test_a_team_member_is_never_asked_to_correct_their_own_copy(self):
+        # Pas assez de relecteurs : la copie du membre de l'équipe attend l'équipe…
         for reviewer in self.reviewers[1:]:
-            reviewer.trust_level = TL.MEMBER
-            reviewer.save(update_fields=["trust_level"])
+            reviewer.declared_level = None
+            reviewer.save(update_fields=["declared_level"])
+        self.publish(author=self.team)
+        # … mais pas lui : ni alerte, ni « à traiter », ni dans le filtre des copies en attente.
+        self.assertEqual(alert_team(), 0)
+        self.client.force_login(self.team)
+        overview = self.client.get("/api/panel/overview").json()
+        self.assertEqual((overview["late"], overview["own_late"]), (0, 1))
+        self.assertEqual(self.client.get("/api/panel/solutions?status=late").json()["items"], [])
+        # Un autre membre de l'équipe, lui, la voit et en est prévenu.
+        other = make_user("equipe2", is_staff=True, email_verified_at=timezone.now())
+        self.assertEqual(alert_team(), 1)
+        self.client.force_login(other)
+        self.assertEqual(self.client.get("/api/panel/overview").json()["late"], 1)
+
+    def test_a_copy_without_enough_reviewers_goes_to_the_team_at_once(self):
+        # Un seul relecteur possible (les autres n'ont pas déclaré de niveau) : la copie ne peut
+        # pas atteindre le consensus.
+        for reviewer in self.reviewers[1:]:
+            reviewer.declared_level = None
+            reviewer.save(update_fields=["declared_level"])
         solution = self.publish()
         self.assertEqual(len(self.assigned(solution)), 1)
         # L'équipe est prévenue dès l'envoi, sans attendre 72 heures.

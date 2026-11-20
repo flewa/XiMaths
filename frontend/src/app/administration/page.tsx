@@ -201,6 +201,16 @@ function Overview({ data, counts }: { data: PanelOverview; counts: { reports: nu
             ))}
           </ul>
         )}
+        {/* Ses propres copies ne lui sont jamais confiées : dites à part, sans appel à agir. */}
+        {data.own_late > 0 && (
+          <p className="mt-3 text-sm text-body">
+            {data.own_late === 1
+              ? "Ta copie en attente n'est pas comptée ici"
+              : `Tes ${data.own_late} copies en attente ne sont pas comptées ici`}{" "}
+            : tu ne corriges pas les tiennes, un autre membre de l&apos;équipe ou des relecteurs de ton niveau
+            s&apos;en chargent.
+          </p>
+        )}
       </section>
 
       <section aria-labelledby="copies-chiffres" className="mt-10">
@@ -223,7 +233,7 @@ function Overview({ data, counts }: { data: PanelOverview; counts: { reports: nu
         <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Figure value={data.members} label="membres" note={`+${data.members_week} en 7 jours`} />
           <Figure value={data.members_active_week} label="actifs en 7 jours" />
-          <Figure value={data.reviewers} label={data.reviewers > 1 ? "relecteurs" : "relecteur"} note="peuvent être tirés au sort" />
+          <Figure value={data.reviewers} label={data.reviewers > 1 ? "relecteurs" : "relecteur"} note="adresse confirmée et niveau déclaré" />
           <Figure value={data.exercises} label="exercices publiés" note={`+${data.exercises_week} en 7 jours`} />
         </dl>
       </section>

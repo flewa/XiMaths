@@ -756,8 +756,14 @@ export function fetchMember(username: string) {
 
 /** Niveau de confiance des modérateurs ; les administrateurs (is_staff) en font partie aussi. */
 export const MODERATOR_TRUST_LEVEL = 4;
-/** À partir de ce niveau, on est tiré au sort pour relire. */
+/** Niveau de confiance « Relecteur » : il permet de signaler des doublons. */
 export const REVIEWER_TRUST_LEVEL = 2;
+
+/** Peut relire : l'équipe, ou tout membre à l'adresse confirmée qui a déclaré son niveau ; il
+ * relit les copies de son niveau et en dessous. Une relecture déjà confiée compte aussi. */
+export function canReview(me: Me) {
+  return isTeam(me) || (me.email_verified && me.declared_level !== null) || me.pending_reviews > 0;
+}
 
 export function isTeam(me: Me | null) {
   return Boolean(me && (me.is_staff || me.trust_level >= MODERATOR_TRUST_LEVEL));
@@ -956,8 +962,11 @@ export type PanelOverview = {
   needs_work: number;
   hidden: number;
   solutions_week: number;
-  /** Copies en relecture depuis plus de 72 heures. */
+  /** Copies qui attendent l'équipe (plus de 72 heures, ou relecteurs trop peu nombreux), sans
+   * celles du membre qui regarde ni de ses comptes liés. */
   late: number;
+  /** Ses propres copies dans ce cas : un autre membre de l'équipe s'en charge. */
+  own_late: number;
   reviews_week: number;
   messages_week: number;
   moderation_pending: number;

@@ -34,7 +34,7 @@ EXPERT_AGREED_REVIEWS = 30
 EXPERT_AGREEMENT = 0.8
 
 MESSAGES = {
-    TL.REVIEWER: ("Tu es maintenant Relecteur", "Tu peux être tiré au sort pour relire, et signaler des doublons."),
+    TL.REVIEWER: ("Tu es maintenant Relecteur", "Tu peux maintenant signaler des doublons."),
     TL.EXPERT: ("Tu es maintenant Expert", "Tu peux évaluer les réponses aux questions de compréhension."),
 }
 

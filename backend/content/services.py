@@ -49,10 +49,22 @@ REPEATED_VOTE_WEIGHTS = [Decimal(1), Decimal("0.5"), Decimal("0.25")]
 MAX_VOTES_FOR_AUTHOR_AS_REVIEWER = 3
 
 
-def can_review(user):
-    """Peut relire : un relecteur (niveau de confiance 2 ou plus), un enseignant vérifié,
-    ou l'équipe du site."""
-    return user.verified_teacher or user.trust_level >= User.TrustLevel.REVIEWER or is_moderator(user)
+def has_level_for(user, exercise):
+    """Le niveau déclaré du membre atteint celui de l'exercice (MP ≈ L2 : on compare les années
+    d'études). Sans niveau déclaré, on ne peut pas en juger."""
+    level = user.declared_level
+    return level is not None and level.year >= exercise.primary_level.year
+
+
+def can_review(user, exercise=None):
+    """Peut relire : l'équipe du site, un enseignant vérifié, ou tout membre dont l'adresse
+    est confirmée et le niveau déclaré au moins égal à celui de l'exercice. Sans exercice
+    précisé : peut relire au moins les copies de son niveau."""
+    if is_moderator(user) or user.verified_teacher:
+        return True
+    if user.email_verified_at is None or user.declared_level_id is None:
+        return False
+    return exercise is None or has_level_for(user, exercise)
 
 
 @transaction.atomic
@@ -168,9 +180,10 @@ def publish_solution(solution, *, rng=None, now=None):
 
 
 def eligible_reviewers(solution, *, now=None):
-    """Relecteurs possibles : niveau de confiance 2 ou plus et niveau déclaré au moins
-    égal à celui de l'exercice (ou enseignant vérifié), hors auteur, comptes liés à
-    l'auteur et votants trop fréquents pour lui."""
+    """Relecteurs possibles : tout membre à l'adresse confirmée dont le niveau déclaré atteint
+    celui de l'exercice (ou enseignant vérifié), hors auteur, comptes liés à l'auteur et
+    votants trop fréquents pour lui. L'équipe du site n'est pas tirée au sort : sa relecture
+    trancherait seule, sans consensus ; elle reprend les copies qui attendent."""
     now = now or timezone.now()
     author_id = solution.author_id
     year = solution.exercise.primary_level.year
@@ -189,10 +202,11 @@ def eligible_reviewers(solution, *, now=None):
         .filter(
             Q(verified_teacher=True)
             | Q(
-                trust_level__gte=User.TrustLevel.REVIEWER,
+                email_verified_at__isnull=False,
                 declared_level__year__gte=year,
             )
         )
+        .exclude(Q(is_staff=True) | Q(trust_level__gte=User.TrustLevel.MODERATOR))
         .exclude(pk=author_id)
         .exclude(pk__in=linked_ids(author_id))
         .exclude(pk__in=frequent_voters)
@@ -233,8 +247,8 @@ def submit_review(review, verdict, *, feedback="", now=None):
         raise RuleError("Cette copie n'est plus en relecture.")
     if review.reviewer_id == review.solution.author_id:
         raise PermissionDenied("On ne relit pas sa propre solution.")
-    if not can_review(review.reviewer):
-        raise PermissionDenied("Niveau de confiance insuffisant pour relire.")
+    if not can_review(review.reviewer, review.solution.exercise):
+        raise PermissionDenied("Ton niveau déclaré est en dessous de celui de cet exercice.")
     review.verdict = verdict
     review.feedback = feedback
     review.submitted_at = now or timezone.now()
@@ -560,13 +574,18 @@ def with_active_reviews(queryset):
     )
 
 
-def waiting_solutions(*, now=None):
+def waiting_solutions(*, now=None, viewer=None):
     """Copies qui attendent l'équipe : en relecture depuis plus de 72 heures (depuis l'envoi,
-    ou la dernière révision), ou sans assez de relecteurs pour atteindre le consensus."""
+    ou la dernière révision), ou sans assez de relecteurs pour atteindre le consensus.
+    Pour un membre de l'équipe (`viewer`), sans ses propres copies ni celles de ses comptes
+    liés : un autre membre de l'équipe s'en charge."""
     now = now or timezone.now()
-    return with_active_reviews(Solution.objects.filter(status=Solution.Status.UNDER_REVIEW)).filter(
+    queryset = with_active_reviews(Solution.objects.filter(status=Solution.Status.UNDER_REVIEW)).filter(
         Q(updated_at__lte=now - TEAM_ALERT_AFTER) | Q(active_reviews__lt=REVIEWERS_PER_SOLUTION)
     )
+    if viewer is not None:
+        queryset = queryset.exclude(author=viewer).exclude(author_id__in=linked_ids(viewer))
+    return queryset
 
 
 def alert_team(*, now=None):
@@ -574,14 +593,17 @@ def alert_team(*, now=None):
     depuis plus de 72 heures : elle peut les corriger elle-même, sa relecture vaut décision.
     Renvoie le nombre de personnes prévenues."""
     now = now or timezone.now()
-    waiting = waiting_solutions(now=now).count()
-    if waiting == 0:
+    if not waiting_solutions(now=now).exists():
         return 0
     team = User.objects.filter(is_active=True, status=User.Status.ACTIVE).filter(
         Q(is_staff=True) | Q(trust_level__gte=User.TrustLevel.MODERATOR)
     )
     alerted = 0
     for member in team:
+        # Ses propres copies ne lui sont pas confiées : rien à lui signaler pour elles.
+        waiting = waiting_solutions(now=now, viewer=member).count()
+        if waiting == 0:
+            continue
         recent = Notification.objects.filter(
             user=member, kind=Kind.TEAM_ALERT, created_at__gte=now - TEAM_ALERT_EVERY
         ).exists()
@@ -609,8 +631,10 @@ def volunteer_review(solution, user):
         raise RuleError("Cette solution n'est pas en relecture.")
     if solution.author_id == user.pk or are_linked(user, solution.author):
         raise PermissionDenied("On ne relit pas sa propre solution, ni celle d'un compte lié.")
-    if not can_review(user):
-        raise PermissionDenied("Les relectures sont ouvertes à partir du niveau Relecteur.")
+    if not can_review(user, solution.exercise):
+        raise PermissionDenied(
+            "Les relectures sont ouvertes à ceux dont le niveau déclaré atteint celui de l'exercice."
+        )
     review, created = Review.objects.get_or_create(
         solution=solution,
         reviewer=user,
