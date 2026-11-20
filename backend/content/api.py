@@ -956,9 +956,12 @@ def open_for_review(request):
     user = contributor(request)
     if not can_review(user):
         return []
+    solutions = with_active_reviews(Solution.objects.filter(status=Solution.Status.UNDER_REVIEW))
+    # Chacun relit les copies de son niveau et en dessous ; l'équipe et les enseignants, toutes.
+    if not (is_moderator(user) or user.verified_teacher):
+        solutions = solutions.filter(exercise__primary_level__year__lte=user.declared_level.year)
     solutions = (
-        with_active_reviews(Solution.objects.filter(status=Solution.Status.UNDER_REVIEW))
-        .exclude(author=user)
+        solutions.exclude(author=user)
         .exclude(author_id__in=linked_ids(user))
         .exclude(reviews__reviewer=user)
         .select_related("exercise__primary_level")

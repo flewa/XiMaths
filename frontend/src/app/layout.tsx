@@ -8,7 +8,7 @@ import { VerifyBanner } from "@/components/AccountControls";
 import { AudienceTracker } from "@/components/Audience";
 import { BottomNav } from "@/components/BottomNav";
 import { MobileBar, SidebarContent, type NavAccount } from "@/components/SidebarNav";
-import { REVIEWER_TRUST_LEVEL, fetchLevels, fetchMe, fetchTopics, isTeam, nullOnError } from "@/lib/api";
+import { canReview, fetchLevels, fetchMe, fetchTopics, isTeam, nullOnError } from "@/lib/api";
 import { CONTACT_EMAIL } from "@/lib/legal";
 import { chaptersOf } from "@/lib/seo-pages";
 import { DEFAULT_THEME, SITE_DESCRIPTION, SITE_URL, SOCIAL_PROFILES, THEME_COOKIE, type Theme } from "@/lib/site";
@@ -68,7 +68,7 @@ export default async function RootLayout({
     unreadNotifications: me.unread_notifications,
     declaredLevel: me.declared_level,
     team: isTeam(me),
-    reviewer: isTeam(me) || me.trust_level >= REVIEWER_TRUST_LEVEL,
+    reviewer: canReview(me),
     moderationPending: me.moderation_pending,
     staff: me.is_staff,
   };

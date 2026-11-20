@@ -181,7 +181,9 @@ function MenuGroup({ id, label, current, children }: { id: string; label: string
       className="plain group"
     >
       <summary className={`${row} text-body hover:bg-hover hover:text-ink`}>
-        <Icon name="chevron" size={16} className="-rotate-90 text-stone transition-transform group-open:rotate-0" />
+        {/* Le chevron suit son propre groupe : avec « group-open », un groupe imbriqué fermé
+            prenait l'état ouvert de son parent. */}
+        <Icon name="chevron" size={16} className="-rotate-90 text-stone transition-transform [details[open]>summary>&]:rotate-0" />
         {label}
       </summary>
       {children}

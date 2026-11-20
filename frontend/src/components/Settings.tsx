@@ -38,7 +38,7 @@ export function PreferencesForm({ me, levels }: { me: Me; levels: Level[] }) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-5">
-      <Field label="Niveau déclaré" htmlFor="declared_level" hint="Il choisit ton fil d'accueil et tes pairs dans les classements.">
+      <Field label="Niveau déclaré" htmlFor="declared_level" hint="Il choisit ton fil d'accueil, tes pairs dans les classements, et les copies que tu peux relire : celles de ton niveau et en dessous.">
         <select id="declared_level" value={level} onChange={(event) => setLevel(event.target.value)} className={inputClass}>
           <option value="">Aucun</option>
           <LevelOptions levels={levels} />

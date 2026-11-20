@@ -29,7 +29,7 @@ from training.models import TimedSession
 from . import photos
 from .api import PhotoOut
 from .models import Exercise, ExerciseRead, Message, Review, Solution
-from .services import REVIEWERS_PER_SOLUTION, TEAM_ALERT_AFTER, can_review, waiting_solutions
+from .services import REVIEWERS_PER_SOLUTION, TEAM_ALERT_AFTER, waiting_solutions
 
 User = get_user_model()
 router = Router(tags=["administration"])
@@ -78,7 +78,7 @@ class OverviewOut(Schema):
     members_week: int
     # Membres qui ont lu, envoyé, relu, publié ou écrit quelque chose en 7 jours.
     members_active_week: int
-    # Membres qui peuvent être tirés au sort pour relire.
+    # Membres qui peuvent relire : adresse confirmée et niveau déclaré, ou équipe, ou enseignant.
     reviewers: int
     exercises: int
     exercises_week: int
@@ -87,8 +87,11 @@ class OverviewOut(Schema):
     needs_work: int
     hidden: int
     solutions_week: int
-    # Copies en relecture depuis plus de 72 heures : l'équipe peut les corriger elle-même.
+    # Copies qui attendent l'équipe (plus de 72 heures, ou relecteurs trop peu nombreux), sans
+    # celles du membre qui regarde : un autre membre de l'équipe s'en charge.
     late: int
+    # Ses propres copies dans ce cas : affichées à part, il ne les corrige pas.
+    own_late: int
     reviews_week: int
     messages_week: int
     # Files de modération : signalements, messages signalés, appels.
@@ -109,7 +112,7 @@ def per_day(queryset, field, since):
 
 @router.get("/panel/overview", response=OverviewOut, auth=django_auth)
 def overview(request):
-    admin(request)
+    me = admin(request)
     now = timezone.now()
     week = now - WEEK
     members = User.objects.filter(is_active=True)
@@ -134,11 +137,17 @@ def overview(request):
     days = [first + timedelta(days=offset) for offset in range(DAYS_SHOWN)]
 
     counts = pending_counts()
+    late = waiting_solutions(now=now, viewer=me).count()
     return {
         "members": members.count(),
         "members_week": members.filter(date_joined__gte=week).count(),
         "members_active_week": members.filter(pk__in=active).count(),
-        "reviewers": sum(can_review(member) for member in members.filter(Q(trust_level__gte=2) | Q(is_staff=True) | Q(verified_teacher=True))),
+        "reviewers": members.filter(
+            Q(email_verified_at__isnull=False, declared_level__isnull=False)
+            | Q(is_staff=True)
+            | Q(verified_teacher=True)
+            | Q(trust_level__gte=User.TrustLevel.MODERATOR)
+        ).count(),
         "exercises": Exercise.objects.filter(status=Exercise.Status.PUBLISHED).count(),
         "exercises_week": Exercise.objects.filter(status=Exercise.Status.PUBLISHED, published_at__gte=week).count(),
         "under_review": by_status.get(Status.UNDER_REVIEW, 0),
@@ -146,7 +155,8 @@ def overview(request):
         "needs_work": by_status.get(Status.NEEDS_WORK, 0),
         "hidden": by_status.get(Status.HIDDEN, 0),
         "solutions_week": Solution.objects.exclude(status=Status.DRAFT).filter(published_at__gte=week).count(),
-        "late": waiting_solutions(now=now).count(),
+        "late": late,
+        "own_late": waiting_solutions(now=now).count() - late,
         "reviews_week": Review.objects.filter(submitted_at__gte=week).count(),
         "messages_week": Message.objects.filter(created_at__gte=week).count(),
         "moderation_pending": counts["reports"] + counts["messages"] + counts["appeals"],
@@ -234,7 +244,7 @@ def solutions(request, status: SolutionFilter = "", q: str = "", page: int = 1):
     now = timezone.now()
     queryset = Solution.objects.filter(status__in=SENT)
     if status == "late":
-        queryset = waiting_solutions(now=now)
+        queryset = waiting_solutions(now=now, viewer=me)
     elif status:
         queryset = queryset.filter(status=status)
     q = q.strip()

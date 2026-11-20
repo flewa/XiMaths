@@ -27,6 +27,10 @@ Verdict = Review.Verdict
 
 
 def make_user(name, *, trust=TL.MEMBER, level="L2", joined_days_ago=30, **fields):
+    # Les relecteurs de ces tests ont confirmé leur adresse, ce qui les rend éligibles au tirage ;
+    # les autres membres non, sauf mention contraire : le tirage reste ainsi parmi les relecteurs.
+    if trust >= TL.REVIEWER:
+        fields.setdefault("email_verified_at", timezone.now() - timedelta(days=joined_days_ago))
     return User.objects.create_user(
         name,
         f"{name}@example.com",
@@ -99,20 +103,28 @@ class PublicationTests(ContentTestCase):
         reviewers = set(solution.reviews.values_list("reviewer_id", flat=True))
         self.assertEqual(reviewers, {r.pk for r in self.reviewers})
 
-    def test_reviewers_need_trust_and_a_high_enough_level(self):
+    def test_any_confirmed_member_with_the_level_can_be_drawn(self):
         exercise = self.make_exercise(level="L2")
-        newcomer = make_user("nouveau", trust=TL.MEMBER)
+        confirmed = make_user("confirme", trust=TL.NEW, email_verified_at=timezone.now())
+        unconfirmed = make_user("nouveau", trust=TL.MEMBER)
         first_year = make_user("premiere-annee", trust=TL.REVIEWER, level="L1")
+        undeclared = make_user("sans-niveau", trust=TL.MEMBER, level=None, email_verified_at=timezone.now())
         teacher = make_user("prof", trust=TL.NEW, level=None, verified_teacher=True)
+        staff = make_user("admin", is_staff=True, email_verified_at=timezone.now())
         solution = Solution.objects.create(exercise=exercise, author=self.reviewers[0], body="…")
 
         eligible = set(eligible_reviewers(solution))
 
-        self.assertNotIn(newcomer, eligible)
-        self.assertNotIn(first_year, eligible)
-        self.assertNotIn(self.reviewers[0], eligible)  # l'auteur
-        self.assertIn(teacher, eligible)
+        # Le niveau de confiance ne compte plus : l'adresse confirmée et le niveau suffisent.
+        self.assertIn(confirmed, eligible)
         self.assertIn(self.reviewers[1], eligible)
+        self.assertIn(teacher, eligible)
+        self.assertNotIn(unconfirmed, eligible)
+        self.assertNotIn(first_year, eligible)  # niveau en dessous de l'exercice
+        self.assertNotIn(undeclared, eligible)
+        self.assertNotIn(self.reviewers[0], eligible)  # l'auteur
+        # L'équipe n'est pas tirée au sort : sa relecture trancherait seule.
+        self.assertNotIn(staff, eligible)
 
 
 class ReviewQuorumTests(ContentTestCase):
@@ -333,6 +345,10 @@ class WriteApiTests(ContentTestCase):
         from .test_photos import MEDIA, jpeg
 
         url = f"/api/exercises/{self.exercise.pk}/solutions"
+        # Tout membre confirmé qui a le niveau peut être tiré au sort : sans niveau déclaré,
+        # l'auteur de l'exercice laisse le tirage aux trois relecteurs.
+        self.author.declared_level = None
+        self.author.save(update_fields=["declared_level"])
         with self.settings(MEDIA_ROOT=MEDIA):
             token = self.post(f"/api/exercises/{self.exercise.pk}/photo-uploads", user=self.student).json()["token"]
             photo = SimpleUploadedFile("copie.jpg", jpeg(), content_type="image/jpeg")
