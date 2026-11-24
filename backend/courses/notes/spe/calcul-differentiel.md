@@ -1,6 +1,6 @@
 ---
 titre: Calcul différentiel
-programmes: MP, PSI
+programmes: MP, PSI, L2, L3
 ordre: 11
 notion: fonctions-plusieurs-variables
 ---

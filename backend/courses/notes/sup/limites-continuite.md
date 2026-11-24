@@ -1,6 +1,6 @@
 ---
 titre: Limites et continuité
-programmes: MPSI, MP2I, PCSI
+programmes: MPSI, MP2I, PCSI, L1
 ordre: 7
 notion: limites-continuite
 ---

@@ -1,6 +1,6 @@
 ---
 titre: Polynômes et fractions rationnelles
-programmes: MPSI, MP2I, PCSI
+programmes: MPSI, MP2I, PCSI, L1
 ordre: 11
 notion: polynomes
 ---

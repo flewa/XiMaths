@@ -1,6 +1,6 @@
 ---
 titre: Équations différentielles linéaires
-programmes: MPSI, MP2I, PCSI
+programmes: MPSI, MP2I, PCSI, L1
 ordre: 5
 notion: equations-differentielles
 ---

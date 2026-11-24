@@ -1,6 +1,6 @@
 ---
 titre: Analyse asymptotique
-programmes: MPSI, MP2I, PCSI
+programmes: MPSI, MP2I, PCSI, L1
 ordre: 12
 notion: developpements-limites
 ---

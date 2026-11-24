@@ -1,6 +1,6 @@
 ---
 titre: Espaces vectoriels normés
-programmes: MP, PSI
+programmes: MP, PSI, L2, L3
 ordre: 6
 notion: espaces-vectoriels-normes
 ---

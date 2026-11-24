@@ -8,8 +8,9 @@ import { JsonLd, breadcrumb } from "@/components/JsonLd";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { Outline } from "@/components/Outline";
 import { PdfLink } from "@/components/PdfLink";
+import { PracticeInvite, practiceLabel } from "@/components/PracticeInvite";
 import { PrintSource } from "@/components/PrintSource";
-import { fetchCourseNote, fetchCourseNotes, fetchDemonstrations, fetchMe, nullOnError } from "@/lib/api";
+import { fetchCourseNote, fetchCourseNotes, fetchDemonstrations, fetchMe, fetchTopics, nullOnError } from "@/lib/api";
 import {
   PROOF_STATUS,
   courseNotePath,
@@ -19,7 +20,7 @@ import {
   noteData,
   outline,
 } from "@/lib/course-notes";
-import { chapterPath, ofChapter } from "@/lib/seo-pages";
+import { chapterPath } from "@/lib/seo-pages";
 import { SHARE_IMAGE, SITE_URL } from "@/lib/site";
 
 function describeProof(proof: { title: string; programs: string }) {
@@ -48,22 +49,26 @@ export default async function DemonstrationPage({ params }: Props) {
   const { slug } = await params;
   let data;
   try {
-    const [proof, proofs, me] = await Promise.all([
+    const [proof, proofs, me, topics] = await Promise.all([
       fetchCourseNote(slug),
       fetchDemonstrations(),
       fetchMe().catch(nullOnError),
+      fetchTopics(),
     ]);
     if (!proof) notFound();
     // Une fiche de rappels a sa propre adresse.
     if (proof.kind !== "demonstration") permanentRedirect(courseNotePath(proof.slug));
     // La fiche du même chapitre, pour revoir le cours autour du théorème.
     const notes = proof.topic ? await fetchCourseNotes(proof.topic) : [];
-    data = { proof, proofs, me, notes };
+    const exercises = topics.find((topic) => topic.slug === proof.topic)?.exercises ?? 0;
+    data = { proof, proofs, me, notes, exercises };
   } catch (error) {
     logApiError(error);
     return <ApiUnavailable />;
   }
-  const { proof, proofs, me, notes } = data;
+  const { proof, proofs, me, notes, exercises } = data;
+  // Un visiteur voit l'invitation à s'entraîner ; un membre, le simple lien.
+  const invite = !me && exercises > 0;
   const { previous, next } = neighbours(proofs, proof.slug);
   const parts = outline(proof.body);
   const status = proof.status ? PROOF_STATUS[proof.status] : null;
@@ -107,8 +112,11 @@ export default async function DemonstrationPage({ params }: Props) {
         <MathMarkdown headingIds={parts.map((part) => part.id)}>{frenchSpacing(proof.body)}</MathMarkdown>
       </div>
 
-      {(notes.length > 0 || (proof.topic && proof.topic_name)) && (
-        <div className="mt-10 space-y-2 rounded-xl bg-surface-soft px-5 py-4">
+      {proof.topic && proof.topic_name && invite && (
+        <PracticeInvite topic={proof.topic} topicName={proof.topic_name} exercises={exercises} slug={proof.slug} />
+      )}
+      {(notes.length > 0 || (proof.topic && proof.topic_name && !invite)) && (
+        <div className={`${invite ? "mt-4" : "mt-10"} space-y-2 rounded-xl bg-surface-soft px-5 py-4`}>
           {notes.map((note) => (
             <p key={note.slug}>
               <Link href={courseNotePath(note.slug)} className="font-medium text-ink underline underline-offset-4">
@@ -116,10 +124,10 @@ export default async function DemonstrationPage({ params }: Props) {
               </Link>
             </p>
           ))}
-          {proof.topic && proof.topic_name && (
+          {proof.topic && proof.topic_name && !invite && (
             <p>
               <Link href={chapterPath(proof.topic)} className="font-medium text-ink underline underline-offset-4">
-                S&apos;entraîner : exercices {ofChapter(proof.topic_name)}
+                S&apos;entraîner : {practiceLabel(proof.topic_name, exercises)}
               </Link>
             </p>
           )}

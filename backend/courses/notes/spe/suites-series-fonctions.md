@@ -1,6 +1,6 @@
 ---
 titre: Suites et séries de fonctions
-programmes: MP, PSI
+programmes: MP, PSI, L2
 ordre: 2
 notion: suites-series-fonctions
 ---

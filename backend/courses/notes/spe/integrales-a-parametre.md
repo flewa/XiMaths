@@ -1,6 +1,6 @@
 ---
 titre: Convergence dominée et intégrales à paramètre
-programmes: MP, PSI
+programmes: MP, PSI, L2, L3
 ordre: 5
 notion: integrales-a-parametre
 ---
