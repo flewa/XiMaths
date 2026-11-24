@@ -113,3 +113,45 @@ export function outline(markdown: string) {
   }
   return items;
 }
+
+/** Les filières d'un texte (« MPSI, MP2I, PCSI ») sous forme de liste. */
+export function programList(note: Pick<CourseNoteSummary, "programs">) {
+  return note.programs
+    .split(",")
+    .map((code) => code.trim())
+    .filter(Boolean);
+}
+
+/** Les textes dont le programme couvre ce niveau (MPSI, L2…). */
+export function forLevel<T extends Pick<CourseNoteSummary, "programs">>(notes: T[], code: string) {
+  return notes.filter((note) => programList(note).includes(code));
+}
+
+/** Les textes rattachés à l'un de ces chapitres ou notions, dans l'ordre de la liste. */
+export function aboutTopics<T extends Pick<CourseNoteSummary, "topic">>(notes: T[], slugs: string[]) {
+  return slugs.flatMap((slug) => notes.filter((note) => note.topic === slug));
+}
+
+/** Données schema.org d'une fiche ou d'une démonstration : ce qu'elle enseigne, à quel niveau. */
+export function noteData(
+  note: Pick<CourseNoteSummary, "title" | "kind" | "programs" | "topic" | "topic_name" | "updated_at"> & {
+    published_at?: string | null;
+  },
+  { url, description, siteUrl, topicUrl }: { url: string; description: string; siteUrl: string; topicUrl: string | null },
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "LearningResource",
+    name: note.title,
+    description,
+    url: `${siteUrl}${url}`,
+    inLanguage: "fr",
+    learningResourceType: note.kind === "demonstration" ? "Démonstration" : "Résumé de cours",
+    educationalLevel: programList(note),
+    ...(note.topic_name ? { about: { "@type": "Thing", name: note.topic_name, ...(topicUrl ? { url: topicUrl } : {}) } } : {}),
+    isAccessibleForFree: true,
+    ...(note.published_at ? { datePublished: note.published_at } : {}),
+    dateModified: note.updated_at,
+    publisher: { "@type": "Organization", name: "XiMaths", url: siteUrl },
+  };
+}

@@ -8,9 +8,9 @@ import { type CourseNoteSummary, fetchCourseNotes, fetchMe, nullOnError } from "
 import { CONVENTIONS, CYCLES, courseNotePath, frenchSpacing } from "@/lib/course-notes";
 
 export const metadata: Metadata = {
-  title: "Rappels de cours de prépa, sup et spé",
+  title: "Résumés de cours de maths : prépa et licence",
   description:
-    "Le programme de prépa scientifique chapitre par chapitre : définitions, théorèmes avec leurs hypothèses exactes, méthodes et pièges fréquents.",
+    "Les cours de maths de prépa (MPSI, MP2I, PCSI, MP, PSI) et de licence, chapitre par chapitre : définitions, théorèmes avec leurs hypothèses exactes, formulaires, méthodes et pièges fréquents.",
   alternates: { canonical: "/rappels" },
 };
 

@@ -8,9 +8,21 @@ import { JsonLd, breadcrumb } from "@/components/JsonLd";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { Outline } from "@/components/Outline";
 import { fetchCourseNote, fetchCourseNotes, fetchDemonstrations, fetchMe, nullOnError } from "@/lib/api";
-import { PROOF_STATUS, courseNotePath, demonstrationPath, frenchSpacing, neighbours, outline } from "@/lib/course-notes";
+import {
+  PROOF_STATUS,
+  courseNotePath,
+  demonstrationPath,
+  frenchSpacing,
+  neighbours,
+  noteData,
+  outline,
+} from "@/lib/course-notes";
 import { chapterPath, ofChapter } from "@/lib/seo-pages";
-import { SHARE_IMAGE } from "@/lib/site";
+import { SHARE_IMAGE, SITE_URL } from "@/lib/site";
+
+function describeProof(proof: { title: string; programs: string }) {
+  return `${proof.title} : énoncé, idée de la preuve et démonstration complète, étape par étape (niveau ${proof.programs}).`;
+}
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -18,8 +30,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const proof = await fetchCourseNote(slug).catch(nullOnError);
   if (!proof || proof.kind !== "demonstration") return { title: "Démonstrations" };
-  const title = `${proof.title} : démonstration`;
-  const description = `Démonstration complète, étape par étape : ${proof.title} (niveau ${proof.programs}).`;
+  const title = `${proof.title} : démonstration (${proof.programs})`;
+  const description = describeProof(proof);
   return {
     title,
     description,
@@ -58,11 +70,19 @@ export default async function DemonstrationPage({ params }: Props) {
     <article>
       {proof.published && (
         <JsonLd
-          data={breadcrumb([
-            ["Accueil", "/"],
-            ["Démonstrations", "/demonstrations"],
-            [proof.title, demonstrationPath(proof.slug)],
-          ])}
+          data={[
+            breadcrumb([
+              ["Accueil", "/"],
+              ["Démonstrations", "/demonstrations"],
+              [proof.title, demonstrationPath(proof.slug)],
+            ]),
+            noteData(proof, {
+              url: demonstrationPath(proof.slug),
+              description: describeProof(proof),
+              siteUrl: SITE_URL,
+              topicUrl: proof.topic ? `${SITE_URL}${chapterPath(proof.topic)}` : null,
+            }),
+          ]}
         />
       )}
       <nav aria-label="Fil d'Ariane" className="text-sm text-mute">

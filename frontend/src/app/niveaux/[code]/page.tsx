@@ -6,7 +6,8 @@ import { ChipRow, chipLinkClass } from "@/components/ChipRow";
 import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { PagedExerciseList, shownCount } from "@/components/ExerciseList";
 import { JsonLd, breadcrumb } from "@/components/JsonLd";
-import { fetchExercises, fetchLevels, fetchTopics, type Level } from "@/lib/api";
+import { fetchCourseNotes, fetchDemonstrations, fetchExercises, fetchLevels, fetchTopics, type Level } from "@/lib/api";
+import { courseNotePath, demonstrationPath, forLevel } from "@/lib/course-notes";
 import { plural } from "@/lib/labels";
 import { LEVEL_INTROS, chapterPath, levelPath } from "@/lib/seo-pages";
 import { SHARE_IMAGE } from "@/lib/site";
@@ -46,13 +47,21 @@ export default async function LevelPage({ params, searchParams }: Props) {
   try {
     const level = await findLevel(code);
     if (!level) notFound();
-    const [exercises, topics] = await Promise.all([fetchExercises(level.code), fetchTopics()]);
-    data = { level, exercises, topics };
+    const [exercises, topics, notes, proofs] = await Promise.all([
+      fetchExercises(level.code),
+      fetchTopics(),
+      fetchCourseNotes().catch(() => []),
+      fetchDemonstrations().catch(() => []),
+    ]);
+    data = { level, exercises, topics, notes, proofs };
   } catch (error) {
     logApiError(error);
     return <ApiUnavailable />;
   }
   const { level, exercises, topics } = data;
+  // Le cours et les démonstrations au programme de ce niveau, pour réviser après la liste.
+  const lessons = forLevel(data.notes, level.code);
+  const theorems = forLevel(data.proofs, level.code);
   // Les chapitres présents à ce niveau, dans l'ordre du catalogue.
   const present = new Set(exercises.flatMap((exercise) => exercise.topics));
   const chapters = topics.filter((topic) => topic.parent === null && present.has(topic.name));
@@ -119,6 +128,26 @@ export default async function LevelPage({ params, searchParams }: Props) {
           />
         )}
       </section>
+
+      {lessons.length + theorems.length > 0 && (
+        <section aria-labelledby="reviser" className="mt-12">
+          <h2 id="reviser">Réviser le cours de {level.code}</h2>
+          <ChipRow label="Résumés de cours" count={lessons.length}>
+            {lessons.map((note) => (
+              <Link key={note.slug} href={courseNotePath(note.slug)} className={chipLinkClass}>
+                {note.title}
+              </Link>
+            ))}
+          </ChipRow>
+          <ChipRow label="Démonstrations" count={theorems.length}>
+            {theorems.map((proof) => (
+              <Link key={proof.slug} href={demonstrationPath(proof.slug)} className={chipLinkClass}>
+                {proof.title}
+              </Link>
+            ))}
+          </ChipRow>
+        </section>
+      )}
     </>
   );
 }
