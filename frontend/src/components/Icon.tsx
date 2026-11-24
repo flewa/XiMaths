@@ -62,6 +62,7 @@ const PATHS = {
     </>
   ),
   share: <path d="M10 12.5V3M6.5 6.5 10 3l3.5 3.5M4.5 10.5v6h11v-6" />,
+  download: <path d="M10 3v9.5M6.5 9 10 12.5 13.5 9M4.5 16.5h11" />,
   phone: (
     <>
       <rect x="6" y="2.5" width="8" height="15" rx="1.75" />

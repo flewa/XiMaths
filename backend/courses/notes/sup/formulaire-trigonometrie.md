@@ -33,11 +33,19 @@ $$
 $$
 
 $$
-\cos(\pi - x) = -\cos x, \qquad \sin(\pi - x) = \sin x, \qquad \cos(\pi + x) = -\cos x, \qquad \sin(\pi + x) = -\sin x,
+\cos(\pi - x) = -\cos x, \qquad \sin(\pi - x) = \sin x,
 $$
 
 $$
-\cos\left( \frac{\pi}{2} - x \right) = \sin x, \qquad \sin\left( \frac{\pi}{2} - x \right) = \cos x, \qquad \cos\left( \frac{\pi}{2} + x \right) = -\sin x, \qquad \sin\left( \frac{\pi}{2} + x \right) = \cos x.
+\cos(\pi + x) = -\cos x, \qquad \sin(\pi + x) = -\sin x,
+$$
+
+$$
+\cos\left( \frac{\pi}{2} - x \right) = \sin x, \qquad \sin\left( \frac{\pi}{2} - x \right) = \cos x,
+$$
+
+$$
+\cos\left( \frac{\pi}{2} + x \right) = -\sin x, \qquad \sin\left( \frac{\pi}{2} + x \right) = \cos x.
 $$
 
 Pour la tangente, quand les deux membres sont définis : $\tan(\pi + x) = \tan x$ et $\tan\left( \frac{\pi}{2} - x \right) = \dfrac{1}{\tan x}$.
@@ -61,7 +69,11 @@ Les formules de la tangente valent quand $\tan a$, $\tan b$ et le membre de gauc
 ## Duplication et linéarisation
 
 $$
-\cos 2a = \cos^2 a - \sin^2 a = 2\cos^2 a - 1 = 1 - 2\sin^2 a, \qquad \sin 2a = 2 \sin a \cos a, \qquad \tan 2a = \frac{2 \tan a}{1 - \tan^2 a}.
+\cos 2a = \cos^2 a - \sin^2 a = 2\cos^2 a - 1 = 1 - 2\sin^2 a,
+$$
+
+$$
+\sin 2a = 2 \sin a \cos a, \qquad \tan 2a = \frac{2 \tan a}{1 - \tan^2 a}.
 $$
 
 $$
@@ -75,7 +87,11 @@ $$
 $$
 
 $$
-\cos a \cos b = \frac{\cos(a - b) + \cos(a + b)}{2}, \qquad \sin a \sin b = \frac{\cos(a - b) - \cos(a + b)}{2}, \qquad \sin a \cos b = \frac{\sin(a + b) + \sin(a - b)}{2}.
+\cos a \cos b = \frac{\cos(a - b) + \cos(a + b)}{2}, \qquad \sin a \sin b = \frac{\cos(a - b) - \cos(a + b)}{2},
+$$
+
+$$
+\sin a \cos b = \frac{\sin(a + b) + \sin(a - b)}{2}.
 $$
 
 Pour une puissance plus élevée, on passe par les formules d'Euler (voir plus bas).
@@ -131,7 +147,11 @@ $$
 Les formules d'Euler et de Moivre retrouvent toutes les formules précédentes :
 
 $$
-\cos x = \frac{e^{ix} + e^{-ix}}{2}, \qquad \sin x = \frac{e^{ix} - e^{-ix}}{2i}, \qquad (\cos x + i \sin x)^n = \cos(nx) + i \sin(nx) \quad (n \in \Z).
+\cos x = \frac{e^{ix} + e^{-ix}}{2}, \qquad \sin x = \frac{e^{ix} - e^{-ix}}{2i},
+$$
+
+$$
+(\cos x + i \sin x)^n = \cos(nx) + i \sin(nx) \quad (n \in \Z).
 $$
 
 Par exemple, $\cos(a + b) + i \sin(a + b) = e^{i(a + b)} = e^{ia} e^{ib}$ donne les deux formules d'addition à la fois, en développant le produit et en identifiant parties réelle et imaginaire.

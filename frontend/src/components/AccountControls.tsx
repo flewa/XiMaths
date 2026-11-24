@@ -50,7 +50,7 @@ export function LeaderboardVisibility({ visible }: { visible: boolean }) {
 export function VerifyBanner({ email }: { email: string }) {
   const [message, setMessage] = useState<string | null>(null);
   return (
-    <div className="border-b border-hairline bg-accent-soft">
+    <div className="print-hidden border-b border-hairline bg-accent-soft">
       <p className="mx-auto flex max-w-[1180px] gap-2.5 px-5 py-2.5 text-sm leading-relaxed sm:px-10">
         <Icon name="alert" size={17} className="mt-0.5 text-accent-text" />
         <span>

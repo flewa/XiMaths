@@ -106,41 +106,29 @@ Une telle fonction est de classe $\mathcal{C}^\infty$ sur $]{-}r, r[$, et la sé
 
 ## Développements usuels
 
-Pour tout $z \in \C$ :
+Avec, entre parenthèses, où chaque égalité est vraie :
 
 $$
-e^z = \sum_{n=0}^{+\infty} \frac{z^n}{n!}.
-$$
-
-Pour tout $z \in \C$ tel que $|z| < 1$ :
-
-$$
-\frac{1}{1-z} = \sum_{n=0}^{+\infty} z^n.
-$$
-
-Pour tout $x \in \R$ :
-
-$$
-\cos x = \sum_{n=0}^{+\infty} \frac{(-1)^n x^{2n}}{(2n)!}, \qquad \sin x = \sum_{n=0}^{+\infty} \frac{(-1)^n x^{2n+1}}{(2n+1)!},
+e^z = \sum_{n=0}^{+\infty} \frac{z^n}{n!} \quad (z \in \C), \qquad \frac{1}{1-z} = \sum_{n=0}^{+\infty} z^n \quad (z \in \C, \ \lvert z \rvert < 1),
 $$
 
 $$
-\operatorname{ch} x = \sum_{n=0}^{+\infty} \frac{x^{2n}}{(2n)!}, \qquad \operatorname{sh} x = \sum_{n=0}^{+\infty} \frac{x^{2n+1}}{(2n+1)!}.
+\cos x = \sum_{n=0}^{+\infty} \frac{(-1)^n x^{2n}}{(2n)!}, \qquad \sin x = \sum_{n=0}^{+\infty} \frac{(-1)^n x^{2n+1}}{(2n+1)!} \qquad (x \in \R),
 $$
 
-Pour tout $x \in \, ]{-}1, 1[$ :
-
 $$
-\ln(1+x) = \sum_{n=1}^{+\infty} \frac{(-1)^{n-1}}{n} x^n, \qquad \arctan x = \sum_{n=0}^{+\infty} \frac{(-1)^n}{2n+1} x^{2n+1}.
+\operatorname{ch} x = \sum_{n=0}^{+\infty} \frac{x^{2n}}{(2n)!}, \qquad \operatorname{sh} x = \sum_{n=0}^{+\infty} \frac{x^{2n+1}}{(2n+1)!} \qquad (x \in \R),
 $$
 
-Pour tout $\alpha \in \R$ et tout $x \in \, ]{-}1, 1[$ :
-
 $$
-(1+x)^\alpha = 1 + \sum_{n=1}^{+\infty} \frac{\alpha (\alpha - 1) \cdots (\alpha - n + 1)}{n!} x^n.
+\ln(1+x) = \sum_{n=1}^{+\infty} \frac{(-1)^{n-1}}{n} x^n, \qquad \arctan x = \sum_{n=0}^{+\infty} \frac{(-1)^n}{2n+1} x^{2n+1} \qquad (x \in \, ]{-}1, 1[),
 $$
 
-Les rayons de convergence sont $+\infty$ pour les quatre premières lignes, et $1$ pour $\ln(1+x)$, $\arctan x$ et $\frac{1}{1-z}$. Pour $(1+x)^\alpha$, le rayon vaut $1$ si $\alpha \notin \N$, et $+\infty$ si $\alpha \in \N$ (la somme est alors un polynôme).
+$$
+(1+x)^\alpha = 1 + \sum_{n=1}^{+\infty} \frac{\alpha (\alpha - 1) \cdots (\alpha - n + 1)}{n!} x^n \qquad (\alpha \in \R, \ x \in \, ]{-}1, 1[).
+$$
+
+Les rayons de convergence sont $+\infty$ pour $e^z$, $\cos$, $\sin$, $\operatorname{ch}$ et $\operatorname{sh}$, et $1$ pour $\frac{1}{1-z}$, $\ln(1+x)$ et $\arctan x$. Pour $(1+x)^\alpha$, le rayon vaut $1$ si $\alpha \notin \N$, et $+\infty$ si $\alpha \in \N$ (la somme est alors un polynôme).
 
 ## Méthodes
 

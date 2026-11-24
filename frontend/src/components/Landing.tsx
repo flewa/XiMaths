@@ -100,6 +100,9 @@ function Explore({ levels }: { levels: Level[] }) {
             <Link href="/rappels" className={exploreLink}>
               Rappels de cours
             </Link>
+            <Link href="/fiches-revision" className={exploreLink}>
+              Fiches PDF
+            </Link>
             <Link href="/demonstrations" className={exploreLink}>
               Démonstrations
             </Link>

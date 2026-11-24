@@ -17,6 +17,7 @@ import {
   aboutTopics,
   forLevel,
   frenchSpacing,
+  isFormulaSheet,
   neighbours,
   notePath,
   outline,
@@ -154,5 +155,14 @@ describe("programmes", () => {
 
   it("garde les textes des notions demandées, dans leur ordre", () => {
     expect(aboutTopics(notes, ["reduction", "derivation"]).map((note) => note.slug)).toEqual(["b", "c", "a"]);
+  });
+});
+
+describe("formulaires", () => {
+  it("se reconnaissent à leur nom de fichier, pas au mot « usuel » du titre", () => {
+    expect(isFormulaSheet({ slug: "formulaire-trigonometrie" })).toBe(true);
+    expect(isFormulaSheet({ slug: "derivees-primitives-usuelles" })).toBe(true);
+    expect(isFormulaSheet({ slug: "fonctions-usuelles" })).toBe(false);
+    expect(isFormulaSheet({ slug: "structures-algebriques" })).toBe(false);
   });
 });
