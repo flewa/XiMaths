@@ -7,6 +7,8 @@ import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { JsonLd, breadcrumb } from "@/components/JsonLd";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { Outline } from "@/components/Outline";
+import { PdfLink } from "@/components/PdfLink";
+import { PrintSource } from "@/components/PrintSource";
 import { fetchCourseNote, fetchCourseNotes, fetchDemonstrations, fetchMe, nullOnError } from "@/lib/api";
 import {
   PROOF_STATUS,
@@ -67,7 +69,8 @@ export default async function DemonstrationPage({ params }: Props) {
   const status = proof.status ? PROOF_STATUS[proof.status] : null;
 
   return (
-    <article>
+    <article className="print-sheet">
+      <p className="print-only text-sm text-mute">XiMaths · Démonstrations</p>
       {proof.published && (
         <JsonLd
           data={[
@@ -95,6 +98,7 @@ export default async function DemonstrationPage({ params }: Props) {
       <p className="mt-3 text-mute">
         {status ? status.label : "Démonstration"} · niveau {proof.programs}
       </p>
+      <PdfLink slug={proof.slug} published={proof.published} />
       {me?.is_staff && <CourseNoteReview slug={proof.slug} published={proof.published} noun="démonstration" />}
 
       <Outline items={parts} />
@@ -121,6 +125,8 @@ export default async function DemonstrationPage({ params }: Props) {
           )}
         </div>
       )}
+
+      <PrintSource path={demonstrationPath(proof.slug)} practicePath={proof.topic ? chapterPath(proof.topic) : null} />
 
       {(previous || next) && (
         <nav aria-label="Démonstrations voisines" className="mt-8 flex flex-wrap justify-between gap-4 text-sm">

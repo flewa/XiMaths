@@ -34,7 +34,7 @@ export function CourseNoteReview({
   return (
     <section
       aria-label={`Relecture de la ${noun}`}
-      className="mt-6 space-y-3 rounded-xl border border-hairline bg-surface-soft p-4 text-sm"
+      className="print-hidden mt-6 space-y-3 rounded-xl border border-hairline bg-surface-soft p-4 text-sm"
     >
       <p className="text-body">
         {published ? (

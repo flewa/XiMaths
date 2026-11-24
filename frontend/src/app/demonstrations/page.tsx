@@ -69,6 +69,11 @@ export default async function DemonstrationsPage() {
         Les démonstrations complètes des grands théorèmes de deuxième année (MP, MPI) et de L2, étape par étape,
         puis quelques classiques qui sortent du cours.
       </p>
+      <p className="mt-4">
+        <Link href="/fiches-revision#demonstrations" className="font-medium text-ink underline decoration-stone underline-offset-4 hover:decoration-ink">
+          Toutes les démonstrations en PDF, à imprimer
+        </Link>
+      </p>
       <p className="mt-3 max-w-[65ch] text-sm text-mute">
         Chaque démonstration indique sa place dans le programme de prépa (MPSI, MP) : à savoir refaire, énoncé au
         programme dont la preuve ne l&apos;est pas, ou hors programme.

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { fetchSitemap } from "@/lib/api";
+import { pdfPath } from "@/lib/fiches-pdf";
 import { chapterPath, levelPath } from "@/lib/seo-pages";
 import { SITE_URL } from "@/lib/site";
 
@@ -24,7 +25,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .filter((topic) => topic.exercises > 0)
         .map((topic) => ({ url: `${SITE_URL}${chapterPath(topic.slug)}` })),
       // Rappels de cours publiés par l'équipe ; aucun tant qu'ils sont en relecture.
-      ...(courseNotes.length > 0 ? [{ url: `${SITE_URL}/rappels` }] : []),
+      ...(courseNotes.length > 0 ? [{ url: `${SITE_URL}/rappels` }, { url: `${SITE_URL}/fiches-revision` }] : []),
+      // Les fiches en PDF aussi : on les cherche telles quelles (« formulaire trigonométrie pdf »).
+      ...[...courseNotes, ...demonstrations]
+        .filter((note) => pdfPath(note.slug))
+        .map((note) => ({ url: `${SITE_URL}${pdfPath(note.slug)}`, lastModified: note.updated_at })),
       ...courseNotes.map((note) => ({ url: `${SITE_URL}/rappels/${note.slug}`, lastModified: note.updated_at })),
       ...(demonstrations.length > 0 ? [{ url: `${SITE_URL}/demonstrations` }] : []),
       ...demonstrations.map((note) => ({

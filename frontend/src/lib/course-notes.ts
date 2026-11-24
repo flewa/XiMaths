@@ -155,3 +155,17 @@ export function noteData(
     publisher: { "@type": "Organization", name: "XiMaths", url: siteUrl },
   };
 }
+
+// Les formulaires, par leur nom de fichier : « Fonctions usuelles » est une fiche de cours,
+// « Dérivées et primitives usuelles » un formulaire. Un nouveau formulaire : « formulaire-… ».
+const FORMULA_SHEETS = new Set([
+  "derivees-primitives-usuelles",
+  "sommes-usuelles",
+  "limites-equivalents-usuels",
+  "inegalites-classiques",
+]);
+
+/** Un formulaire plutôt qu'un résumé de cours : il se titre et se range à part. */
+export function isFormulaSheet(note: Pick<CourseNoteSummary, "slug">) {
+  return note.slug.startsWith("formulaire-") || FORMULA_SHEETS.has(note.slug);
+}

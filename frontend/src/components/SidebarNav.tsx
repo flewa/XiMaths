@@ -443,7 +443,7 @@ export function MobileBar({
     <>
       {/* Le tiroir est un frère de la barre, pas un enfant : le flou de la barre ferait de
         celle-ci le cadre de tout élément fixe placé dedans. */}
-      <div className="sticky top-0 z-20 flex h-14 items-center gap-1 bg-canvas/95 px-2 backdrop-blur lg:hidden">
+      <div className="print-hidden sticky top-0 z-20 flex h-14 items-center gap-1 bg-canvas/95 px-2 backdrop-blur lg:hidden">
         <button
           type="button"
           aria-label="Ouvrir le menu"

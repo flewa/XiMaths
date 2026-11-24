@@ -649,3 +649,87 @@
   border: 2.5px solid var(--red);
   border-radius: 50%;
 }
+
+/* ---------- Fiches de révision : impression et PDF ----------
+   Une fiche ou une démonstration (.print-sheet) s'imprime en clair, sans menus ni boutons,
+   avec un QR code vers le site à la fin. Les PDF téléchargeables en sortent
+   (scripts/fiches-pdf.mjs), qui réduit aussi les formules trop larges pour la page. */
+.print-only {
+  display: none;
+}
+
+@page fiche {
+  size: A4;
+  margin: 16mm 15mm 18mm;
+}
+
+@media print {
+  html:has(.print-sheet),
+  html:has(.print-sheet)[data-theme] {
+    --canvas: #ffffff;
+    --sidebar: #ffffff;
+    --surface-soft: #f5f5f3;
+    --surface-card: #ececea;
+    --ink: #1f1f1f;
+    --ink-deep: #111111;
+    --body: #2f2f2f;
+    --mute: #5f5e5a;
+    --stone: #8f8e8a;
+    --hairline: rgba(0, 0, 0, 0.14);
+    --hairline-strong: rgba(0, 0, 0, 0.22);
+    --accent: #c73e35;
+    --accent-text: #b8372e;
+    --accent-soft: rgba(199, 62, 53, 0.08);
+    color-scheme: light;
+    font-size: 10.5pt;
+    background: #ffffff;
+  }
+  body:has(.print-sheet) {
+    padding: 0 !important;
+    background: #ffffff;
+  }
+  body:has(.print-sheet) aside,
+  body:has(.print-sheet) nav,
+  body:has(.print-sheet) footer,
+  body:has(.print-sheet) .print-hidden {
+    display: none !important;
+  }
+  body:has(.print-sheet) main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+  body:has(.print-sheet) main > div {
+    max-width: none !important;
+  }
+  .print-sheet {
+    page: fiche;
+  }
+  .print-sheet .print-only {
+    display: block;
+  }
+  .print-sheet h1 {
+    font-size: 22pt;
+  }
+  .print-sheet h2 {
+    font-size: 15pt;
+    break-after: avoid;
+  }
+  .print-sheet h3 {
+    break-after: avoid;
+  }
+  .print-sheet.course-note h2,
+  .print-sheet .course-note h2 {
+    margin: 1.4rem 0 0.5rem;
+  }
+  .print-sheet blockquote,
+  .print-sheet .katex-display,
+  .print-sheet li {
+    break-inside: avoid;
+  }
+  .print-sheet .math-markdown .katex-display {
+    overflow: visible;
+  }
+  .print-sheet a {
+    color: inherit;
+  }
+}

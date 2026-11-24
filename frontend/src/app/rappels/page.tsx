@@ -64,6 +64,11 @@ export default async function CourseNotesPage() {
         Le programme de prépa scientifique, chapitre par chapitre : définitions, théorèmes avec leurs hypothèses
         exactes, méthodes et pièges fréquents. De quoi revoir le cours avant d&apos;attaquer les exercices.
       </p>
+      <p className="mt-4">
+        <Link href="/fiches-revision" className="font-medium text-ink underline decoration-stone underline-offset-4 hover:decoration-ink">
+          Toutes les fiches en PDF, à imprimer
+        </Link>
+      </p>
       <p className="mt-3 max-w-[65ch] text-sm text-mute">
         Pour l&apos;instant, les fiches couvrent la prépa scientifique (MPSI, MP2I, PCSI, MP, PSI). La licence, le master,
         la BCPST et les prépas ECG et B/L viendront ensuite ; leurs exercices sont déjà sur le site.

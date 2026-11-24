@@ -7,12 +7,15 @@ import { ApiUnavailable, logApiError } from "@/components/ExerciseMeta";
 import { JsonLd, breadcrumb } from "@/components/JsonLd";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { Outline } from "@/components/Outline";
+import { PdfLink } from "@/components/PdfLink";
+import { PrintSource } from "@/components/PrintSource";
 import { fetchCourseNote, fetchCourseNotes, fetchDemonstrations, fetchMe, nullOnError } from "@/lib/api";
 import {
   courseNotePath,
   cycleOf,
   demonstrationPath,
   frenchSpacing,
+  isFormulaSheet,
   neighbours,
   noteData,
   outline,
@@ -22,15 +25,13 @@ import { SHARE_IMAGE, SITE_URL } from "@/lib/site";
 
 // Ce que tapent les élèves : « formulaire de trigonométrie », « primitives usuelles »,
 // « résumé de cours » plutôt que « rappels ».
-const FORMULA_SHEET = /usuel|classiques/i;
-
-function noteHeading(title: string) {
-  if (/^formulaire/i.test(title)) return title;
-  return FORMULA_SHEET.test(title) ? `${title} : formulaire` : `${title} : résumé de cours`;
+function noteHeading(note: { slug: string; title: string }) {
+  if (/^formulaire/i.test(note.title)) return note.title;
+  return isFormulaSheet(note) ? `${note.title} : formulaire` : `${note.title} : résumé de cours`;
 }
 
-function describeNote(note: { title: string; programs: string }, cycle: string) {
-  if (/^formulaire/i.test(note.title) || FORMULA_SHEET.test(note.title)) {
+function describeNote(note: { slug: string; title: string; programs: string }, cycle: string) {
+  if (isFormulaSheet(note)) {
     return `${note.title} : toutes les formules à connaître en prépa ${cycle.toLowerCase()} et en licence (${note.programs}), avec leurs conditions de validité et les pièges fréquents.`;
   }
   return `${note.title} : résumé de cours de prépa ${cycle.toLowerCase()} (${note.programs}). Définitions, théorèmes avec leurs hypothèses exactes, formules, méthodes et pièges fréquents.`;
@@ -43,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const note = await fetchCourseNote(slug).catch(nullOnError);
   if (!note) return { title: "Rappels de cours" };
   const cycle = cycleOf(note);
-  const title = `${noteHeading(note.title)} (${note.programs})`;
+  const title = `${noteHeading(note)} (${note.programs})`;
   const description = describeNote(note, cycle.short);
   return {
     title,
@@ -80,7 +81,8 @@ export default async function CourseNotePage({ params }: Props) {
   const parts = outline(note.body);
 
   return (
-    <article>
+    <article className="print-sheet">
+      <p className="print-only text-sm text-mute">XiMaths · {cycle.label}</p>
       {note.published && (
         <JsonLd
           data={[
@@ -108,6 +110,7 @@ export default async function CourseNotePage({ params }: Props) {
       <p className="mt-3 text-mute">
         {cycle.label} · {note.programs}
       </p>
+      <PdfLink slug={note.slug} published={note.published} />
       {me?.is_staff && <CourseNoteReview slug={note.slug} published={note.published} />}
 
       <Outline items={parts} />
@@ -132,6 +135,8 @@ export default async function CourseNotePage({ params }: Props) {
           ))}
         </div>
       )}
+
+      <PrintSource path={courseNotePath(note.slug)} practicePath={note.topic ? chapterPath(note.topic) : null} />
 
       {(previous || next) && (
         <nav aria-label="Fiches voisines" className="mt-8 flex flex-wrap justify-between gap-4 text-sm">
