@@ -12,7 +12,17 @@ import { normalizeMath } from "@/components/MathMarkdown";
 import { MACROS } from "@/lib/katex-macros";
 
 import type { CourseNoteSummary } from "./api";
-import { CONVENTIONS, frenchSpacing, neighbours, notePath, outline, proofSections } from "./course-notes";
+import {
+  CONVENTIONS,
+  aboutTopics,
+  forLevel,
+  frenchSpacing,
+  neighbours,
+  notePath,
+  outline,
+  programList,
+  proofSections,
+} from "./course-notes";
 
 // Les fiches et les démonstrations de la rédaction, écrites côté serveur (backend/courses/notes/).
 const NOTES = join(__dirname, "../../../backend/courses/notes");
@@ -125,5 +135,24 @@ describe("outline", () => {
       const headings = text.split("\n").filter((line) => line.startsWith("## ")).length;
       expect(outline(text).length, name).toBe(headings);
     }
+  });
+});
+
+describe("programmes", () => {
+  const notes = [
+    { slug: "a", programs: "MPSI, MP2I, PCSI", topic: "derivation" },
+    { slug: "b", programs: "MP, MPI, L2", topic: "reduction" },
+    { slug: "c", programs: "MPSI", topic: "reduction" },
+  ];
+
+  it("lit la liste des filières et filtre par niveau", () => {
+    expect(programList(notes[0])).toEqual(["MPSI", "MP2I", "PCSI"]);
+    expect(forLevel(notes, "MPSI").map((note) => note.slug)).toEqual(["a", "c"]);
+    expect(forLevel(notes, "L2").map((note) => note.slug)).toEqual(["b"]);
+    expect(forLevel(notes, "MP")).toEqual([notes[1]]); // « MP » ne prend pas « MPSI »
+  });
+
+  it("garde les textes des notions demandées, dans leur ordre", () => {
+    expect(aboutTopics(notes, ["reduction", "derivation"]).map((note) => note.slug)).toEqual(["b", "c", "a"]);
   });
 });

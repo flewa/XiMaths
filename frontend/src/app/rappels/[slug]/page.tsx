@@ -8,9 +8,33 @@ import { JsonLd, breadcrumb } from "@/components/JsonLd";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { Outline } from "@/components/Outline";
 import { fetchCourseNote, fetchCourseNotes, fetchDemonstrations, fetchMe, nullOnError } from "@/lib/api";
-import { courseNotePath, cycleOf, demonstrationPath, frenchSpacing, neighbours, outline } from "@/lib/course-notes";
+import {
+  courseNotePath,
+  cycleOf,
+  demonstrationPath,
+  frenchSpacing,
+  neighbours,
+  noteData,
+  outline,
+} from "@/lib/course-notes";
 import { chapterPath, ofChapter } from "@/lib/seo-pages";
-import { SHARE_IMAGE } from "@/lib/site";
+import { SHARE_IMAGE, SITE_URL } from "@/lib/site";
+
+// Ce que tapent les élèves : « formulaire de trigonométrie », « primitives usuelles »,
+// « résumé de cours » plutôt que « rappels ».
+const FORMULA_SHEET = /usuel|classiques/i;
+
+function noteHeading(title: string) {
+  if (/^formulaire/i.test(title)) return title;
+  return FORMULA_SHEET.test(title) ? `${title} : formulaire` : `${title} : résumé de cours`;
+}
+
+function describeNote(note: { title: string; programs: string }, cycle: string) {
+  if (/^formulaire/i.test(note.title) || FORMULA_SHEET.test(note.title)) {
+    return `${note.title} : toutes les formules à connaître en prépa ${cycle.toLowerCase()} et en licence (${note.programs}), avec leurs conditions de validité et les pièges fréquents.`;
+  }
+  return `${note.title} : résumé de cours de prépa ${cycle.toLowerCase()} (${note.programs}). Définitions, théorèmes avec leurs hypothèses exactes, formules, méthodes et pièges fréquents.`;
+}
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -19,8 +43,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const note = await fetchCourseNote(slug).catch(nullOnError);
   if (!note) return { title: "Rappels de cours" };
   const cycle = cycleOf(note);
-  const title = `${note.title} : rappels de cours (${cycle.short}, ${note.programs})`;
-  const description = `${note.title}, rappels de cours de prépa ${cycle.short.toLowerCase()} (${note.programs}) : définitions, théorèmes avec leurs hypothèses, méthodes et pièges fréquents.`;
+  const title = `${noteHeading(note.title)} (${note.programs})`;
+  const description = describeNote(note, cycle.short);
   return {
     title,
     description,
@@ -59,11 +83,19 @@ export default async function CourseNotePage({ params }: Props) {
     <article>
       {note.published && (
         <JsonLd
-          data={breadcrumb([
-            ["Accueil", "/"],
-            ["Rappels de cours", "/rappels"],
-            [note.title, courseNotePath(note.slug)],
-          ])}
+          data={[
+            breadcrumb([
+              ["Accueil", "/"],
+              ["Rappels de cours", "/rappels"],
+              [note.title, courseNotePath(note.slug)],
+            ]),
+            noteData(note, {
+              url: courseNotePath(note.slug),
+              description: describeNote(note, cycle.short),
+              siteUrl: SITE_URL,
+              topicUrl: note.topic ? `${SITE_URL}${chapterPath(note.topic)}` : null,
+            }),
+          ]}
         />
       )}
       <nav aria-label="Fil d'Ariane" className="text-sm text-mute">

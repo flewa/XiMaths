@@ -275,6 +275,17 @@
   padding-left: 0.2em;
 }
 
+/* Un lien dans un texte rendu (fiche, énoncé) se voit comme un lien. */
+.math-markdown a {
+  text-decoration: underline;
+  text-decoration-color: var(--stone);
+  text-underline-offset: 4px;
+}
+
+.math-markdown a:hover {
+  text-decoration-color: currentColor;
+}
+
 .math-markdown li::marker {
   color: var(--mute);
 }

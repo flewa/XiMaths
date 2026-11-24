@@ -31,8 +31,11 @@ import {
   fetchMySolutions,
   fetchRelated,
   fetchTopics,
+  fetchCourseNotes,
+  fetchDemonstrations,
   nullOnError,
   type AuthorReview,
+  type CourseNoteSummary,
   type DiscussionMessage,
   type ExerciseDetail,
   type ExerciseStats,
@@ -44,6 +47,7 @@ import {
   type MySolution,
   type Topic,
 } from "@/lib/api";
+import { aboutTopics, courseNotePath, demonstrationPath } from "@/lib/course-notes";
 import { SOLUTION_STATUS_LABELS, dateFormat } from "@/lib/labels";
 import { excerpt } from "@/lib/seo";
 import { chapterPath, levelPath, ofChapter } from "@/lib/seo-pages";
@@ -162,14 +166,19 @@ export default async function ExercisePage({ params }: Props) {
   let messages: DiscussionMessage[];
   let modelCopy: ModelCopy | null;
   let candidates: ModelCandidate[] = [];
+  let courseNotes: CourseNoteSummary[];
+  let proofs: CourseNoteSummary[];
   try {
-    [exercise, me, topics, related, messages, modelCopy] = await Promise.all([
+    [exercise, me, topics, related, messages, modelCopy, courseNotes, proofs] = await Promise.all([
       fetchExercise(id),
       fetchMe(),
       fetchTopics(),
       fetchRelated(Number(id)),
       fetchMessages(Number(id)),
       fetchModelCopy(Number(id)),
+      // Le cours de la notion, à côté de l'exercice : sans lui, la page ne vit pas.
+      fetchCourseNotes().catch(() => []),
+      fetchDemonstrations().catch(() => []),
     ]);
     if (exercise && me) mySolutions = await fetchMySolutions(exercise.id);
     // L'équipe choisit la copie modèle depuis la page de l'exercice.
@@ -185,6 +194,12 @@ export default async function ExercisePage({ params }: Props) {
   if (exercise.merged_into) permanentRedirect(`/exercices/${exercise.merged_into}`);
 
   const pending = mySolutions.some((s) => s.status === "under_review");
+  // Les notions de l'exercice d'abord, plus précises que ses chapitres.
+  const topicSlugs = [...exercise.notions, ...exercise.topics]
+    .map((name) => topics.find((topic) => topic.name === name)?.slug)
+    .filter((slug): slug is string => Boolean(slug));
+  const lessons = aboutTopics(courseNotes, topicSlugs).slice(0, 3);
+  const theorems = aboutTopics(proofs, topicSlugs).slice(0, 3);
 
   return (
     <article>
@@ -273,6 +288,30 @@ export default async function ExercisePage({ params }: Props) {
               <MathMarkdown>{hint}</MathMarkdown>
             </details>
           ))}
+        </section>
+      )}
+
+      {lessons.length + theorems.length > 0 && (
+        <section aria-labelledby="cours" className={section}>
+          <h2 id="cours" className={sectionTitle}>
+            Revoir le cours
+          </h2>
+          <ul className="space-y-1">
+            {lessons.map((note) => (
+              <li key={note.slug}>
+                <Link href={courseNotePath(note.slug)} className="inline-flex min-h-8 items-center underline decoration-stone underline-offset-4 hover:decoration-ink">
+                  Résumé de cours : {note.title}
+                </Link>
+              </li>
+            ))}
+            {theorems.map((proof) => (
+              <li key={proof.slug}>
+                <Link href={demonstrationPath(proof.slug)} className="inline-flex min-h-8 items-center underline decoration-stone underline-offset-4 hover:decoration-ink">
+                  Démonstration : {proof.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 
