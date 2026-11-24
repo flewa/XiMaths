@@ -1,6 +1,6 @@
 ---
 titre: Espaces préhilbertiens réels
-programmes: MPSI, MP2I
+programmes: MPSI, MP2I, L2
 ordre: 19
 notion: espaces-euclidiens
 ---

@@ -61,8 +61,8 @@ export default async function CourseNotesPage() {
     <>
       <h1>Rappels de cours</h1>
       <p className="mt-4 max-w-[65ch] text-lg text-body">
-        Le programme de prépa scientifique, chapitre par chapitre : définitions, théorèmes avec leurs hypothèses
-        exactes, méthodes et pièges fréquents. De quoi revoir le cours avant d&apos;attaquer les exercices.
+        Le programme de prépa scientifique et de licence, chapitre par chapitre : définitions, théorèmes avec leurs
+        hypothèses exactes, méthodes et pièges fréquents. De quoi revoir le cours avant d&apos;attaquer les exercices.
       </p>
       <p className="mt-4">
         <Link href="/fiches-revision" className="font-medium text-ink underline decoration-stone underline-offset-4 hover:decoration-ink">
@@ -70,8 +70,9 @@ export default async function CourseNotesPage() {
         </Link>
       </p>
       <p className="mt-3 max-w-[65ch] text-sm text-mute">
-        Pour l&apos;instant, les fiches couvrent la prépa scientifique (MPSI, MP2I, PCSI, MP, PSI). La licence, le master,
-        la BCPST et les prépas ECG et B/L viendront ensuite ; leurs exercices sont déjà sur le site.
+        Chaque fiche indique les classes et les années de licence qu&apos;elle couvre : MPSI, MP2I, PCSI, MP, PSI, L1,
+        L2 ou L3. Des fiches propres au master et aux prépas BCPST, ECG et B/L viendront ensuite ; leurs exercices
+        sont déjà sur le site.
       </p>
       {review && drafts > 0 && (
         <p className="mt-6 rounded-lg bg-accent-soft px-3 py-2 text-sm text-accent-text">

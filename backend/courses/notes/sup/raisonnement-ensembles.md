@@ -1,6 +1,6 @@
 ---
 titre: Raisonnement et vocabulaire ensembliste
-programmes: MPSI, MP2I
+programmes: MPSI, MP2I, L1
 ordre: 1
 notion: ensembles-applications
 ---

@@ -1,6 +1,6 @@
 ---
 titre: Dérivation et convexité
-programmes: MPSI, MP2I, PCSI
+programmes: MPSI, MP2I, PCSI, L1
 ordre: 8
 notion: derivation
 ---

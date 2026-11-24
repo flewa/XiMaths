@@ -1,6 +1,6 @@
 ---
 titre: Sommes, inégalités et trigonométrie
-programmes: MPSI, MP2I
+programmes: MPSI, MP2I, L1
 ordre: 2
 notion: sommes-recurrence
 ---

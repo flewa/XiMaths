@@ -1,6 +1,6 @@
 ---
 titre: Réduction des endomorphismes
-programmes: MP, PSI
+programmes: MP, PSI, L2
 ordre: 7
 notion: reduction
 ---

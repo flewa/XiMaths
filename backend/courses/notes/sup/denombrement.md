@@ -1,6 +1,6 @@
 ---
 titre: Dénombrement
-programmes: MPSI, MP2I
+programmes: MPSI, MP2I, L1
 ordre: 17
 notion: denombrement
 ---

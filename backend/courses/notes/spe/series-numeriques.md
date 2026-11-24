@@ -1,6 +1,6 @@
 ---
 titre: Séries numériques et familles sommables
-programmes: MP, PSI
+programmes: MP, PSI, L2
 ordre: 1
 notion: series-numeriques
 ---

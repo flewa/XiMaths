@@ -1,6 +1,6 @@
 ---
 titre: Intégration sur un segment
-programmes: MPSI, MP2I, PCSI
+programmes: MPSI, MP2I, PCSI, L1
 ordre: 16
 notion: calcul-integral
 ---

@@ -8,8 +8,9 @@ import { JsonLd, breadcrumb } from "@/components/JsonLd";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { Outline } from "@/components/Outline";
 import { PdfLink } from "@/components/PdfLink";
+import { PracticeInvite, practiceLabel } from "@/components/PracticeInvite";
 import { PrintSource } from "@/components/PrintSource";
-import { fetchCourseNote, fetchCourseNotes, fetchDemonstrations, fetchMe, nullOnError } from "@/lib/api";
+import { fetchCourseNote, fetchCourseNotes, fetchDemonstrations, fetchMe, fetchTopics, nullOnError } from "@/lib/api";
 import {
   courseNotePath,
   cycleOf,
@@ -20,7 +21,7 @@ import {
   noteData,
   outline,
 } from "@/lib/course-notes";
-import { chapterPath, ofChapter } from "@/lib/seo-pages";
+import { chapterPath } from "@/lib/seo-pages";
 import { SHARE_IMAGE, SITE_URL } from "@/lib/site";
 
 // Ce que tapent les élèves : « formulaire de trigonométrie », « primitives usuelles »,
@@ -34,7 +35,8 @@ function describeNote(note: { slug: string; title: string; programs: string }, c
   if (isFormulaSheet(note)) {
     return `${note.title} : toutes les formules à connaître en prépa ${cycle.toLowerCase()} et en licence (${note.programs}), avec leurs conditions de validité et les pièges fréquents.`;
   }
-  return `${note.title} : résumé de cours de prépa ${cycle.toLowerCase()} (${note.programs}). Définitions, théorèmes avec leurs hypothèses exactes, formules, méthodes et pièges fréquents.`;
+  const licence = /\bL\d\b/.test(note.programs) ? " et de licence" : "";
+  return `${note.title} : résumé de cours de prépa ${cycle.toLowerCase()}${licence} (${note.programs}). Définitions, théorèmes avec leurs hypothèses exactes, formules, méthodes et pièges fréquents.`;
 }
 
 type Props = { params: Promise<{ slug: string }> };
@@ -60,22 +62,26 @@ export default async function CourseNotePage({ params }: Props) {
   const { slug } = await params;
   let data;
   try {
-    const [note, notes, me] = await Promise.all([
+    const [note, notes, me, topics] = await Promise.all([
       fetchCourseNote(slug),
       fetchCourseNotes(),
       fetchMe().catch(nullOnError),
+      fetchTopics(),
     ]);
     if (!note) notFound();
     // Une démonstration a sa propre adresse.
     if (note.kind === "demonstration") permanentRedirect(demonstrationPath(note.slug));
     // Les démonstrations du même chapitre, pour aller plus loin que le rappel.
     const proofs = note.topic ? await fetchDemonstrations(note.topic) : [];
-    data = { note, notes, me, proofs };
+    const exercises = topics.find((topic) => topic.slug === note.topic)?.exercises ?? 0;
+    data = { note, notes, me, proofs, exercises };
   } catch (error) {
     logApiError(error);
     return <ApiUnavailable />;
   }
-  const { note, notes, me, proofs } = data;
+  const { note, notes, me, proofs, exercises } = data;
+  // Un visiteur voit l'invitation à s'entraîner ; un membre, le simple lien.
+  const invite = !me && exercises > 0;
   const cycle = cycleOf(note);
   const { previous, next } = neighbours(notes, note.slug);
   const parts = outline(note.body);
@@ -119,13 +125,18 @@ export default async function CourseNotePage({ params }: Props) {
         <MathMarkdown headingIds={parts.map((part) => part.id)}>{frenchSpacing(note.body)}</MathMarkdown>
       </div>
 
-      {note.topic && note.topic_name && (
-        <div className="mt-10 space-y-2 rounded-xl bg-surface-soft px-5 py-4">
-          <p>
-            <Link href={chapterPath(note.topic)} className="font-medium text-ink underline underline-offset-4">
-              S&apos;entraîner : exercices {ofChapter(note.topic_name)}
-            </Link>
-          </p>
+      {note.topic && note.topic_name && invite && (
+        <PracticeInvite topic={note.topic} topicName={note.topic_name} exercises={exercises} slug={note.slug} />
+      )}
+      {note.topic && note.topic_name && (!invite || proofs.length > 0) && (
+        <div className={`${invite ? "mt-4" : "mt-10"} space-y-2 rounded-xl bg-surface-soft px-5 py-4`}>
+          {!invite && (
+            <p>
+              <Link href={chapterPath(note.topic)} className="font-medium text-ink underline underline-offset-4">
+                S&apos;entraîner : {practiceLabel(note.topic_name, exercises)}
+              </Link>
+            </p>
+          )}
           {proofs.map((proof) => (
             <p key={proof.slug}>
               <Link href={demonstrationPath(proof.slug)} className="font-medium text-ink underline underline-offset-4">

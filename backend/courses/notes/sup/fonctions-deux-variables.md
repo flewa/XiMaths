@@ -1,6 +1,6 @@
 ---
 titre: Fonctions de deux variables
-programmes: MPSI, MP2I
+programmes: MPSI, MP2I, L2
 ordre: 21
 notion: fonctions-plusieurs-variables
 ---

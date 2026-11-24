@@ -1,6 +1,6 @@
 ---
 titre: Structures algébriques usuelles
-programmes: MPSI, MP2I
+programmes: MPSI, MP2I, L1
 ordre: 10
 notion: groupes-anneaux
 ---

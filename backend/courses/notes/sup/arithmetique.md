@@ -1,6 +1,6 @@
 ---
 titre: Arithmétique dans ℤ
-programmes: MPSI, MP2I
+programmes: MPSI, MP2I, L1
 ordre: 9
 notion: divisibilite-pgcd
 ---

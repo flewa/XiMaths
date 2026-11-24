@@ -1,6 +1,6 @@
 ---
 titre: Nombres complexes et trigonométrie
-programmes: MPSI, MP2I, PCSI
+programmes: MPSI, MP2I, PCSI, L1
 ordre: 3
 notion: nombres-complexes
 ---

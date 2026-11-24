@@ -1,6 +1,6 @@
 ---
 titre: Fonctions usuelles
-programmes: MPSI, MP2I
+programmes: MPSI, MP2I, L1
 ordre: 4
 notion: fonctions-usuelles
 ---

@@ -1,6 +1,6 @@
 ---
 titre: Équations et systèmes différentiels linéaires
-programmes: MP, PSI
+programmes: MP, PSI, L2
 ordre: 9
 notion: equations-differentielles
 ---

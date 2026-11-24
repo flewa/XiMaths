@@ -1,6 +1,6 @@
 ---
 titre: Probabilités sur un univers fini
-programmes: MPSI, MP2I, PCSI
+programmes: MPSI, MP2I, PCSI, L1
 ordre: 18
 notion: probabilites-conditionnelles
 ---

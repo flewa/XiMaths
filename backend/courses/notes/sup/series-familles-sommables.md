@@ -1,6 +1,6 @@
 ---
 titre: Séries numériques et familles sommables
-programmes: MPSI, MP2I
+programmes: MPSI, MP2I, L2
 ordre: 20
 notion: series-numeriques
 ---

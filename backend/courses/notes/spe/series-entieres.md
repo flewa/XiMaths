@@ -1,6 +1,6 @@
 ---
 titre: Séries entières
-programmes: MP, PSI
+programmes: MP, PSI, L2
 ordre: 3
 notion: series-entieres
 ---

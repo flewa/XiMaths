@@ -1,6 +1,6 @@
 ---
 titre: Intégration sur un intervalle quelconque
-programmes: MP, PSI
+programmes: MP, PSI, L2
 ordre: 4
 notion: integrales-generalisees
 ---

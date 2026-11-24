@@ -1,6 +1,6 @@
 ---
 titre: Groupe symétrique et déterminants
-programmes: MPSI, MP2I, PCSI
+programmes: MPSI, MP2I, PCSI, L1
 ordre: 15
 notion: determinants
 ---

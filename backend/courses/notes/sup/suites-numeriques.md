@@ -1,6 +1,6 @@
 ---
 titre: Nombres réels et suites numériques
-programmes: MPSI, MP2I, PCSI
+programmes: MPSI, MP2I, PCSI, L1
 ordre: 6
 notion: suites-numeriques
 ---

@@ -1,6 +1,6 @@
 ---
 titre: Espaces préhilbertiens et euclidiens
-programmes: MP, PSI
+programmes: MP, PSI, L2
 ordre: 8
 notion: espaces-euclidiens
 ---

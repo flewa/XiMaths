@@ -1,6 +1,6 @@
 ---
 titre: Espaces probabilisés et variables aléatoires discrètes
-programmes: MP, PSI
+programmes: MP, PSI, L2
 ordre: 10
 notion: variables-aleatoires-discretes
 ---
