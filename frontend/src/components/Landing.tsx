@@ -1,6 +1,10 @@
 import { Caveat } from "next/font/google";
 import Link from "next/link";
 
+import type { Level } from "@/lib/api";
+import { LEVEL_TRACKS } from "@/lib/labels";
+import { levelPath } from "@/lib/seo-pages";
+
 import { largePrimaryButtonClass } from "./Form";
 import { Brand } from "./SidebarNav";
 
@@ -16,7 +20,7 @@ const mainAction = largePrimaryButtonClass;
  * Ni barre latérale ni barre du bas (la classe « landing » les masque, voir le gabarit) : le
  * catalogue est à un clic.
  */
-export function Landing() {
+export function Landing({ levels }: { levels: Level[] }) {
   return (
     <div className="landing page-wide">
       <header className="flex items-center justify-between sm:-mt-6">
@@ -54,7 +58,58 @@ export function Landing() {
 
         <CorrectedCopy />
       </div>
+
+      <Explore levels={levels} />
     </div>
+  );
+}
+
+const exploreLink = "inline-flex min-h-6 items-center text-body underline decoration-hairline-strong underline-offset-4 hover:text-ink hover:decoration-ink";
+
+/** Sous le pli, les grandes rubriques du site : un visiteur curieux s'y retrouve, et Google
+ * voit d'un coup d'œil ce qu'il peut proposer sous le nom du site dans ses résultats. */
+function Explore({ levels }: { levels: Level[] }) {
+  const tracks = LEVEL_TRACKS.map((track) => ({
+    ...track,
+    levels: levels.filter((level) => level.track === track.track),
+  })).filter((track) => track.levels.length > 0);
+  return (
+    <nav aria-labelledby="explorer" className="mt-16 border-t border-hairline pt-8 sm:mt-24">
+      <h2 id="explorer" className="text-xl">
+        Explorer XiMaths
+      </h2>
+      <dl className="mt-5 grid gap-x-10 gap-y-5 text-sm sm:grid-cols-2 xl:grid-cols-4">
+        {tracks.map((track) => (
+          <div key={track.track}>
+            <dt className="text-mute">{track.label}</dt>
+            <dd className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
+              {track.levels.map((level) => (
+                <Link key={level.code} href={levelPath(level.code)} title={`Exercices de maths en ${level.name}`} className={exploreLink}>
+                  {level.code}
+                </Link>
+              ))}
+            </dd>
+          </div>
+        ))}
+        <div>
+          <dt className="text-mute">Réviser</dt>
+          <dd className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
+            <Link href="/chapitres" className={exploreLink}>
+              Exercices par chapitre
+            </Link>
+            <Link href="/rappels" className={exploreLink}>
+              Rappels de cours
+            </Link>
+            <Link href="/demonstrations" className={exploreLink}>
+              Démonstrations
+            </Link>
+            <Link href="/defi" className={exploreLink}>
+              Défi du jour
+            </Link>
+          </dd>
+        </div>
+      </dl>
+    </nav>
   );
 }
 

@@ -40,7 +40,15 @@ export const metadata: Metadata = {
 
 // Nom du site et logo dans les résultats de recherche.
 const SITE_DATA = [
-  { "@context": "https://schema.org", "@type": "WebSite", name: "XiMaths", url: `${SITE_URL}/`, inLanguage: "fr" },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "XiMaths",
+    // Les autres façons de l'écrire : Google apprend que « ximaths » n'est pas une faute de frappe.
+    alternateName: ["Xi Maths", "ximaths.fr"],
+    url: `${SITE_URL}/`,
+    inLanguage: "fr",
+  },
   {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -140,11 +148,13 @@ export default async function Home({
   const { niveau, vue } = await searchParams;
   const view = homeView(vue);
   let data;
+  let visitorLevels: Level[] = [];
   try {
     const [levels, me] = await Promise.all([fetchLevels(), fetchMe()]);
     // Le visiteur a son propre accueil : ni fil d'exercices ni suivi à charger.
     if (!me) {
       data = null;
+      visitorLevels = levels;
     } else {
       // Par défaut, les exercices du niveau déclaré.
       const level = niveau === ALL_LEVELS ? undefined : (niveau ?? me.declared_level ?? undefined);
@@ -165,7 +175,7 @@ export default async function Home({
     return (
       <>
         <JsonLd data={SITE_DATA} />
-        <Landing />
+        <Landing levels={visitorLevels} />
       </>
     );
   }
